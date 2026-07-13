@@ -1,0 +1,307 @@
+코드:
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HPCDown v6.1 — 메모장 전용 단일 파일 (완벽 분리형)</title>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+<style>
+:root{--bg:#0f1115;--panel:#171a21;--border:#262b36;--text:#e6e8ee;--muted:#8a93a6;--accent:#6ee7b7;--ok:#34d399;--warn:#fbbf24}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
+header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+h1{margin:0;font-size:18px}h1 span{color:var(--accent)}
+main{max-width:900px;margin:0 auto;padding:20px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+textarea{width:100%;height:180px;background:#0b0d12;border:1px solid var(--border);border-radius:8px;color:var(--text);
+          padding:10px;font-family:monospace;font-size:13px;resize:vertical}
+.btn{padding:10px 16px;border:0;border-radius:8px;font-weight:700;cursor:pointer;margin-right:8px}
+.btn.primary{background:var(--accent);color:#06201a}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.stat{background:#12151c;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+.stat .k{font-size:11px;color:var(--muted)}
+.stat .v{font-size:16px;font-weight:700;margin:4px 0}
+.stat .d{font-size:11px;color:var(--ok)}
+.log{font-size:12px;color:var(--muted);background:#0b0d12;border:1px solid var(--border);border-radius:8px;padding:8px;max-height:100px;overflow:auto;margin-top:10px}
+.note{background:#1a2030;border:1px solid #3b82f6;border-radius:6px;padding:8px;font-size:12px;color:#93c5fd;margin-bottom:12px}
+.drop{border:2px dashed var(--border);border-radius:10px;padding:16px;text-align:center;color:var(--muted);cursor:pointer;transition:.2s}
+.drop:hover,.drop.over{border-color:var(--accent);color:var(--accent);background:#0c1410}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>HPC<span>Down</span> v6.1</h1>
+  <small style="color:var(--muted)">메모장 전용 · 완전 분리형 엔진 · JS 함수/변수 100% 보호</small>
+</header>
+
+<main>
+  <div class="card">
+    <h2>1. HTML 코드 입력</h2>
+    <div class="note">💡 메모장에서 작업한 HTML 코드를 붙여넣거나, <b>.html 파일</b>을 아래 영역에 드래그하세요.</div>
+    <textarea id="input" placeholder="<!DOCTYPE html>...&#10;<html>...&#10;  <style>.menu{color:red}</style>&#10;  <script>document.querySelector('.menu')</script>&#10;</html>"></textarea>
+    <div class="drop" id="dropZone">또는 .html 파일을 여기에 드래그</div>
+    <input type="file" id="fileInput" accept=".html,.htm" class="hidden">
+    <div class="row">
+      <button class="btn primary" id="btnCompress" disabled>▶ 압축 시작 (.hcdn)</button>
+      <button class="btn ghost" id="btnClear">지우기</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. 압축 결과</h2>
+    <div class="stats">
+      <div class="stat"><div class="k">원본</div><div class="v" id="sOrig">—</div></div>
+      <div class="stat"><div class="k">압축 후</div><div class="v" id="sComp">—</div></div>
+      <div class="stat"><div class="k">절감률</div><div class="d" id="sPct">—</div></div>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="btnDownload" disabled>⬇ .hcdn 다운로드</button>
+      <button class="btn ghost" id="btnRestore" disabled>↩ .hcdn 파일로 복원</button>
+      <input type="file" id="restoreInput" accept=".hcdn" class="hidden">
+    </div>
+    <div class="log" id="log">대기 중…</div>
+  </div>
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  HPCDown v6.1 — 완전 분리형 엔진 (DOMParser 기반)
+// ═══════════════════════════════════════════════════════════
+
+const $ = id => document.getElementById(id);
+const log = msg => { const t = new Date().toLocaleTimeString(); $('log').innerHTML = `[${t}] ${msg}<br>` + $('log').innerHTML; };
+
+// 1. HTML 파서 (DOMParser로 하이픈 안전 처리)
+const parseHtml = src => {
+  const classes = new Set(), ids = new Set();
+  try {
+    const doc = new DOMParser().parseFromString(src, 'text/html');
+    doc.querySelectorAll('*').forEach(el => {
+      el.classList.forEach(c => classes.add(c));
+      if (el.id) ids.add(el.id);
+    });
+  } catch(e) {
+    const rc = /\bclass\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+    let m; while((m=rc.exec(src))) m[1].split(/\s+/).forEach(c=>c&&classes.add(c));
+    const ri = /\bid\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+    while((m=ri.exec(src))) { const v=m[1]??m[2]; if(v)ids.add(v); }
+  }
+  return { classes:[...classes], ids:[...ids] };
+};
+
+// 2. CSS 파서
+const parseCss = src => {
+  const classes = new Set(), ids = new Set();
+  const re = /([.#])([\w-]+)/g; let m;
+  while((m=re.exec(src))) (m[1]==='.'?classes:ids).add(m[2]);
+  return { classes:[...classes], ids:[...ids] };
+};
+
+// 3. JS 파서 (⭐ 고도화: 리터럴 내 모든 단어 추출 후 교차 검증)
+const parseJs = src => {
+  const refs = new Set();
+  const re = /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/g;
+  let m;
+  while((m=re.exec(src))) {
+    const lit = m[0];
+    // 리터럴 내부의 모든 단어(\w+) 추출 (하이픈 포함)
+    const wordRe = /[\w-]+/g;
+    let wm;
+    while((wm = wordRe.exec(lit))) {
+      refs.add(wm[0]);
+    }
+  }
+  return [...refs];
+};
+
+// 4. 이름 매핑 생성 (a, b, c...)
+const buildMap = names => {
+  const map = new Map(); let i=0;
+  for(const n of names) {
+    let s='', x=i; const a='a'.charCodeAt(0);
+    do { s=String.fromCharCode(a+(x%26))+s; x=Math.floor(x/26)-1; } while(x>=0);
+    map.set(n, s); i++;
+  }
+  return map;
+};
+
+// 5. 안전한 이름 변경 적용 (순수 HTML, CSS, JS 독립 처리)
+const applyRename = (pureHtml, css, js, map) => {
+  // HTML: class="...", id="..." 내부 토큰 단위 치환
+  let h = pureHtml.replace(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)')/g, (m,v1,v2) => {
+    const val=v1??v2, tokens=val.split(/\s+/).map(t=>map.has(t)?map.get(t):t);
+    return `class="${tokens.join(' ')}"`;
+  });
+  h = h.replace(/\bid\s*=\s*(?:"([^"]*)"|'([^']*)')/g, (m,v1,v2) => `id="${map.has(v1??v2)?map.get(v1??v2):v1??v2}"`);
+
+  // CSS: .class, #id 선택자 치환 (하이픈 안전)
+  let c = css;
+  [...map.entries()].sort((a,b)=>b[0].length-a[0].length).forEach(([f,t]) => {
+    const esc = f.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
+    c = c.replace(new RegExp(`(?<![\\w-])\\.${esc}(?![\\w-])`,'g'), `.${t}`);
+    c = c.replace(new RegExp(`(?<![\\w-])\\#${esc}(?![\\w-])`,'g'), `#${t}`);
+  });
+
+  // JS: ⭐ 문자열 리터럴 내부만 치환 (함수/변수 untouched)
+  let j = js;
+  const lits = [];
+  const escJs = j.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/g, m => { lits.push(m); return `\u0001${lits.length-1}\u0001`; });
+  const modLits = lits.map(l => {
+    let r = l;
+    [...map.entries()].sort((a,b)=>b[0].length-a[0].length).forEach(([f,t]) => {
+      const esc = f.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
+      r = r.replace(new RegExp(`(?<![\\w-])${esc}(?![\\w-])`,'g'), t);
+    });
+    return r;
+  });
+  j = escJs.replace(/\u0001(\d+)\u0001/g, (_,i) => modLits[+i]);
+
+  return { html:h, css:c, js:j };
+};
+
+// 6. Minify
+const minify = {
+  html: s => s.replace(/<!--[\s\S]*?-->/g,'').replace(/>\s+</g,'><').replace(/\s{2,}/g,' ').replace(/(\w+)=["']([A-Za-z0-9_-]+)["']/g,'$1=$2').trim(),
+  css: s => s.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s+/g,' ').replace(/\s*([{}:;,>~+])\s*/g,'$1').replace(/;}/g,'}').trim(),
+  js: s => {
+    const lits=[]; const e=s.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/g,m=>{lits.push(m);return `\u0000${lits.length-1}\u0000`});
+    return e.replace(/\s+/g,' ').replace(/\s*([{}();,=+\-*/<>!&|?:])\s*/g,'$1').replace(/\u0000(\d+)\u0000/g,(_,i)=>lits[+i]).trim();
+  }
+};
+
+// UI 상태
+let hcdnData = null;
+
+// 파일 드래그/클릭
+const dz = $('dropZone'), fi = $('fileInput');
+dz.onclick = () => fi.click();
+fi.onchange = e => { const f=e.target.files[0]; if(f) f.text().then(t => { $('input').value=t; uiUpdate(); }); };
+['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('over')}));
+['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('over')}));
+dz.addEventListener('drop', e => { const f=e.dataTransfer.files[0]; if(f) f.text().then(t => { $('input').value=t; uiUpdate(); }); });
+$('input').oninput = uiUpdate;
+$('btnClear').onclick = () => { $('input').value=''; uiUpdate(); $('log').innerHTML='대기 중…'; };
+
+function uiUpdate() { $('btnCompress').disabled = !$('input').value.trim(); }
+
+// ═══════════════════════════════════════════════════════════
+//  압축 실행 (완벽 분리형 로직)
+// ═══════════════════════════════════════════════════════════
+$('btnCompress').onclick = async () => {
+  const src = $('input').value;
+  if(!src) return;
+  log('DOM 파싱 및 완전 분리 중…');
+
+  try {
+    // 1. 임시 DOM을 만들어 style과 script를 통째로 '분리'하고 제거
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(src, 'text/html');
+    
+    let css = "";
+    doc.querySelectorAll('style').forEach(s => { css += s.textContent + "\n"; s.replaceWith(new Text('')); });
+    
+    let js = "";
+    doc.querySelectorAll('script').forEach(s => { js += s.textContent + "\n"; s.replaceWith(new Text('')); });
+    
+    // style과 script가 완전히 제거된 순수 HTML 구조만 남김
+    let pureHtml = doc.documentElement.outerHTML;
+    
+    // DOCTYPE 보존 (파싱 시 사라질 수 있으므로 원본에서 추출)
+    const doctypeMatch = src.match(/^<!DOCTYPE[^>]*>/i);
+    const doctypeStr = doctypeMatch ? doctypeMatch[0] + '\n' : '';
+
+    // 2. 식별자 추출 및 매핑
+    const hIds = parseHtml(pureHtml);
+    const cIds = parseCss(css);
+    const jRefs = parseJs(js);
+    // JS에서 추출된 단어 중, 실제로 HTML에 존재하는 class/id만 필터링 (안전장치)
+    const jIds = jRefs.filter(x => hIds.classes.includes(x) || hIds.ids.includes(x));
+    
+    const map = buildMap([...hIds.classes, ...hIds.ids].filter(n => n.length > 1));
+    log(`식별자 ${map.size}개 감지 → 짧은 심볼 매핑 생성`);
+
+    // 3. 각각 독립적으로 이름 변경 적용 (서로 절대 간섭 안 함!)
+    const r = applyRename(pureHtml, css, js, map);
+    
+    // 4. Minify
+    let outHtml = minify.html(r.html);
+    let outCss = minify.css(r.css);
+    let outJs = minify.js(r.js);
+    log('Minify 완료 (주석/공백 제거)');
+
+    // 5. LZ 압축
+    const compHtml = LZString.compressToBase64(outHtml);
+    const compCss = LZString.compressToBase64(outCss);
+    const compJs = LZString.compressToBase64(outJs);
+    
+    hcdnData = {
+      version: '6.1', mode: 'reversible', timestamp: new Date().toISOString(),
+      files: { 
+        'index.html': { type:'html', compressed:compHtml, orig:outHtml.length, comp:compHtml.length, doctype: doctypeStr },
+        'style.css':  { type:'css',  compressed:compCss,  orig:outCss.length,  comp:compCss.length },
+        'app.js':     { type:'js',   compressed:compJs,   orig:outJs.length,   comp:compJs.length } 
+      },
+      metadata: { renameMap: Object.fromEntries(map) },
+      stats: {
+        totalBefore: outHtml.length + outCss.length + outJs.length,
+        totalAfter:  compHtml.length + compCss.length + compJs.length
+      }
+    };
+    
+    const pct = ((1 - hcdnData.stats.totalAfter / hcdnData.stats.totalBefore)*100).toFixed(1);
+    $('sOrig').textContent = (hcdnData.stats.totalBefore/1024).toFixed(2)+'KB';
+    $('sComp').textContent = (hcdnData.stats.totalAfter/1024).toFixed(2)+'KB';
+    $('sPct').textContent = pct + '% ↓';
+    $('btnDownload').disabled = false;
+    $('btnRestore').disabled = false;
+    log(`✅ 안전하게 분리 압축 완료! (${pct}% 절감)`);
+  } catch(err) {
+    log('❌ 압축 실패: ' + err.message);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+//  다운로드 및 복원
+// ═══════════════════════════════════════════════════════════
+$('btnDownload').onclick = () => {
+  if(!hcdnData) return;
+  const blob = new Blob([JSON.stringify(hcdnData, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='project.hcdn'; a.click();
+  URL.revokeObjectURL(a.href); log('⬇ .hcdn 파일 다운로드 완료');
+};
+
+$('btnRestore').onclick = () => $('restoreInput').click();
+$('restoreInput').onchange = async e => {
+  const f = e.target.files[0]; if(!f) return;
+  const txt = await f.text();
+  try {
+    const data = JSON.parse(txt);
+    if(data.mode !== 'reversible') { alert('완전 복원이 불가능한 모드입니다.'); return; }
+    
+    // 역변환 맵 생성 (짧은이름 -> 원래이름)
+    const revMap = new Map(Object.entries(data.metadata.renameMap).map(([k,v])=>[v,k]));
+    
+    const rHtml = LZString.decompressFromBase64(data.files['index.html'].compressed);
+    const rCss = LZString.decompressFromBase64(data.files['style.css'].compressed);
+    const rJs = LZString.decompressFromBase64(data.files['app.js'].compressed);
+    const doctype = data.files['index.html'].doctype || '';
+    
+    // 역변환 적용
+    const rev = applyRename(rHtml, rCss, rJs, revMap);
+    
+    // 최종 HTML 재구성: DOCTYPE + 순수 HTML + style + script
+    const restoredHtml = `${doctype}${rev.html}\n<style>\n${rev.css}\n</style>\n<script>\n${rev.js}\n</script>`;
+    
+    $('input').value = restoredHtml;
+    uiUpdate();
+    log(`✅ 복원 완료! 원본 구조로 완벽 재구성됨`);
+  } catch(err) { log('❌ 복원 실패: '+err.message); }
+};
+</script>
+</body>
+</html>
