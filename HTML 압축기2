@@ -1,0 +1,783 @@
+압축기2코드
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>HPCDown v4.1 — 하이픈 안전 + DOMParser</title>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+<style>
+  :root {
+    --bg:#0f1115; --panel:#171a21; --border:#262b36;
+    --text:#e6e8ee; --muted:#8a93a6; --accent:#6ee7b7; --accent2:#60a5fa;
+    --danger:#f87171; --ok:#34d399; --warn:#fbbf24;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:ui-sans-serif,system-ui,"Apple SD Gothic Neo",sans-serif;
+       background:var(--bg);color:var(--text)}
+  header{padding:18px 24px;border-bottom:1px solid var(--border);
+         display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  header h1{margin:0;font-size:18px;letter-spacing:.5px}
+  header h1 span{color:var(--accent)}
+  main{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+         padding:14px;min-height:300px}
+  .panel h2{margin:0 0 10px;font-size:14px;color:var(--muted);
+            text-transform:uppercase;letter-spacing:1px}
+  .drop{border:2px dashed var(--border);border-radius:10px;padding:22px;
+        text-align:center;color:var(--muted);transition:.15s;cursor:pointer}
+  .drop.over{border-color:var(--accent);color:var(--accent);background:#0c1410}
+  .file-list{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:#1f2430;border:1px solid var(--border);border-radius:999px;
+        padding:4px 10px;font-size:12px;display:inline-flex;gap:6px;align-items:center}
+  .chip .t{font-weight:600}
+  .chip.html .t{color:#f59e0b} .chip.css .t{color:#60a5fa} .chip.js .t{color:#fbbf24}
+  .chip.hcdn .t{color:#a78bfa}
+  .chip button{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:14px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  button.primary{background:var(--accent);color:#06201a;border:0;padding:10px 16px;
+        border-radius:8px;font-weight:700;cursor:pointer}
+  button.secondary{background:var(--accent2);color:#06201a;border:0;padding:10px 16px;
+        border-radius:8px;font-weight:700;cursor:pointer}
+  button.ghost{background:transparent;color:var(--text);border:1px solid var(--border);
+        padding:8px 12px;border-radius:8px;cursor:pointer}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  
+  .mode-selector{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+  .mode-card{flex:1;min-width:140px;padding:12px;border:2px solid var(--border);
+             border-radius:8px;cursor:pointer;transition:.2s;background:#12151c}
+  .mode-card:hover{border-color:var(--muted)}
+  .mode-card.active{border-color:var(--accent);background:#0c1410}
+  .mode-card .title{font-weight:700;margin-bottom:4px;color:var(--text)}
+  .mode-card .desc{font-size:11px;color:var(--muted);line-height:1.4}
+  .mode-card .badge{display:inline-block;padding:2px 6px;border-radius:4px;
+                    font-size:10px;margin-top:6px;font-weight:600}
+  .mode-card .badge.ok{background:var(--ok);color:#06201a}
+  .mode-card .badge.no{background:var(--danger);color:#fff}
+  
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+  .stat{background:#12151c;border:1px solid var(--border);border-radius:8px;padding:10px}
+  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase}
+  .stat .v{font-size:16px;font-weight:700;margin-top:4px}
+  .stat .d{font-size:11px;color:var(--ok);margin-top:2px}
+  
+  .bar{height:8px;background:#12151c;border-radius:4px;overflow:hidden;margin-top:6px}
+  .bar > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  
+  .log{font-size:12px;color:var(--muted);max-height:140px;overflow:auto;
+       background:#0b0d12;border:1px solid var(--border);border-radius:8px;padding:8px;margin-top:8px}
+  
+  .pipeline{background:#0b0d12;border:1px solid var(--border);border-radius:8px;padding:10px;
+            margin-top:10px;font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+  .pipeline .step{padding:4px 8px;border-radius:4px;background:#1f2430;transition:.2s}
+  .pipeline .step.done{background:var(--accent);color:#06201a;font-weight:600}
+  .pipeline .step.skip{background:#2a1f1f;color:var(--danger)}
+
+  .tabs{display:flex;gap:6px;margin-bottom:8px}
+  .tab{padding:6px 10px;border:1px solid var(--border);border-radius:6px;
+       font-size:12px;cursor:pointer;color:var(--muted)}
+  .tab.active{color:var(--text);border-color:var(--accent)}
+  pre{background:#0b0d12;border:1px solid var(--border);border-radius:8px;
+      padding:10px;overflow:auto;max-height:360px;font-size:12px;line-height:1.5;
+      white-space:pre-wrap;word-break:break-all}
+  
+  .restore-info{background:#1a2a1a;border:1px solid var(--ok);border-radius:8px;
+                padding:10px;margin-top:10px;font-size:12px;color:var(--ok)}
+  
+  .fix-note{background:#1a2030;border:1px solid var(--accent2);border-radius:8px;
+            padding:10px;margin-bottom:12px;font-size:12px;color:var(--accent2)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>HPC<span>Down</span> v4.1 · DOMParser Edition</h1>
+</header>
+
+<main>
+  <section class="panel">
+    <div class="fix-note">
+      ✅ <b>v4.1 수정사항</b>: <code>btn-primary</code>, <code>card-header</code> 등 하이픈(-) 포함 클래스명 안전 처리<br>
+      🧠 <code>DOMParser()</code> 적용으로 HTML을 실제 태그 구조로 인식
+    </div>
+    
+    <h2>1. 파일 업로드</h2>
+    <div class="drop" id="drop">
+      <b>HTML / CSS / JS</b> 또는 <b>.hcdn</b> 파일을 드래그하거나 클릭하세요<br>
+      <small>(.hcdn 파일은 자동으로 복원 모드로 전환됩니다)</small>
+    </div>
+    <input type="file" id="fileInput" multiple accept=".html,.htm,.css,.js,.hcdn,.txt" style="display:none">
+    <div class="file-list" id="fileList"></div>
+
+    <h2 style="margin-top:18px">2. 압축 모드 선택</h2>
+    <div class="mode-selector" id="modeSelector">
+      <div class="mode-card active" data-mode="lossless">
+        <div class="title">🔒 완전 가역</div>
+        <div class="desc">LZ 압축만 적용. 원본 100% 복원 보장.</div>
+        <div class="badge ok">✓ 복원 가능</div>
+      </div>
+      <div class="mode-card" data-mode="reversible">
+        <div class="title">⚡ 가역 최적화</div>
+        <div class="desc">이름변경+Minify+LZ. 메타데이터로 복원.</div>
+        <div class="badge ok">✓ 복원 가능</div>
+      </div>
+      <div class="mode-card" data-mode="max">
+        <div class="title">🔥 최대 압축</div>
+        <div class="desc">모든 최적화 적용. 복원 불가.</div>
+        <div class="badge no">✗ 복원 불가</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="primary" id="btnRun" disabled>▶ 압축 시작</button>
+      <button class="secondary" id="btnRestore" style="display:none">↩ 원본 복원</button>
+      <button class="ghost" id="btnClear">비우기</button>
+    </div>
+
+    <h2 style="margin-top:18px">3. 처리 파이프라인</h2>
+    <div class="pipeline" id="pipeline">
+      <span class="step" data-step="lz">LZ압축</span>
+      <span class="step" data-step="rename">이름변경</span>
+      <span class="step" data-step="minify">Minify</span>
+      <span class="step" data-step="unused">미사용제거</span>
+    </div>
+
+    <div id="restoreInfo" class="restore-info" style="display:none"></div>
+  </section>
+
+  <section class="panel">
+    <h2>4. 압축 통계</h2>
+    <div class="stats">
+      <div class="stat"><div class="k">HTML</div><div class="v" id="sHtml">—</div><div class="d" id="dHtml"></div></div>
+      <div class="stat"><div class="k">CSS</div><div class="v" id="sCss">—</div><div class="d" id="dCss"></div></div>
+      <div class="stat"><div class="k">JS</div><div class="v" id="sJs">—</div><div class="d" id="dJs"></div></div>
+      <div class="stat"><div class="k">TOTAL</div><div class="v" id="sTotal">—</div>
+        <div class="bar"><div id="barTotal" style="width:0%"></div></div>
+        <div class="d" id="dTotal"></div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:18px">5. 결과 미리보기</h2>
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-t="html">HTML</div>
+      <div class="tab" data-t="css">CSS</div>
+      <div class="tab" data-t="js">JS</div>
+      <div class="tab" data-t="meta">메타데이터</div>
+    </div>
+    <pre id="preview">(결과가 여기에 표시됩니다)</pre>
+
+    <div class="row">
+      <button class="primary" id="btnDownload" disabled>⬇ .hcdn 다운로드</button>
+    </div>
+    <div class="log" id="log">대기 중…</div>
+  </section>
+</main>
+
+<script type="module">
+/* ============================================================
+ *  HPCDown v4.1 — DOMParser 기반 하이픈 안전 처리
+ *  핵심: HTML은 DOM으로, CSS/JS는 토큰 기반으로 처리
+ * ========================================================== */
+
+/* ---------------- Parser ---------------- */
+const HtmlParser = {
+  // DOMParser를 사용하여 정확한 class/id 추출 (하이픈 안전)
+  extractIdentifiers(src){
+    const classes = new Set(), ids = new Set();
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(src, 'text/html');
+      
+      // 모든 요소 순회
+      doc.querySelectorAll('*').forEach(el => {
+        // class 속성에서 개별 클래스 추출
+        if(el.classList && el.classList.length > 0){
+          el.classList.forEach(c => classes.add(c));
+        }
+        // id 속성 추출
+        if(el.id) ids.add(el.id);
+      });
+    } catch(e) {
+      // 파싱 실패 시 정규식 폴백
+      const reClass = /\bclass\s*=\s*["']([^"']+)["']/g;
+      const reId    = /\bid\s*=\s*["']([^"']+)["']/g;
+      let m;
+      while((m = reClass.exec(src))) m[1].split(/\s+/).forEach(c=>c&&classes.add(c));
+      while((m = reId.exec(src)))    ids.add(m[1]);
+    }
+    return { classes:[...classes], ids:[...ids] };
+  }
+};
+
+const CssParser = {
+  // 하이픈 포함 선택자 추출 ([\w-]+ 패턴)
+  extractSelectors(src){
+    const classes = new Set(), ids = new Set();
+    // 하이픈(-)을 포함한 식별자도 매칭
+    const re = /([.#])([\w-]+)/g;
+    let m;
+    while((m = re.exec(src))){
+      (m[1]==='.'?classes:ids).add(m[2]);
+    }
+    return { classes:[...classes], ids:[...ids] };
+  }
+};
+
+const JsParser = {
+  extractStringRefs(src){
+    const refs = new Set();
+    // 하이픈 포함 문자열도 매칭
+    const re = /["'`](?:\.|#)?([\w-]+)["'`]/g;
+    let m;
+    while((m = re.exec(src))){ refs.add(m[1]); }
+    return [...refs];
+  }
+};
+
+/* ---------------- Analyzer ---------------- */
+const DependencyAnalyzer = {
+  build(htmlSrc, cssSrc, jsSrc){
+    const h = HtmlParser.extractIdentifiers(htmlSrc);
+    const c = CssParser.extractSelectors(cssSrc);
+    const jRaw = JsParser.extractStringRefs(jsSrc);
+    const jClasses = jRaw.filter(x=>h.classes.includes(x));
+    const jIds = jRaw.filter(x=>h.ids.includes(x));
+    const classMap = new Map(), idMap = new Map();
+    h.classes.forEach(n=>classMap.set(n,{html:true,css:c.classes.includes(n),js:jClasses.includes(n)}));
+    h.ids.forEach(n=>idMap.set(n,{html:true,css:c.ids.includes(n),js:jIds.includes(n)}));
+    return { classMap, idMap, html:h, css:c };
+  }
+};
+
+/* ---------------- Renamer (v4.1 - DOMParser 기반) ---------------- */
+const IdentifierRenamer = {
+  buildMap(names){
+    const map = new Map();
+    let i = 0;
+    for(const n of names){ map.set(n, this._encode(i++)); }
+    return map;
+  },
+  _encode(n){
+    let s=''; const a='a'.charCodeAt(0);
+    do { s = String.fromCharCode(a + (n%26)) + s; n = Math.floor(n/26)-1; } while(n>=0);
+    return s;
+  },
+  
+  // HTML을 DOM으로 파싱하여 안전하게 class/id 변경 (하이픈 안전!)
+  applyToHtml(html, map){
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      doc.querySelectorAll('*').forEach(el => {
+        // classList 변경 (하이픈 포함 클래스도 안전하게 처리)
+        if(el.classList && el.classList.length > 0){
+          const newClasses = [];
+          el.classList.forEach(c => {
+            newClasses.push(map.has(c) ? map.get(c) : c);
+          });
+          el.className = newClasses.join(' ');
+        }
+        // id 변경
+        if(el.id && map.has(el.id)){
+          el.id = map.get(el.id);
+        }
+      });
+      
+      // doctype 보존
+      let result = '';
+      if(doc.doctype){
+        result += '<!DOCTYPE ' + doc.doctype.name + '>\n';
+      }
+      result += doc.documentElement.outerHTML;
+      return result;
+    } catch(e) {
+      // 파싱 실패 시 토큰 기반 폴백
+      return this._applyToHtmlFallback(html, map);
+    }
+  },
+  
+  // 폴백: 토큰 기반 HTML 처리
+  _applyToHtmlFallback(html, map){
+    let result = html;
+    // class="..." 내부에서 토큰 단위로 치환
+    result = result.replace(/\bclass\s*=\s*["']([^"']+)["']/g, (m, val) => {
+      const tokens = val.split(/\s+/).map(t => map.has(t) ? map.get(t) : t);
+      return `class="${tokens.join(' ')}"`;
+    });
+    // id="..." 치환 (전체 매칭)
+    result = result.replace(/\bid\s*=\s*["']([^"']+)["']/g, (m, val) => {
+      return `id="${map.has(val) ? map.get(val) : val}"`;
+    });
+    return result;
+  },
+  
+  // CSS 변경 (하이픈 포함 선택자 안전 처리)
+  applyToCss(css, map){
+    let result = css;
+    // 긴 이름부터 치환하여 부분치환 방지
+    const entries = [...map.entries()].sort((a,b)=>b[0].length-a[0].length);
+    for(const [from, to] of entries){
+      const esc = from.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
+      // .btn-primary 또는 #main-header 패턴 (하이픈 포함 전체 매칭)
+      // 음수 lookbehind로 더 긴 식별자의 일부가 아닌 경우만 매칭
+      const classRe = new RegExp(`(?<![\\w-])\\.${esc}(?![\\w-])`, 'g');
+      const idRe = new RegExp(`(?<![\\w-])\\#${esc}(?![\\w-])`, 'g');
+      result = result.replace(classRe, `.${to}`);
+      result = result.replace(idRe, `#${to}`);
+    }
+    return result;
+  },
+  
+  // JS 변경 (문자열 리터럴 내에서만 정확한 매칭)
+  applyToJs(js, map){
+    const literals = [];
+    // 문자열 리터럴 추출
+    const escaped = js.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/g,
+      m => { literals.push(m); return `\u0001${literals.length-1}\u0001`; });
+    
+    // 문자열 리터럴 내부에서만 치환
+    const modified = literals.map(lit => {
+      let result = lit;
+      const entries = [...map.entries()].sort((a,b)=>b[0].length-a[0].length);
+      for(const [from, to] of entries){
+        const esc = from.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
+        // 문자열 내에서 정확한 단어 경계 매칭 (하이픈 포함)
+        const re = new RegExp(`(?<![\\w-])${esc}(?![\\w-])`, 'g');
+        result = result.replace(re, to);
+      }
+      return result;
+    });
+    
+    // 리터럴 복원
+    return escaped.replace(/\u0001(\d+)\u0001/g, (_, i) => modified[+i]);
+  },
+  
+  // 통합 apply
+  apply(html, css, js, map){
+    return {
+      html: this.applyToHtml(html, map),
+      css: this.applyToCss(css, map),
+      js: this.applyToJs(js, map)
+    };
+  },
+  
+  // 역변환 (동일한 로직으로 reverse map 적용)
+  reverse(html, css, js, reverseMap){
+    return this.apply(html, css, js, reverseMap);
+  }
+};
+
+/* ---------------- Compressor ---------------- */
+const HtmlCompressor = {
+  run(src){
+    let s = src;
+    s = s.replace(/<!--[\s\S]*?-->/g,'');
+    s = s.replace(/>\s+</g,'><');
+    s = s.replace(/\s{2,}/g,' ');
+    s = s.replace(/(\w+)=["']([A-Za-z0-9_-]+)["']/g,(m,k,v)=>`${k}=${v}`);
+    return s.trim();
+  }
+};
+
+const CssCompressor = {
+  run(src){
+    let s = src;
+    s = s.replace(/\/\*[\s\S]*?\*\//g,'');
+    s = s.replace(/\s+/g,' ');
+    s = s.replace(/\s*([{}:;,>~+])\s*/g,'$1');
+    s = s.replace(/;}/g,'}');
+    s = s.replace(/#([0-9a-fA-F])\1([0-9a-fA-F])\2([0-9a-fA-F])\3\b/g,'#$1$2$3');
+    s = s.replace(/(:|\s)0(?:px|em|rem|pt|ex|ch|vw|vh|vmin|vmax|%)/g,'$1'+'0');
+    return s.trim();
+  }
+};
+
+const JsCompressor = {
+  run(src){
+    let s = src;
+    s = s.replace(/\/\*[\s\S]*?\*\//g,'');
+    s = s.replace(/^\s*\/\/.*$/gm,'');
+    return this._collapseWhitespace(s);
+  },
+  _collapseWhitespace(src){
+    const literals = [];
+    const escaped = src.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/g,
+      m => { literals.push(m); return `\u0000${literals.length-1}\u0000`; });
+    let s = escaped.replace(/\s+/g,' ')
+                   .replace(/\s*([{}();,=+\-*/<>!&|?:])\s*/g,'$1')
+                   .replace(/;}/g,'}');
+    return s.replace(/\u0000(\d+)\u0000/g,(_,i)=>literals[+i]);
+  }
+};
+
+/* ---------------- HCDN Format ---------------- */
+const HCDN_FORMAT = {
+  version: "4.1",
+  
+  compress(files, mode, metadata){
+    const compressed = {};
+    const stats = { html:{before:0,after:0}, css:{before:0,after:0}, js:{before:0,after:0} };
+    
+    for (const [name, { type, content }] of files) {
+      const originalSize = content.length;
+      const compressedData = LZString.compressToBase64(content);
+      compressed[name] = {
+        type,
+        compressed: compressedData,
+        originalSize,
+        compressedSize: compressedData.length
+      };
+      if(stats[type]){
+        stats[type].before += originalSize;
+        stats[type].after += compressedData.length;
+      }
+    }
+    
+    return {
+      version: this.version,
+      mode,
+      timestamp: new Date().toISOString(),
+      files: compressed,
+      metadata,
+      stats: {
+        ...stats,
+        total: {
+          before: stats.html.before + stats.css.before + stats.js.before,
+          after: stats.html.after + stats.css.after + stats.js.after
+        }
+      }
+    };
+  },
+  
+  restore(hcdnData){
+    const files = new Map();
+    
+    for (const [name, fileData] of Object.entries(hcdnData.files)) {
+      let content = LZString.decompressFromBase64(fileData.compressed);
+      
+      if(hcdnData.mode === 'reversible' && hcdnData.metadata?.renameMap){
+        const reverseMap = new Map();
+        for(const [orig, short] of Object.entries(hcdnData.metadata.renameMap)){
+          reverseMap.set(short, orig);
+        }
+        const r = IdentifierRenamer.reverse(
+          fileData.type === 'html' ? content : '',
+          fileData.type === 'css' ? content : '',
+          fileData.type === 'js' ? content : '',
+          reverseMap
+        );
+        if(fileData.type === 'html') content = r.html;
+        if(fileData.type === 'css') content = r.css;
+        if(fileData.type === 'js') content = r.js;
+      }
+      
+      if(hcdnData.mode === 'max' && hcdnData.metadata?.originalCss?.[name]){
+        content = hcdnData.metadata.originalCss[name];
+      }
+      
+      files.set(name, { type: fileData.type, content });
+    }
+    
+    return files;
+  },
+  
+  serialize(hcdnData){ return JSON.stringify(hcdnData, null, 2); },
+  deserialize(str){ return JSON.parse(str); }
+};
+
+/* ---------------- UI ---------------- */
+const UI = {
+  files: new Map(),
+  result: null,
+  hcdnData: null,
+  mode: 'lossless',
+  restoreMode: false,
+
+  els: {
+    drop: document.getElementById('drop'),
+    input: document.getElementById('fileInput'),
+    list: document.getElementById('fileList'),
+    run: document.getElementById('btnRun'),
+    restore: document.getElementById('btnRestore'),
+    clear: document.getElementById('btnClear'),
+    download: document.getElementById('btnDownload'),
+    preview: document.getElementById('preview'),
+    tabs: document.getElementById('tabs'),
+    log: document.getElementById('log'),
+    pipeline: document.getElementById('pipeline'),
+    modeSelector: document.getElementById('modeSelector'),
+    restoreInfo: document.getElementById('restoreInfo'),
+  },
+
+  detectType(name){
+    if(/\.html?$/i.test(name)) return 'html';
+    if(/\.css$/i.test(name)) return 'css';
+    if(/\.js$/i.test(name)) return 'js';
+    if(/\.hcdn$/i.test(name)) return 'hcdn';
+    return null;
+  },
+
+  async addFiles(fileList){
+    for(const f of fileList){
+      const type = this.detectType(f.name);
+      if(!type) continue;
+      this.files.set(f.name, { type, content: await f.text() });
+    }
+    this.renderList();
+    this.checkHcdn();
+  },
+
+  checkHcdn(){
+    const hcdnFile = [...this.files.entries()].find(([_,f]) => f.type === 'hcdn');
+    if(hcdnFile){
+      this.restoreMode = true;
+      this.els.run.style.display = 'none';
+      this.els.restore.style.display = 'inline-block';
+      this.els.restore.disabled = false;
+      this.els.modeSelector.style.display = 'none';
+      
+      try {
+        const hcdnData = HCDN_FORMAT.deserialize(hcdnFile[1].content);
+        this.els.restoreInfo.style.display = 'block';
+        this.els.restoreInfo.innerHTML = 
+          `📦 <b>.hcdn 파일 감지됨</b><br>` +
+          `• 버전: ${hcdnData.version}<br>` +
+          `• 모드: ${hcdnData.mode}<br>` +
+          `• 파일 수: ${Object.keys(hcdnData.files).length}개<br>` +
+          `• 복원 가능: ${hcdnData.mode !== 'max' ? '✅ 예' : '❌ 아니오 (최대 압축 모드)'}`;
+        this.log('.hcdn 파일 로드 완료. "↩ 원본 복원" 버튼을 클릭하세요.');
+      } catch(e){
+        this.log('❌ .hcdn 파일 파싱 실패: ' + e.message);
+      }
+    } else {
+      this.restoreMode = false;
+      this.els.run.style.display = 'inline-block';
+      this.els.restore.style.display = 'none';
+      this.els.modeSelector.style.display = 'flex';
+      this.els.restoreInfo.style.display = 'none';
+    }
+    this.els.run.disabled = [...this.files.values()].filter(f=>f.type!=='hcdn').length === 0;
+  },
+
+  renderList(){
+    const el = this.els.list; el.innerHTML='';
+    for(const [name,{type}] of this.files){
+      const chip = document.createElement('span');
+      chip.className = `chip ${type}`;
+      chip.innerHTML = `<span class="t">${type.toUpperCase()}</span>${name}<button data-n="${name}">×</button>`;
+      el.appendChild(chip);
+    }
+    el.querySelectorAll('button').forEach(b=>{
+      b.onclick = ()=>{ this.files.delete(b.dataset.n); this.renderList(); this.checkHcdn(); };
+    });
+  },
+
+  setMode(mode){
+    this.mode = mode;
+    this.els.modeSelector.querySelectorAll('.mode-card').forEach(c=>{
+      c.classList.toggle('active', c.dataset.mode === mode);
+    });
+  },
+
+  log(msg){
+    this.els.log.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + this.els.log.innerHTML;
+  },
+
+  markStep(step, skip=false){
+    const el = this.els.pipeline.querySelector(`[data-step="${step}"]`);
+    if(el){
+      el.classList.remove('done','skip');
+      el.classList.add(skip ? 'skip' : 'done');
+    }
+  },
+  resetPipeline(){
+    this.els.pipeline.querySelectorAll('.step').forEach(s=>s.classList.remove('done','skip'));
+  },
+
+  setStats(stats){
+    const fmt = b => b<1024?`${b}B`:`${(b/1024).toFixed(2)}KB`;
+    const pct = (a,b)=> b?((1-a/b)*100).toFixed(1)+'%':'0%';
+
+    document.getElementById('sHtml').textContent = fmt(stats.html.after);
+    document.getElementById('dHtml').textContent = pct(stats.html.after, stats.html.before)+' ↓';
+    document.getElementById('sCss').textContent = fmt(stats.css.after);
+    document.getElementById('dCss').textContent = pct(stats.css.after, stats.css.before)+' ↓';
+    document.getElementById('sJs').textContent = fmt(stats.js.after);
+    document.getElementById('dJs').textContent = pct(stats.js.after, stats.js.before)+' ↓';
+    document.getElementById('sTotal').textContent = fmt(stats.total.after);
+    document.getElementById('dTotal').textContent = `압축률 ${pct(stats.total.after, stats.total.before)} · ${fmt(stats.total.before-stats.total.after)} 절약`;
+    document.getElementById('barTotal').style.width = `${(stats.total.after/stats.total.before)*100}%`;
+  },
+
+  firstOf(type){
+    for(const v of this.files.values()) if(v.type===type) return v.content;
+    return null;
+  }
+};
+
+/* ---------------- Main ---------------- */
+const Main = {
+  init(){
+    const { drop, input } = UI.els;
+    drop.onclick = ()=> input.click();
+    input.onchange = e => UI.addFiles(e.target.files);
+    ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+    drop.addEventListener('drop', e => UI.addFiles(e.dataTransfer.files));
+
+    UI.els.run.onclick = ()=> this.compress();
+    UI.els.restore.onclick = ()=> this.restore();
+    UI.els.clear.onclick = ()=>{ UI.files.clear(); UI.renderList(); UI.checkHcdn(); };
+    UI.els.download.onclick = ()=> this.download();
+
+    UI.els.tabs.querySelectorAll('.tab').forEach(t=>{
+      t.onclick = ()=>{
+        UI.els.tabs.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+        t.classList.add('active');
+        this.showPreview(t.dataset.t);
+      };
+    });
+
+    UI.els.modeSelector.querySelectorAll('.mode-card').forEach(c=>{
+      c.onclick = ()=> UI.setMode(c.dataset.mode);
+    });
+  },
+
+  compress(){
+    UI.resetPipeline();
+    const mode = UI.mode;
+    
+    let html = UI.firstOf('html')||'', css = UI.firstOf('css')||'', js = UI.firstOf('js')||'';
+    const before = { html:html.length, css:css.length, js:js.length };
+    
+    const metadata = {};
+    const originalCss = {};
+
+    UI.markStep('lz');
+
+    if(mode === 'reversible' || mode === 'max'){
+      const dep = DependencyAnalyzer.build(html, css, js);
+      
+      UI.markStep('rename');
+      const names = [...dep.classMap.keys(), ...dep.idMap.keys()].filter(n=>n.length>1);
+      const map = IdentifierRenamer.buildMap(names);
+      const r = IdentifierRenamer.apply(html, css, js, map);
+      html = r.html; css = r.css; js = r.js;
+      
+      metadata.renameMap = {};
+      for(const [orig, short] of map.entries()){
+        metadata.renameMap[orig] = short;
+      }
+      UI.log(`이름 변경: ${names.length}개 → 짧은 심볼 (DOMParser 적용, 하이픈 안전)`);
+      
+      UI.markStep('minify');
+      html = HtmlCompressor.run(html);
+      css = CssCompressor.run(css);
+      js = JsCompressor.run(js);
+      UI.log('Minify 완료');
+      
+      if(mode === 'max'){
+        UI.markStep('unused');
+        const usedClasses = new Set(dep.html.classes);
+        const usedIds = new Set(dep.html.ids);
+        const unusedClasses = [...dep.css.classes].filter(c=>!usedClasses.has(c));
+        const unusedIds = [...dep.css.ids].filter(i=>!usedIds.has(i));
+        
+        for(const [name, f] of UI.files){
+          if(f.type === 'css') originalCss[name] = f.content;
+        }
+        metadata.originalCss = originalCss;
+        
+        for(const uc of unusedClasses){
+          const esc = uc.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
+          css = css.replace(new RegExp(`(?<![\\w-])\\.${esc}(?![\\w-])\\s*\\{[^}]*\\}`, 'g'), '');
+        }
+        for(const ui of unusedIds){
+          const esc = ui.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
+          css = css.replace(new RegExp(`(?<![\\w-])\\#${esc}(?![\\w-])\\s*\\{[^}]*\\}`, 'g'), '');
+        }
+        UI.log(`미사용 CSS 제거: ${unusedClasses.length + unusedIds.length}개 규칙`);
+      } else {
+        UI.markStep('unused', true);
+      }
+    } else {
+      UI.markStep('rename', true);
+      UI.markStep('minify', true);
+      UI.markStep('unused', true);
+      UI.log('완전 가역 모드: LZ 압축만 적용');
+    }
+
+    const files = new Map();
+    for(const [name,{type}] of UI.files){
+      if(type==='html') files.set(name,{type,content:html});
+      if(type==='css')  files.set(name,{type,content:css});
+      if(type==='js')   files.set(name,{type,content:js});
+    }
+    
+    const hcdnData = HCDN_FORMAT.compress(files, mode, metadata);
+    UI.hcdnData = hcdnData;
+    UI.result = { html, css, js, metadata };
+    
+    UI.setStats(hcdnData.stats);
+    UI.els.download.disabled = false;
+    this.showPreview('html');
+    
+    const pct = ((1 - hcdnData.stats.total.after / hcdnData.stats.total.before) * 100).toFixed(1);
+    const restoreNote = mode === 'max' ? ' (⚠ 복원 불가)' : ' (✓ 복원 가능)';
+    UI.log(`🎉 압축 완료! ${pct}% 절감${restoreNote}`);
+  },
+
+  restore(){
+    const hcdnFile = [...UI.files.entries()].find(([_,f]) => f.type === 'hcdn');
+    if(!hcdnFile){ UI.log('❌ .hcdn 파일이 없습니다'); return; }
+    
+    try {
+      const hcdnData = HCDN_FORMAT.deserialize(hcdnFile[1].content);
+      
+      if(hcdnData.mode === 'max'){
+        UI.log('⚠ 최대 압축 모드는 완전 복원이 불가능합니다. CSS는 원본 복원.');
+      }
+      
+      const restored = HCDN_FORMAT.restore(hcdnData);
+      UI.result = {};
+      for(const [name, {type, content}] of restored){
+        UI.result[type] = content;
+      }
+      UI.result.metadata = hcdnData.metadata;
+      
+      UI.setStats(hcdnData.stats);
+      UI.els.download.disabled = false;
+      this.showPreview('html');
+      UI.log(`✅ 복원 완료! ${restored.size}개 파일`);
+    } catch(e){
+      UI.log('❌ 복원 실패: ' + e.message);
+    }
+  },
+
+  showPreview(type){
+    if(!UI.result){ UI.els.preview.textContent='(결과가 여기에 표시됩니다)'; return; }
+    if(type === 'meta'){
+      UI.els.preview.textContent = UI.result.metadata ? JSON.stringify(UI.result.metadata, null, 2) : '(메타데이터 없음)';
+    } else {
+      UI.els.preview.textContent = UI.result[type] || '(해당 파일 없음)';
+    }
+  },
+
+  async download(){
+    if(!UI.hcdnData){ UI.log('❌ 압축된 데이터가 없습니다'); return; }
+    
+    const blob = new Blob([HCDN_FORMAT.serialize(UI.hcdnData)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'project.hcdn';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    UI.log('.hcdn 파일 다운로드 완료');
+  }
+};
+
+Main.init();
+</script>
+</body>
+</html>
