@@ -1,0 +1,1280 @@
+코드:
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚀 AVE Studio - Minor Upgrade</title>
+<style>
+  :root {
+    --bg: #1e1e2e; --panel: #282a36; --border: #44475a;
+    --text: #f8f8f2; --accent: #bd93f9; --green: #50fa7b;
+    --red: #ff5555; --yellow: #f1fa8c; --blue: #8be9fd;
+    --comment: #6272a4; --font-mono: 'Consolas','Monaco',monospace;
+    --gutter: #313244;
+  }
+  [data-theme="vscode"] { --bg:#1e1e1e;--panel:#252526;--border:#3e3e42;--text:#d4d4d4;--accent:#007acc;--green:#4ec9b0;--red:#f44747;--yellow:#dcdcaa;--blue:#9cdcfe;--comment:#6a9955;--gutter:#1e1e1e; }
+  [data-theme="hacker"] { --bg:#000;--panel:#0a0a0a;--border:#003300;--text:#0f0;--accent:#0f0;--green:#0f0;--red:#f00;--yellow:#ff0;--blue:#0ff;--comment:#080;--gutter:#050; }
+  [data-theme="retro"] { --bg:#000080;--panel:#0000aa;--border:#aa0;--text:#ff0;--accent:#fff;--green:#5f5;--red:#f55;--yellow:#ff5;--blue:#55f;--comment:#aaa;--gutter:#000060; }
+  [data-theme="neon"] { --bg:#0f0f1a;--panel:#1a1a2e;--border:#f0f;--text:#fff;--accent:#0ff;--green:#39ff14;--red:#ff073a;--yellow:#fff01f;--blue:#0ff;--comment:#88f;--gutter:#12122a; }
+
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; font-family:'Segoe UI',sans-serif; transition:background-color 0.3s, color 0.3s; overflow:hidden; }
+
+  header { background:var(--panel); padding:8px 16px; border-bottom:2px solid var(--accent); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; flex-shrink:0; transition:background-color 0.3s; }
+  header h1 { font-size:1.15rem; color:var(--accent); display:flex; align-items:center; gap:8px; }
+
+  .btn { padding:6px 12px; border:none; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.82rem; display:inline-flex; align-items:center; gap:5px; transition:filter 0.15s, background-color 0.3s; }
+  .btn:active { transform:scale(0.97); }
+  .btn-primary { background:var(--accent); color:var(--bg); }
+  .btn-primary:hover { filter:brightness(1.2); }
+  .btn-success { background:var(--green); color:#000; }
+  .btn-info { background:var(--blue); color:#000; }
+  .btn-warning { background:var(--yellow); color:#000; }
+  .btn-danger { background:var(--red); color:#fff; }
+  .btn-small { padding:4px 8px; font-size:0.75rem; }
+  .btn-sound { background:var(--panel); border:1px solid var(--border); color:var(--text); }
+  .btn-sound.active { border-color:var(--green); color:var(--green); }
+
+  .container { display:flex; flex:1; min-height:0; overflow:hidden; }
+
+  .config-panel { width:340px; background:var(--panel); overflow-y:auto; border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; transition:background-color 0.3s; }
+  .level-toggle { display:flex; background:var(--bg); padding:2px; margin:10px; border-radius:4px; flex-shrink:0; }
+  .level-btn { flex:1; text-align:center; padding:7px; font-size:0.8rem; cursor:pointer; border-radius:3px; color:#888; transition:background-color 0.2s, color 0.2s; user-select:none; }
+  .level-btn.active { background:var(--accent); color:var(--bg); font-weight:bold; }
+
+  .accordion-item { border-bottom:1px solid var(--border); }
+  .accordion-header { padding:11px 15px; cursor:pointer; font-size:0.88rem; font-weight:bold; color:var(--yellow); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); user-select:none; }
+  .accordion-header:hover { background:rgba(255,255,255,0.06); }
+  .accordion-header .arrow { font-size:0.7rem; transition:transform 0.2s; }
+  .accordion-item.open .accordion-header .arrow { transform:rotate(180deg); }
+  .accordion-content { display:none; padding:12px 15px; background:rgba(0,0,0,0.1); }
+  .accordion-item.open .accordion-content { display:block; }
+
+  .level-hidden { display:none !important; }
+
+  .config-group { margin-bottom:10px; }
+  .config-group label { display:block; font-size:0.75rem; color:#aaa; margin-bottom:4px; }
+  .config-group input,.config-group select,.config-group textarea { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:4px; font-size:0.85rem; font-family:var(--font-mono); }
+  .config-group input:focus,.config-group textarea:focus { border-color:var(--accent); outline:none; }
+  .config-group textarea { height:55px; resize:vertical; }
+  .config-group .hint { font-size:0.7rem; color:var(--comment); margin-top:3px; font-style:italic; }
+
+  .warning-banner { background:rgba(255,85,85,0.15); border-left:3px solid var(--red); color:var(--red); padding:10px; font-size:0.8rem; display:none; margin:10px; border-radius:0 4px 4px 0; }
+  .warning-banner.show { display:block; }
+
+  .workspace { flex:1; display:flex; flex-direction:column; min-width:0; min-height:0; }
+  .editor-area { flex:1; display:flex; min-height:0; }
+  .col { flex:1; display:flex; flex-direction:column; min-width:0; min-height:0; }
+  .col-middle { flex:1.2; border-right:1px solid var(--border); }
+
+  .tab-header { background:rgba(0,0,0,0.2); padding:7px 15px; font-size:0.85rem; color:var(--yellow); border-bottom:1px solid var(--border); font-weight:bold; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+
+  .editor-wrapper { flex:1; position:relative; overflow:hidden; background:var(--bg); min-height:100px; }
+  #codeEditor, #highlightLayer { position:absolute; top:0; left:40px; right:0; bottom:0; padding:15px; font-family:var(--font-mono); font-size:14px; line-height:1.7; white-space:pre; overflow:auto; border:none; outline:none; tab-size:2; }
+  #codeEditor { z-index:2; background:transparent; color:transparent; caret-color:var(--text); resize:none; }
+  #highlightLayer { z-index:1; pointer-events:none; }
+
+  .line-numbers { position:absolute; top:0; left:0; width:40px; bottom:0; background:var(--gutter); border-right:1px solid var(--border); padding:15px 5px 15px 0; font-family:var(--font-mono); font-size:14px; line-height:1.7; color:var(--comment); text-align:right; overflow:hidden; z-index:3; user-select:none; pointer-events:none; }
+
+  .t-kw { color:var(--blue); font-weight:bold; }
+  .t-op { color:var(--red); }
+  .t-str { color:var(--green); }
+  .t-num { color:var(--yellow); }
+  .t-id { color:var(--text); }
+  .t-type { color:var(--accent); }
+  .t-cmt { color:var(--comment); font-style:italic; }
+  .t-brk { color:var(--yellow); }
+  .t-ws { white-space:pre; }
+
+  .output-box { flex:1; padding:15px; overflow-y:auto; font-family:var(--font-mono); font-size:0.9rem; background:rgba(0,0,0,0.2); white-space:pre-wrap; line-height:1.6; }
+  .log-info { color:var(--blue); }
+  .log-error { color:var(--red); font-weight:bold; }
+  .log-success { color:var(--green); }
+  .log-line { color:var(--comment); font-size:0.8rem; }
+
+  .tabs { display:flex; background:rgba(0,0,0,0.2); border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto; }
+  .tab-btn { padding:9px 16px; cursor:pointer; font-size:0.83rem; color:#888; border-bottom:2px solid transparent; white-space:nowrap; user-select:none; }
+  .tab-btn:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+  .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); background:rgba(255,255,255,0.05); }
+
+  .tab-content { display:none; flex:1; min-height:0; overflow-y:auto; padding:20px; font-size:0.93rem; line-height:1.6; }
+  .tab-content.active { display:flex; flex-direction:column; }
+
+  .ast-tree { font-family:var(--font-mono); font-size:0.85rem; }
+  .ast-node { margin-left:20px; border-left:1px dashed var(--border); padding-left:12px; position:relative; margin-top:3px; transition:background-color 0.15s; border-radius:4px; padding-top:2px; padding-bottom:2px; }
+  .ast-node.hl { background:rgba(189,147,249,0.3); border-left-color:var(--accent); box-shadow:0 0 10px rgba(189,147,249,0.5); }
+  .ast-node::before { content:"└─"; position:absolute; left:-1px; color:var(--comment); }
+  .ast-root { font-weight:bold; color:var(--accent); font-size:1rem; margin-bottom:8px; }
+  .ast-type { color:var(--blue); font-weight:bold; }
+  .ast-key { color:var(--yellow); }
+  .ast-val { color:var(--green); }
+
+  /* 🆕 실행 히스토리 스타일 */
+  .history-panel { flex-shrink:0; max-height:120px; overflow-y:auto; border-top:1px solid var(--border); padding:8px; background:rgba(0,0,0,0.15); }
+  .history-title { font-size:0.75rem; color:var(--comment); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; }
+  .history-item { background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:5px 8px; margin-bottom:4px; font-size:0.75rem; font-family:var(--font-mono); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:border-color 0.15s; }
+  .history-item:hover { border-color:var(--accent); }
+  .history-item .h-time { color:var(--comment); font-size:0.7rem; }
+  .history-item .h-status { font-size:0.8rem; }
+  .history-empty { color:var(--comment); font-size:0.75rem; font-style:italic; text-align:center; padding:8px; }
+
+  /* 🆕 단축키 모달 */
+  .shortcut-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .shortcut-row { display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--bg); border:1px solid var(--border); border-radius:4px; }
+  .shortcut-row .desc { font-size:0.85rem; }
+  kbd { background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:2px 6px; font-size:0.75rem; font-family:var(--font-mono); color:var(--accent); }
+
+  /* 🆕 코드 통계 툴팁 */
+  .stats-tooltip { position:absolute; bottom:30px; right:10px; background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:10px 14px; font-size:0.8rem; box-shadow:0 4px 12px rgba(0,0,0,0.5); z-index:50; display:none; }
+  .stats-tooltip.show { display:block; }
+  .stats-tooltip .stat-row { display:flex; justify-content:space-between; gap:20px; padding:3px 0; }
+  .stats-tooltip .stat-label { color:var(--comment); }
+  .stats-tooltip .stat-value { color:var(--accent); font-weight:bold; font-family:var(--font-mono); }
+
+  .statusbar { background:var(--panel); border-top:1px solid var(--border); padding:4px 16px; font-size:0.75rem; color:#888; display:flex; justify-content:space-between; flex-shrink:0; transition:background-color 0.3s; }
+  .statusbar .status-left, .statusbar .status-right { display:flex; gap:16px; align-items:center; }
+  .status-item { display:flex; align-items:center; gap:4px; cursor:default; }
+  .status-item.clickable { cursor:pointer; }
+  .status-item.clickable:hover { color:var(--text); }
+  .status-dot { width:8px; height:8px; border-radius:50%; }
+  .status-dot.ok { background:var(--green); }
+  .status-dot.err { background:var(--red); }
+
+  .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100; display:none; justify-content:center; align-items:center; }
+  .modal-overlay.show { display:flex; }
+  .modal { background:var(--panel); width:85%; max-width:900px; max-height:85vh; border-radius:8px; border:1px solid var(--accent); display:flex; flex-direction:column; overflow:hidden; }
+  .modal-header { padding:14px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+  .modal-body { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:15px; }
+  .code-block { background:var(--bg); padding:12px; border-radius:4px; border:1px solid var(--border); position:relative; }
+  .code-block pre { margin:0; white-space:pre-wrap; word-break:break-all; font-size:0.83rem; color:var(--green); font-family:var(--font-mono); }
+  .copy-btn { position:absolute; top:8px; right:8px; }
+
+  .download-options { display:flex; gap:15px; margin:15px 0; }
+  .download-option { flex:1; padding:15px; border:2px solid var(--border); border-radius:6px; cursor:pointer; text-align:center; transition:border-color 0.2s, background-color 0.2s; }
+  .download-option:hover { border-color:var(--accent); background:rgba(189,147,249,0.1); }
+  .download-option.selected { border-color:var(--accent); background:rgba(189,147,249,0.15); }
+  .download-option h4 { color:var(--accent); margin-bottom:5px; }
+  .download-option p { font-size:0.8rem; color:#aaa; }
+
+  .example-btns { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; flex-shrink:0; }
+
+  .speed-control { display:flex; align-items:center; gap:6px; font-size:0.8rem; color:#aaa; }
+  .speed-control input[type="range"] { width:80px; }
+
+  .tutorial-section { margin-bottom:20px; padding:14px; background:rgba(255,255,255,0.03); border-radius:6px; border:1px solid var(--border); }
+  .tutorial-section h3 { color:var(--accent); margin-bottom:10px; font-size:1.05rem; border-bottom:1px solid var(--border); padding-bottom:5px; }
+  .tutorial-section p { color:#ccc; margin-bottom:8px; line-height:1.6; }
+  .tutorial-code { background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:10px; font-family:var(--font-mono); font-size:0.83rem; color:var(--green); margin:8px 0; white-space:pre-wrap; cursor:pointer; transition:border-color 0.15s; }
+  .tutorial-code:hover { border-color:var(--accent); }
+  .tutorial-code::before { content:"📋 클릭하여 삽입"; display:block; font-size:0.7rem; color:var(--comment); margin-bottom:5px; font-family:'Segoe UI',sans-serif; }
+</style>
+</head>
+<body data-theme="vscode" data-level="advanced">
+
+<header>
+  <h1>🚀 AVE Studio <span style="font-size:0.78rem;color:#888;">| Minor Upgrade</span></h1>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+    <button id="soundToggle" class="btn btn-small btn-sound active" onclick="toggleSound()" title="사운드 토글">🔊</button>
+    <select id="themeSelect" class="btn btn-small" style="background:var(--bg);color:var(--text);border:1px solid var(--border);">
+      <option value="vscode">VS Code</option>
+      <option value="hacker">Hacker</option>
+      <option value="retro">Retro DOS</option>
+      <option value="neon">Neon</option>
+    </select>
+    <button class="btn btn-small btn-info" onclick="document.getElementById('fileInput').click()" title="프로젝트 열기">📂</button>
+    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="loadProject(this)">
+    <button class="btn btn-small btn-primary" onclick="saveProject()" title="프로젝트 저장">💾</button>
+    <button class="btn btn-small btn-success" onclick="openDownloadModal()" title="코드 다운로드">📥</button>
+    <button class="btn btn-small btn-warning" onclick="openGenerateModal()" title="VSCode 확장 생성">✨</button>
+    <button class="btn btn-small" style="background:var(--panel);border:1px solid var(--border);color:var(--text);" onclick="autoFormat()" title="코드 자동 포맷">🎨 포맷</button>
+    <button class="btn btn-small" style="background:var(--panel);border:1px solid var(--border);color:var(--text);" onclick="showShortcuts()" title="단축키 보기">⌨️</button>
+    <div class="speed-control">
+      ⏱️<input type="range" id="speedSlider" min="0" max="200" value="50" title="AST 애니메이션 속도">
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <aside class="config-panel">
+    <div class="level-toggle">
+      <div class="level-btn" onclick="setLevel('basic',this)">Basic</div>
+      <div class="level-btn active" onclick="setLevel('advanced',this)">Advanced</div>
+      <div class="level-btn" onclick="setLevel('expert',this)">Expert</div>
+    </div>
+
+    <div id="collisionWarning" class="warning-banner">
+      ⚠️ <b>예약어 충돌!</b><br><span id="collisionText"></span>
+    </div>
+
+    <div class="accordion-item open">
+      <div class="accordion-header" onclick="toggleAccordion(this)">1. 언어 기본 정보 <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group"><label>이름</label><input type="text" id="infoName" value="AVE" oninput="updateAll()"></div>
+        <div class="config-group"><label>버전</label><input type="text" id="infoVersion" value="1.0.0" oninput="updateAll()"></div>
+        <div class="config-group">
+          <label>확장자</label>
+          <select id="infoExt" onchange="updateAll()">
+            <option value=".ave">.ave</option>
+            <option value=".aveasy">.aveasy</option>
+          </select>
+        </div>
+        <div class="config-group"><label>제작자</label><input type="text" id="infoAuthor" value="Developer" oninput="updateAll()"></div>
+      </div>
+    </div>
+
+    <div class="accordion-item" data-min-level="advanced">
+      <div class="accordion-header" onclick="toggleAccordion(this)">2. 키워드 및 연산자 <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group">
+          <label>키워드 (출력,만약,아니면,반복,함수,반환,let,for,break,continue)</label>
+          <textarea id="cfgKeywords" oninput="updateAll()">출력,만약,아니면,반복,함수,반환,let,for,break,continue</textarea>
+          <div class="hint">쉼표 구분, 순서 중요!</div>
+        </div>
+        <div class="config-group">
+          <label>연산자 (긴 것 우선)</label>
+          <textarea id="cfgOperators" oninput="updateAll()">==,!=,>=,<=,&&,||,+,-,*,/,%,!,=</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item open">
+      <div class="accordion-header" onclick="toggleAccordion(this)">3. 문법 기호 <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group">
+          <label>주석 기호 (자유 입력)</label>
+          <input type="text" id="cfgComment" value="//" oninput="updateAll()">
+          <div class="hint">원하는 기호 직접 입력 (//, #, %%, -- 등)</div>
+        </div>
+        <div class="config-group">
+          <label>문자열 따옴표</label>
+          <select id="cfgQuote" onchange="updateAll()">
+            <option value='"'>"큰따옴표"</option>
+            <option value="'">'작은따옴표'</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" data-min-level="expert">
+      <div class="accordion-header" onclick="toggleAccordion(this)">4. 자료형 <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group">
+          <label>자료형 (쉼표 구분)</label>
+          <textarea id="cfgTypes" oninput="updateAll()">int,float,string,bool,array</textarea>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <div class="editor-area">
+      <div class="col col-middle">
+        <div class="tab-header">
+          <span>📝 에디터 (<span id="displayExt" style="color:var(--green)">.ave</span>)</span>
+          <span style="font-size:0.75rem;color:#888;"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> 실행 | <kbd>Ctrl</kbd>+<kbd>/</kbd> 단축키</span>
+        </div>
+        <div class="editor-wrapper" id="editorWrapper">
+          <div class="line-numbers" id="lineNumbers"></div>
+          <div id="highlightLayer"></div>
+          <textarea id="codeEditor" spellcheck="false"></textarea>
+          <!-- 🆕 코드 통계 툴팁 -->
+          <div id="statsTooltip" class="stats-tooltip">
+            <div class="stat-row"><span class="stat-label">📄 라인 수</span><span class="stat-value" id="statLines">0</span></div>
+            <div class="stat-row"><span class="stat-label">🔤 문자 수</span><span class="stat-value" id="statChars">0</span></div>
+            <div class="stat-row"><span class="stat-label">🧩 토큰 수</span><span class="stat-value" id="statTokens">0</span></div>
+            <div class="stat-row"><span class="stat-label">📦 단어 수</span><span class="stat-value" id="statWords">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="tabs" id="rightTabs">
+          <div class="tab-btn active" data-tab="preview" onclick="switchTab('preview',this)">⚡ 미리보기</div>
+          <div class="tab-btn" data-tab="ast" onclick="switchTab('ast',this)">🌳 AST</div>
+          <div class="tab-btn" data-tab="output" onclick="switchTab('output',this)">🖥️ 실행</div>
+          <div class="tab-btn" data-tab="tutorial" onclick="switchTab('tutorial',this)">📚 학습</div>
+        </div>
+
+        <div id="tab-preview" class="tab-content active">
+          <div style="color:var(--blue);margin-bottom:10px;font-size:0.85rem;flex-shrink:0;">💡 설정 변경 시 즉시 변환</div>
+          <div class="example-btns">
+            <button class="btn btn-small btn-primary" onclick="injectExample('hello')">Hello</button>
+            <button class="btn btn-small btn-primary" onclick="injectExample('math')">연산</button>
+            <button class="btn btn-small btn-primary" onclick="injectExample('func')">함수</button>
+            <button class="btn btn-small btn-primary" onclick="injectExample('for')">for</button>
+            <button class="btn btn-small btn-primary" onclick="injectExample('array')">배열</button>
+          </div>
+          <div id="previewCode" class="output-box" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;flex:1;"></div>
+        </div>
+
+        <div id="tab-ast" class="tab-content">
+          <div style="color:var(--yellow);margin-bottom:10px;font-size:0.85rem;flex-shrink:0;">🌳 Abstract Syntax Tree</div>
+          <div id="astOutput" class="ast-tree output-box" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;flex:1;">
+            <span class="log-info">[▶ 실행]을 눌러 AST를 확인하세요.</span>
+          </div>
+        </div>
+
+        <div id="tab-output" class="tab-content">
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-shrink:0;">
+            <button class="btn btn-small btn-success" onclick="runCode()">▶ 실행</button>
+            <button class="btn btn-small btn-danger" onclick="clearOutput()">🗑️ 초기화</button>
+          </div>
+          <div id="outputBox" class="output-box" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;flex:1;min-height:0;">
+            <span class="log-info">[▶ 실행]을 눌러 결과를 확인하세요.</span>
+          </div>
+          <!-- 🆕 실행 히스토리 -->
+          <div class="history-panel">
+            <div class="history-title">
+              <span>📜 실행 히스토리 (최근 5개)</span>
+              <button class="btn btn-small" style="padding:2px 6px;font-size:0.7rem;" onclick="clearHistory()">지우기</button>
+            </div>
+            <div id="historyList"><div class="history-empty">아직 실행 기록이 없습니다</div></div>
+          </div>
+        </div>
+
+        <div id="tab-tutorial" class="tab-content">
+          <div class="tutorial-section">
+            <h3>🎓 AVE 언어 학습 가이드</h3>
+            <p>AVE는 프로그래밍 언어의 구조를 배우기 위한 교육용 언어입니다. 코드 블록을 클릭하면 에디터에 삽입됩니다.</p>
+          </div>
+          <div class="tutorial-section">
+            <h3>1단계: 변수와 출력</h3>
+            <div class="tutorial-code" onclick="loadTutorial(this)">let 이름 = "AVE"
+let 버전 = 1
+출력 "안녕! " + 이름 + " v" + 버전</div>
+          </div>
+          <div class="tutorial-section">
+            <h3>2단계: 조건문</h3>
+            <div class="tutorial-code" onclick="loadTutorial(this)">let 점수 = 85
+만약 점수 >= 90 {
+  출력 "A학점"
+} 아니면 만약 점수 >= 80 {
+  출력 "B학점"
+} 아니면 {
+  출력 "C학점"
+}</div>
+          </div>
+          <div class="tutorial-section">
+            <h3>3단계: 반복문</h3>
+            <div class="tutorial-code" onclick="loadTutorial(this)">let sum = 0
+for (let i = 1; i <= 10; i = i + 1) {
+  sum = sum + i
+}
+출력 "1~10 합: " + sum</div>
+          </div>
+          <div class="tutorial-section">
+            <h3>4단계: 함수와 재귀</h3>
+            <div class="tutorial-code" onclick="loadTutorial(this)">함수 피보나치(n) {
+  만약 n <= 1 { 반환 n }
+  반환 피보나치(n-1) + 피보나치(n-2)
+}
+for (let i = 0; i < 8; i = i + 1) {
+  출력 "F(" + i + ") = " + 피보나치(i)
+}</div>
+          </div>
+          <div class="tutorial-section">
+            <h3>5단계: 배열</h3>
+            <div class="tutorial-code" onclick="loadTutorial(this)">let 과일 = ["사과", "바나나", "체리"]
+출력 과일[0]
+과일[1] = "망고"
+출력 과일[1]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="statusbar">
+  <div class="status-left">
+    <div class="status-item"><span class="status-dot ok" id="statusDot"></span><span id="statusText">준비됨</span></div>
+    <div class="status-item" id="statusError" style="display:none;color:var(--red);"></div>
+  </div>
+  <div class="status-right">
+    <div class="status-item clickable" onclick="toggleStats()" title="통계 보기/숨기기">📊 <span id="statSummary">0 L / 0 T</span></div>
+    <div class="status-item">줄: <span id="cursorLine">1</span></div>
+    <div class="status-item">열: <span id="cursorCol">1</span></div>
+    <div class="status-item" id="statusExt">.ave</div>
+  </div>
+</div>
+
+<!-- 다운로드 모달 -->
+<div id="downloadModal" class="modal-overlay" onclick="if(event.target===this)closeDownloadModal()">
+  <div class="modal" style="max-width:550px;">
+    <div class="modal-header">
+      <h3 style="color:var(--accent)">📥 코드 다운로드</h3>
+      <button class="btn btn-small btn-danger" onclick="closeDownloadModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:#ccc;">저장할 확장자를 선택하세요:</p>
+      <div class="download-options">
+        <div class="download-option selected" onclick="selectExt('.ave',this)"><h4>.ave</h4><p>짧은 확장자</p></div>
+        <div class="download-option" onclick="selectExt('.aveasy',this)"><h4>.aveasy</h4><p>풀 네임</p></div>
+      </div>
+      <div style="text-align:center;margin-top:15px;">
+        <button class="btn btn-success" onclick="doDownload()" style="padding:12px 30px;font-size:1rem;">💾 저장 위치 선택</button>
+        <p style="font-size:0.78rem;color:var(--comment);margin-top:8px;">Chrome/Edge: 파일 대화상자 | 기타: 기본 폴더</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🆕 단축키 모달 -->
+<div id="shortcutModal" class="modal-overlay" onclick="if(event.target===this)closeShortcuts()">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h3 style="color:var(--accent)">⌨️ 키보드 단축키</h3>
+      <button class="btn btn-small btn-danger" onclick="closeShortcuts()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="shortcut-grid">
+        <div class="shortcut-row"><span class="desc">코드 실행</span><span><kbd>Ctrl</kbd>+<kbd>Enter</kbd></span></div>
+        <div class="shortcut-row"><span class="desc">단축키 보기</span><span><kbd>Ctrl</kbd>+<kbd>/</kbd></span></div>
+        <div class="shortcut-row"><span class="desc">코드 포맷</span><span><kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd></span></div>
+        <div class="shortcut-row"><span class="desc">프로젝트 저장</span><span><kbd>Ctrl</kbd>+<kbd>S</kbd></span></div>
+        <div class="shortcut-row"><span class="desc">들여쓰기</span><span><kbd>Tab</kbd></span></div>
+        <div class="shortcut-row"><span class="desc">자동 괄호</span><span><kbd>{</kbd> <kbd>[</kbd> <kbd>(</kbd></span></div>
+        <div class="shortcut-row"><span class="desc">자동 따옴표</span><span><kbd>"</kbd> <kbd>'</kbd></span></div>
+        <div class="shortcut-row"><span class="desc">자동 들여쓰기</span><span><kbd>Enter</kbd> (after <kbd>{</kbd>)</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VS Code 확장 모달 -->
+<div id="generateModal" class="modal-overlay" onclick="if(event.target===this)closeGenModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 style="color:var(--accent)">✨ VS Code Extension</h3>
+      <button class="btn btn-small btn-danger" onclick="closeGenModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// 🎵 사운드 엔진
+// ==========================================
+let soundOn = true;
+let actx = null;
+function getAudio() { if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+function toggleSound() {
+  soundOn = !soundOn;
+  const b = document.getElementById('soundToggle');
+  b.textContent = soundOn ? '🔊' : '🔇';
+  b.classList.toggle('active', soundOn);
+}
+function beep(freq,type,dur,delay=0) {
+  if(!soundOn) return;
+  const c = getAudio(); if(c.state==='suspended') c.resume();
+  const o=c.createOscillator(), g=c.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq,c.currentTime+delay);
+  g.gain.setValueAtTime(0.06,c.currentTime+delay);
+  g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+delay+dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(c.currentTime+delay); o.stop(c.currentTime+delay+dur);
+}
+function sfx(type) {
+  if(type==='start') { beep(440,'sine',0.08); beep(880,'sine',0.15,0.08); }
+  else if(type==='ok') { beep(523,'triangle',0.08); beep(659,'triangle',0.08,0.08); beep(784,'triangle',0.2,0.16); }
+  else if(type==='err') { beep(150,'sawtooth',0.25); beep(100,'sawtooth',0.3,0.15); }
+  else if(type==='tick') { beep(700+Math.random()*500,'sine',0.02); }
+}
+
+// ==========================================
+// ⚙️ 상태 관리
+// ==========================================
+let dlExt = '.ave';
+const $ = id => document.getElementById(id);
+
+// 🆕 실행 히스토리
+let runHistory = [];
+const MAX_HISTORY = 5;
+
+function getConfig() {
+  return {
+    name: $('infoName').value||'AVE',
+    version: $('infoVersion').value||'1.0.0',
+    ext: $('infoExt').value||'.ave',
+    author: $('infoAuthor').value||'Dev',
+    keywords: $('cfgKeywords').value.split(',').map(s=>s.trim()).filter(Boolean),
+    operators: $('cfgOperators').value.split(',').map(s=>s.trim()).filter(Boolean).sort((a,b)=>b.length-a.length),
+    types: ($('cfgTypes').value||'').split(',').map(s=>s.trim()).filter(Boolean),
+    comment: $('cfgComment').value,
+    quote: $('cfgQuote').value,
+  };
+}
+
+function toggleAccordion(h) { h.parentElement.classList.toggle('open'); }
+
+function checkCollisions(cfg) {
+  const all=[...cfg.keywords,...cfg.operators,...cfg.types];
+  const dup=[...new Set(all.filter((v,i)=>all.indexOf(v)!==i))];
+  const w=$('collisionWarning');
+  if(dup.length){w.classList.add('show');$('collisionText').textContent=`"${dup.join(', ')}" 중복!`;}
+  else w.classList.remove('show');
+}
+
+function setLevel(level, btn) {
+  document.body.setAttribute('data-level', level);
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const levels = {basic:0, advanced:1, expert:2};
+  const cur = levels[level]||0;
+  document.querySelectorAll('[data-min-level]').forEach(el => {
+    const req = levels[el.getAttribute('data-min-level')]||0;
+    if(cur >= req) el.classList.remove('level-hidden');
+    else el.classList.add('level-hidden');
+  });
+  document.querySelectorAll('.accordion-item.level-hidden.open').forEach(el => el.classList.remove('open'));
+}
+
+$('themeSelect').addEventListener('change', function() {
+  document.body.setAttribute('data-theme', this.value);
+  void document.body.offsetHeight;
+});
+
+function switchTab(name, btn) {
+  document.querySelectorAll('#rightTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
+  btn.classList.add('active');
+  const target = $('tab-' + name);
+  if(target) { target.style.display = ''; target.classList.add('active'); }
+}
+
+// ==========================================
+// 📝 Lexer
+// ==========================================
+class LexerError extends Error { constructor(m,l,c){super(m);this.line=l;this.col=c;} }
+
+function tokenize(code, cfg) {
+  const tokens=[]; let i=0, line=1, col=1;
+  while(i<code.length) {
+    const sl=line, sc=col;
+    if(code[i]===' '||code[i]==='\t'){tokens.push({type:'t-ws',value:code[i],line:sl,col:sc});col++;i++;continue;}
+    if(code[i]==='\n'){tokens.push({type:'t-ws',value:'\n',line:sl,col:sc});line++;col=1;i++;continue;}
+    if(code[i]==='\r'){i++;continue;}
+
+    if(cfg.comment && code.startsWith(cfg.comment,i)){
+      let end=code.indexOf('\n',i); if(end===-1)end=code.length;
+      tokens.push({type:'t-cmt',value:code.slice(i,end),line:sl,col:sc});
+      col+=(end-i); i=end; continue;
+    }
+
+    if(code[i]===cfg.quote){
+      let j=i+1, val=cfg.quote;
+      while(j<code.length&&code[j]!==cfg.quote){
+        if(code[j]==='\\'&&j+1<code.length){val+=code[j]+code[j+1];j+=2;}
+        else{val+=code[j];j++;}
+      }
+      if(j>=code.length) throw new LexerError('닫히지 않은 문자열',sl,sc);
+      val+=cfg.quote;
+      tokens.push({type:'t-str',value:val,line:sl,col:sc});
+      col+=(j-i+1); i=j+1; continue;
+    }
+
+    if(/[0-9]/.test(code[i])){
+      let j=i;
+      if(code[i]==='0'&&/[xb]/.test(code[i+1])){j+=2;while(j<code.length&&/[0-9a-fA-F]/.test(code[j]))j++;}
+      else{while(j<code.length&&/[0-9.]/.test(code[j]))j++;
+        if((code.slice(i,j).match(/\./g)||[]).length>1) throw new LexerError(`잘못된 숫자: '${code.slice(i,j)}'`,sl,sc);
+      }
+      tokens.push({type:'t-num',value:code.slice(i,j),line:sl,col:sc});
+      col+=(j-i);i=j;continue;
+    }
+
+    let om=false;
+    for(let op of cfg.operators){if(code.startsWith(op,i)){tokens.push({type:'t-op',value:op,line:sl,col:sc});col+=op.length;i+=op.length;om=true;break;}}
+    if(om)continue;
+
+    if('{ } ( ) [ ] , ;'.split(' ').includes(code[i])){tokens.push({type:'t-brk',value:code[i],line:sl,col:sc});col++;i++;continue;}
+
+    if(/[a-zA-Z_가-힣]/.test(code[i])){
+      let j=i;while(j<code.length&&/[a-zA-Z0-9_가-힣]/.test(code[j]))j++;
+      const w=code.slice(i,j);
+      let tp='t-id';
+      if(cfg.keywords.includes(w))tp='t-kw';
+      else if(cfg.types.includes(w))tp='t-type';
+      tokens.push({type:tp,value:w,line:sl,col:sc});
+      col+=(j-i);i=j;continue;
+    }
+
+    tokens.push({type:'t-unknown',value:code[i],line:sl,col:sc});col++;i++;
+  }
+  return tokens;
+}
+
+// ==========================================
+// 🎨 하이라이팅 & 줄 번호 & 🆕 통계
+// ==========================================
+let lastStats = { lines:0, chars:0, tokens:0, words:0 };
+
+function updateHighlight() {
+  const code=$('codeEditor').value, cfg=getConfig();
+  try {
+    const tokens=tokenize(code,cfg);
+    let html='';
+    tokens.forEach(t=>{
+      let v=t.value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      html+= t.type==='t-ws' ? v : `<span class="${t.type}">${v}</span>`;
+    });
+    $('highlightLayer').innerHTML=html;
+    
+    // 🆕 통계 업데이트
+    const meaningfulTokens = tokens.filter(t=>t.type!=='t-ws');
+    lastStats = {
+      lines: code.split('\n').length,
+      chars: code.length,
+      tokens: meaningfulTokens.length,
+      words: code.trim() ? code.trim().split(/\s+/).length : 0
+    };
+    $('statSummary').textContent = `${lastStats.lines} L / ${lastStats.tokens} T`;
+    $('statLines').textContent = lastStats.lines;
+    $('statChars').textContent = lastStats.chars;
+    $('statTokens').textContent = lastStats.tokens;
+    $('statWords').textContent = lastStats.words;
+    
+    $('statusDot').className='status-dot ok';
+    $('statusError').style.display='none';
+  } catch(e) {
+    $('statusDot').className='status-dot err';
+    $('statusError').style.display='';
+    $('statusError').textContent=`오류: L${e.line}:${e.col}`;
+  }
+  updateLineNumbers();
+}
+
+function updateLineNumbers() {
+  const code=$('codeEditor').value;
+  const count=code.split('\n').length;
+  let html='';
+  for(let i=1;i<=count;i++) html+=i+'\n';
+  $('lineNumbers').textContent=html;
+}
+
+// 🆕 통계 툴팁 토글
+function toggleStats() {
+  $('statsTooltip').classList.toggle('show');
+}
+
+let hlTimer=null;
+function onEditorInput(){
+  clearTimeout(hlTimer);
+  hlTimer=setTimeout(updateHighlight,80);
+  updateCursorPos();
+}
+
+function syncScroll(){
+  const e=$('codeEditor');
+  $('highlightLayer').scrollTop=e.scrollTop;
+  $('highlightLayer').scrollLeft=e.scrollLeft;
+  $('lineNumbers').style.transform=`translateY(${-e.scrollTop}px)`;
+}
+
+function updateCursorPos(){
+  const e=$('codeEditor'), v=e.value, pos=e.selectionStart;
+  const lines=v.substring(0,pos).split('\n');
+  $('cursorLine').textContent=lines.length;
+  $('cursorCol').textContent=lines[lines.length-1].length+1;
+}
+
+// ==========================================
+// 🎹 에디터 키보드 기능
+// ==========================================
+const editor = $('codeEditor');
+editor.addEventListener('input', onEditorInput);
+editor.addEventListener('scroll', syncScroll);
+editor.addEventListener('click', updateCursorPos);
+editor.addEventListener('keyup', updateCursorPos);
+
+// 🆕 전역 단축키
+document.addEventListener('keydown', function(e) {
+  // Ctrl+Enter: 실행
+  if(e.ctrlKey && e.key==='Enter'){ e.preventDefault(); runCode(); return; }
+  // Ctrl+/: 단축키 모달
+  if(e.ctrlKey && e.key==='/'){ e.preventDefault(); showShortcuts(); return; }
+  // Shift+Alt+F: 포맷
+  if(e.shiftKey && e.altKey && (e.key==='F'||e.key==='f')){ e.preventDefault(); autoFormat(); return; }
+  // Ctrl+S: 저장
+  if(e.ctrlKey && e.key==='s'){ e.preventDefault(); saveProject(); return; }
+});
+
+editor.addEventListener('keydown', function(e) {
+  const ta=this;
+  // Tab: 들여쓰기
+  if(e.key==='Tab'){
+    e.preventDefault();
+    const s=ta.selectionStart, end=ta.selectionEnd;
+    ta.value=ta.value.substring(0,s)+'  '+ta.value.substring(end);
+    ta.selectionStart=ta.selectionEnd=s+2;
+    onEditorInput(); return;
+  }
+  // 자동 괄호
+  const pairs={'{':'}','[':']','(':')'};
+  if(pairs[e.key]){
+    e.preventDefault();
+    const s=ta.selectionStart, end=ta.selectionEnd;
+    const sel=ta.value.substring(s,end);
+    ta.value=ta.value.substring(0,s)+e.key+sel+pairs[e.key]+ta.value.substring(end);
+    ta.selectionStart=s+1; ta.selectionEnd=s+1+sel.length;
+    onEditorInput(); return;
+  }
+  // 자동 따옴표
+  const cfg=getConfig();
+  if(e.key===cfg.quote){
+    const s=ta.selectionStart, end=ta.selectionEnd;
+    if(s!==end){
+      e.preventDefault();
+      const sel=ta.value.substring(s,end);
+      ta.value=ta.value.substring(0,s)+cfg.quote+sel+cfg.quote+ta.value.substring(end);
+      ta.selectionStart=s+1; ta.selectionEnd=s+1+sel.length;
+      onEditorInput();
+    }
+  }
+  // Enter: 자동 들여쓰기
+  if(e.key==='Enter'){
+    const s=ta.selectionStart;
+    const lineStart=ta.value.lastIndexOf('\n',s-1)+1;
+    const line=ta.value.substring(lineStart,s);
+    const indent=line.match(/^(\s*)/)[1];
+    const lastChar=ta.value[s-1];
+    if(lastChar==='{'){
+      e.preventDefault();
+      const insert='\n'+indent+'  \n'+indent;
+      ta.value=ta.value.substring(0,s)+insert+ta.value.substring(s);
+      ta.selectionStart=ta.selectionEnd=s+indent.length+3;
+      onEditorInput();
+    } else if(indent){
+      e.preventDefault();
+      const insert='\n'+indent;
+      ta.value=ta.value.substring(0,s)+insert+ta.value.substring(s);
+      ta.selectionStart=ta.selectionEnd=s+insert.length;
+      onEditorInput();
+    }
+  }
+});
+
+// ==========================================
+// 🔍 Parser
+// ==========================================
+class ParseError extends Error { constructor(m,l,c){super(m);this.line=l;this.col=c;} }
+class Parser {
+  constructor(tokens,cfg){
+    this.t=tokens.filter(t=>t.type!=='t-ws');
+    this.cfg=cfg; this.pos=0;
+    this.kw={
+      print:cfg.keywords[0],if:cfg.keywords[1],else:cfg.keywords[2],
+      while:cfg.keywords[3],func:cfg.keywords[4],return:cfg.keywords[5],
+      let:cfg.keywords[6],for:cfg.keywords[7],break:cfg.keywords[8],continue:cfg.keywords[9]
+    };
+  }
+  peek(o=0){return this.t[this.pos+o];}
+  eat(){return this.t[this.pos++];}
+  expect(tp,v){
+    const t=this.peek();
+    if(!t||t.type!==tp||(v&&t.value!==v))
+      throw new ParseError(`예상: ${tp} ${v||''}, 실제: ${t?t.value:'EOF'}`,t?t.line:'?',t?t.col:'?');
+    return this.eat();
+  }
+  parseProgram(){let b=[];while(this.pos<this.t.length)b.push(this.parseStmt());return{type:'Program',body:b};}
+  parseStmt(){
+    const t=this.peek(); if(!t)return null;
+    if(t.type==='t-kw'&&t.value===this.kw.let){this.eat();const n=this.expect('t-id').value;this.expect('t-op','=');return{type:'VarDecl',name:n,value:this.parseExpr(),line:t.line};}
+    if(t.type==='t-kw'&&t.value===this.kw.print){this.eat();return{type:'Print',expr:this.parseExpr(),line:t.line};}
+    if(t.type==='t-kw'&&t.value===this.kw.if){
+      this.eat();const cond=this.parseExpr();this.expect('t-brk','{');const con=this.parseBlock();
+      let alt=null;
+      if(this.peek()?.type==='t-kw'&&this.peek().value===this.kw.else){
+        this.eat();
+        if(this.peek()?.type==='t-kw'&&this.peek().value===this.kw.if) alt=[this.parseStmt()];
+        else{this.expect('t-brk','{');alt=this.parseBlock();}
+      }
+      return{type:'If',cond,consequent:con,alternate:alt,line:t.line};
+    }
+    if(t.type==='t-kw'&&t.value===this.kw.while){this.eat();const c=this.parseExpr();this.expect('t-brk','{');return{type:'While',cond:c,body:this.parseBlock(),line:t.line};}
+    if(t.type==='t-kw'&&t.value===this.kw.for){
+      this.eat();this.expect('t-brk','(');
+      let init=null;
+      if(this.peek().value!==';'){
+        if(this.peek().type==='t-kw'&&this.peek().value===this.kw.let){this.eat();const n=this.expect('t-id').value;this.expect('t-op','=');init={type:'VarDecl',name:n,value:this.parseExpr()};}
+        else init=this.parseExpr();
+      }
+      this.expect('t-brk',';');
+      let cond=this.peek().value!==';'?this.parseExpr():null;
+      this.expect('t-brk',';');
+      let upd=this.peek().value!==')'?this.parseExpr():null;
+      this.expect('t-brk',')');this.expect('t-brk','{');
+      return{type:'For',init,cond,update:upd,body:this.parseBlock(),line:t.line};
+    }
+    if(t.type==='t-kw'&&t.value===this.kw.func){
+      this.eat();const n=this.expect('t-id').value;this.expect('t-brk','(');
+      const p=[];if(this.peek().value!==')'){p.push(this.expect('t-id').value);while(this.peek()?.value===','){this.eat();p.push(this.expect('t-id').value);}}
+      this.expect('t-brk',')');this.expect('t-brk','{');
+      return{type:'FuncDecl',name:n,params:p,body:this.parseBlock(),line:t.line};
+    }
+    if(t.type==='t-kw'&&t.value===this.kw.return){this.eat();let v=null;if(this.peek()&&this.peek().value!=='}'&&this.peek().value!==';')v=this.parseExpr();return{type:'Return',value:v,line:t.line};}
+    if(t.type==='t-kw'&&t.value===this.kw.break){this.eat();return{type:'Break',line:t.line};}
+    if(t.type==='t-kw'&&t.value===this.kw.continue){this.eat();return{type:'Continue',line:t.line};}
+    return this.parseExprStmt();
+  }
+  parseBlock(){const s=[];while(this.peek()&&this.peek().value!=='}')s.push(this.parseStmt());this.expect('t-brk','}');return s;}
+  parseExprStmt(){
+    const e=this.parseExpr();
+    if(e.type==='Identifier'&&this.peek()?.type==='t-op'&&this.peek().value==='='){this.eat();return{type:'Assign',name:e.name,value:this.parseExpr(),line:e.line};}
+    if(e.type==='ArrAcc'&&this.peek()?.type==='t-op'&&this.peek().value==='='){this.eat();return{type:'ArrAssign',arr:e.arr,idx:e.idx,value:this.parseExpr(),line:e.line};}
+    return{type:'ExprStmt',expr:e,line:e.line};
+  }
+  prec(op){return{'||':1,'&&':2,'==':3,'!=':3,'>':4,'<':4,'>=':4,'<=':4,'+':5,'-':5,'*':6,'/':6,'%':6}[op]||0;}
+  parseExpr(){return this.parseBin(0);}
+  parseBin(min){
+    let l=this.parseUnary();
+    while(this.peek()?.type==='t-op'&&this.prec(this.peek().value)>=min){
+      const op=this.eat().value; l={type:'BinOp',op,left:l,right:this.parseBin(this.prec(op)+1),line:l.line};
+    }
+    return l;
+  }
+  parseUnary(){
+    const t=this.peek();
+    if(t?.type==='t-op'&&(t.value==='!'||t.value==='-')){this.eat();return{type:'Unary',op:t.value,arg:this.parseUnary(),line:t.line};}
+    return this.parsePrimary();
+  }
+  parsePrimary(){
+    const t=this.peek();
+    if(!t)throw new ParseError('예상치 못한 EOF','?','?');
+    if(t.type==='t-num'){this.eat();return{type:'Lit',vt:'Num',value:t.value,line:t.line};}
+    if(t.type==='t-str'){
+      this.eat();
+      const raw=t.value.slice(1,-1);
+      const q=this.cfg.quote;
+      const p=raw.replace(/\\n/g,'\n').replace(/\\t/g,'\t').replace(/\\r/g,'\r').replace(/\\\\/g,'\\').replace(new RegExp('\\\\'+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'),q);
+      return{type:'Lit',vt:'Str',value:p,line:t.line};
+    }
+    if(t.type==='t-id'){
+      this.eat();
+      if(this.peek()?.value==='('){this.eat();const a=[];if(this.peek().value!==')'){a.push(this.parseExpr());while(this.peek()?.value===','){this.eat();a.push(this.parseExpr());}}this.expect('t-brk',')');return{type:'Call',callee:t.value,args:a,line:t.line};}
+      if(this.peek()?.value==='['){this.eat();const idx=this.parseExpr();this.expect('t-brk',']');return{type:'ArrAcc',arr:t.value,idx,line:t.line};}
+      return{type:'Identifier',name:t.value,line:t.line};
+    }
+    if(t.value==='('){this.eat();const e=this.parseExpr();this.expect('t-brk',')');return e;}
+    if(t.value==='['){this.eat();const el=[];if(this.peek().value!==']'){el.push(this.parseExpr());while(this.peek()?.value===','){this.eat();el.push(this.parseExpr());}}this.expect('t-brk',']');return{type:'ArrLit',elements:el,line:t.line};}
+    throw new ParseError(`예상치 못한 토큰: '${t.value}'`,t.line,t.col);
+  }
+}
+
+// ==========================================
+// 🏃 Interpreter
+// ==========================================
+class RetSig{constructor(v){this.value=v;}}
+class BrkSig{}
+class CntSig{}
+class Env{
+  constructor(p=null){this.v={};this.p=p;this.fn={};}
+  def(n,val){this.v[n]=val;}
+  get(n){if(n in this.v)return this.v[n];if(this.p)return this.p.get(n);throw new Error(`미정의 변수: ${n}`);}
+  set(n,val){if(n in this.v){this.v[n]=val;return;}if(this.p){this.p.set(n,val);return;}throw new Error(`미정의 변수: ${n}`);}
+  defFn(n,f){this.fn[n]=f;}
+  getFn(n){if(n in this.fn)return this.fn[n];if(this.p)return this.p.getFn(n);throw new Error(`미정의 함수: ${n}`);}
+}
+
+class Interp {
+  constructor(cfg,visit){this.cfg=cfg;this.env=new Env();this.visit=visit;this.iter=0;this.MAX=100000;}
+  async run(ast){this.out=[];this.iter=0;for(const n of ast.body)await this.eval(n,this.env);return this.out;}
+  chk(){if(++this.iter>this.MAX)throw new Error(`무한루프 감지 (${this.MAX}회)`);}
+  async eval(n,e){
+    if(!n)return;
+    if(this.visit&&n._id)await this.visit(n._id);
+    switch(n.type){
+      case'VarDecl':e.def(n.name,await this.eval(n.value,e));break;
+      case'Assign':e.set(n.name,await this.eval(n.value,e));break;
+      case'ArrAssign':{const a=e.get(n.arr);if(!Array.isArray(a))throw new Error(n.arr+'는 배열 아님');a[await this.eval(n.idx,e)]=await this.eval(n.value,e);break;}
+      case'Print':this.out.push(String(await this.eval(n.expr,e)));break;
+      case'If':if(await this.eval(n.cond,e)){for(const c of n.consequent)await this.eval(c,e);}else if(n.alternate){for(const c of n.alternate)await this.eval(c,e);}break;
+      case'While':while(await this.eval(n.cond,e)){this.chk();try{for(const c of n.body)await this.eval(c,e);}catch(x){if(x instanceof BrkSig)break;if(x instanceof CntSig)continue;throw x;}}break;
+      case'For':{const fe=new Env(e);if(n.init)await this.eval(n.init,fe);while(!n.cond||await this.eval(n.cond,fe)){this.chk();try{for(const c of n.body)await this.eval(c,fe);}catch(x){if(x instanceof BrkSig)break;if(x instanceof CntSig){if(n.update)await this.eval(n.update,fe);continue;}throw x;}if(n.update)await this.eval(n.update,fe);}break;}
+      case'FuncDecl':e.defFn(n.name,n);break;
+      case'Return':throw new RetSig(n.value?await this.eval(n.value,e):undefined);
+      case'Break':throw new BrkSig();
+      case'Continue':throw new CntSig();
+      case'ExprStmt':await this.eval(n.expr,e);break;
+      case'BinOp':{const l=await this.eval(n.left,e),r=await this.eval(n.right,e),o=n.op;
+        if(o==='+')return(typeof l==='string'||typeof r==='string')?String(l)+String(r):l+r;
+        if(o==='-')return l-r;if(o==='*')return l*r;if(o==='/')return l/r;if(o==='%')return l%r;
+        if(o==='==')return l==r;if(o==='!=')return l!=r;if(o==='>')return l>r;if(o==='<')return l<r;
+        if(o==='>=')return l>=r;if(o==='<=')return l<=r;if(o==='&&')return l&&r;if(o==='||')return l||r;break;}
+      case'Unary':{const a=await this.eval(n.arg,e);if(n.op==='!')return!a;if(n.op==='-')return-a;break;}
+      case'Lit':return n.vt==='Num'?parseFloat(n.value):n.value;
+      case'Identifier':return e.get(n.name);
+      case'ArrLit':{const a=[];for(const el of n.elements)a.push(await this.eval(el,e));return a;}
+      case'ArrAcc':{const a=e.get(n.arr);if(!Array.isArray(a))throw new Error(n.arr+'는 배열 아님');const i=await this.eval(n.idx,e);if(i<0||i>=a.length)throw new Error(`인덱스 초과: ${i}`);return a[i];}
+      case'Call':{const fn=e.getFn(n.callee),ne=new Env(e);
+        for(let i=0;i<fn.params.length;i++) ne.def(fn.params[i],i<n.args.length?await this.eval(n.args[i],e):undefined);
+        try{for(const c of fn.body)await this.eval(c,ne);}catch(x){if(x instanceof RetSig)return x.value;throw x;}return undefined;}
+    }
+  }
+}
+
+// ==========================================
+// 🌳 AST 렌더러
+// ==========================================
+let astC=0;
+function renderAST(n,pfx='n'){
+  if(!n||typeof n!=='object'||!n.type)return '';
+  const id=pfx+'-'+(astC++);
+  n._id=id;
+  let c=`<span class="ast-type">${n.type}</span>`;
+  if(n.name!==undefined)c+=` <span class="ast-key">name:</span> <span class="ast-val">"${n.name}"</span>`;
+  if(n.vt)c+=` <span class="ast-key">val:</span> <span class="ast-val">${JSON.stringify(n.value)}</span>`;
+  if(n.op)c+=` <span class="ast-key">op:</span> <span class="ast-val">"${n.op}"</span>`;
+  if(n.callee)c+=` <span class="ast-key">fn:</span> <span class="ast-val">"${n.callee}"</span>`;
+  if(n.line)c+=` <span class="log-line">L${n.line}</span>`;
+  let h=`<div id="${id}" class="ast-node">${c}`;
+  const rc=(child,s)=>(child&&typeof child==='object'&&child.type)?renderAST(child,id+s):'';
+  if(Array.isArray(n.body))n.body.forEach((c,i)=>h+=rc(c,'-b'+i));
+  if(Array.isArray(n.consequent)){h+=`<div class="ast-node"><span class="ast-key">consequent</span>`;n.consequent.forEach((c,i)=>h+=rc(c,'-cq'+i));h+=`</div>`;}
+  if(Array.isArray(n.alternate)){h+=`<div class="ast-node"><span class="ast-key">alternate</span>`;n.alternate.forEach((c,i)=>h+=rc(c,'-al'+i));h+=`</div>`;}
+  h+=rc(n.left,'-l')+rc(n.right,'-r')+rc(n.arg,'-a')+rc(n.expr,'-e')+rc(n.cond,'-cd')+rc(n.init,'-in')+rc(n.update,'-up')+rc(n.idx,'-ix')+rc(n.value,'-v');
+  if(n.args){h+=`<div class="ast-node"><span class="ast-key">args</span>`;n.args.forEach((a,i)=>h+=rc(a,'-ag'+i));h+=`</div>`;}
+  if(n.elements){h+=`<div class="ast-node"><span class="ast-key">elements</span>`;n.elements.forEach((a,i)=>h+=rc(a,'-el'+i));h+=`</div>`;}
+  h+=`</div>`;return h;
+}
+
+async function hlNode(id){
+  const el=$(id);
+  if(el){el.classList.add('hl');sfx('tick');
+    el.scrollIntoView({behavior:'smooth',block:'nearest'});
+    const spd=parseInt($('speedSlider').value)||50;
+    await new Promise(r=>setTimeout(r,spd));
+    el.classList.remove('hl');
+  }
+}
+
+// ==========================================
+// ▶ 실행 + 🆕 히스토리
+// ==========================================
+async function runCode(){
+  const out=$('outputBox'), ast=$('astOutput');
+  out.innerHTML=''; ast.innerHTML='<span class="log-info">파싱 중...</span>';
+  switchTab('output',document.querySelector('[data-tab="output"]'));
+  const code=$('codeEditor').value, cfg=getConfig();
+  const startTime = performance.now();
+  try{
+    sfx('start');
+    astC=0;
+    const tokens=tokenize(code,cfg);
+    const parser=new Parser(tokens,cfg);
+    const astObj=parser.parseProgram();
+    ast.innerHTML=`<div class="ast-root">Program</div>`+renderAST(astObj);
+    const interp=new Interp(cfg,async(id)=>await hlNode(id));
+    const results=await interp.run(astObj);
+    const elapsed = (performance.now()-startTime).toFixed(1);
+    out.innerHTML=`<span class="log-success">🚀 실행 완료! (${interp.iter} iterations, ${elapsed}ms)</span>\n<span style="color:#666">-------------------</span>\n`;
+    results.forEach(line=>{out.innerHTML+=`<div>${line}</div>`;});
+    sfx('ok');
+    
+    // 🆕 히스토리에 추가
+    addHistory({
+      code: code.substring(0, 50) + (code.length > 50 ? '...' : ''),
+      fullCode: code,
+      status: 'ok',
+      time: new Date().toLocaleTimeString(),
+      result: results.join('\n').substring(0, 100)
+    });
+  } catch(e) {
+    const li=e.line?` (L${e.line}:${e.col})`:'';
+    ast.innerHTML=`<span class="log-error">❌ ${e.message}${li}</span>`;
+    out.innerHTML=`<span class="log-error">❌ ${e.message}${li}</span>`;
+    sfx('err');
+    addHistory({
+      code: code.substring(0, 50) + (code.length > 50 ? '...' : ''),
+      fullCode: code,
+      status: 'err',
+      time: new Date().toLocaleTimeString(),
+      result: e.message
+    });
+  }
+}
+
+// 🆕 히스토리 관리
+function addHistory(entry) {
+  runHistory.unshift(entry);
+  if(runHistory.length > MAX_HISTORY) runHistory.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = $('historyList');
+  if(runHistory.length === 0) {
+    list.innerHTML = '<div class="history-empty">아직 실행 기록이 없습니다</div>';
+    return;
+  }
+  list.innerHTML = runHistory.map((h, i) => `
+    <div class="history-item" onclick="restoreHistory(${i})" title="${h.result.replace(/"/g,'&quot;')}">
+      <span><span class="h-status">${h.status==='ok'?'✅':'❌'}</span> ${h.code.replace(/</g,'&lt;')}</span>
+      <span class="h-time">${h.time}</span>
+    </div>
+  `).join('');
+}
+
+function restoreHistory(idx) {
+  const h = runHistory[idx];
+  if(h && h.fullCode) {
+    $('codeEditor').value = h.fullCode;
+    onEditorInput();
+    sfx('tick');
+  }
+}
+
+function clearHistory() {
+  runHistory = [];
+  renderHistory();
+}
+
+function clearOutput() {
+  $('outputBox').innerHTML = '<span class="log-info">[▶ 실행]을 눌러 결과를 확인하세요.</span>';
+  $('astOutput').innerHTML = '<span class="log-info">[▶ 실행]을 눌러 AST를 확인하세요.</span>';
+}
+
+// ==========================================
+// 🆕 자동 포맷
+// ==========================================
+function autoFormat() {
+  const code = $('codeEditor').value;
+  const lines = code.split('\n');
+  let indent = 0;
+  const formatted = lines.map(line => {
+    const trimmed = line.trim();
+    if(!trimmed) return '';
+    // 닫는 괄호면 들여쓰기 감소
+    if(trimmed.startsWith('}') || trimmed.startsWith(']') || trimmed.startsWith(')')) {
+      indent = Math.max(0, indent - 1);
+    }
+    const result = '  '.repeat(indent) + trimmed;
+    // 여는 괄호면 들여쓰기 증가
+    if(trimmed.endsWith('{') || trimmed.endsWith('[') || trimmed.endsWith('(')) {
+      indent++;
+    }
+    return result;
+  });
+  $('codeEditor').value = formatted.join('\n');
+  onEditorInput();
+  sfx('ok');
+}
+
+// ==========================================
+// 🆕 단축키 모달
+// ==========================================
+function showShortcuts() {
+  $('shortcutModal').classList.add('show');
+}
+function closeShortcuts() {
+  $('shortcutModal').classList.remove('show');
+}
+
+// ==========================================
+// 📝 예제 코드
+// ==========================================
+const defaultCode = `// AVE 예제
+let x = 10
+let y = 20
+let result = x + y * 2
+
+출력 "결과: " + result
+
+함수 팩토리얼(n) {
+  만약 n <= 1 {
+    반환 1
+  }
+  반환 n * 팩토리얼(n - 1)
+}
+
+출력 "5! = " + 팩토리얼(5)
+
+let sum = 0
+for (let i = 1; i <= 5; i = i + 1) {
+  sum = sum + i
+}
+출력 "1~5 합: " + sum
+
+let 과일 = ["사과", "바나나", "오렌지"]
+출력 "첫 번째: " + 과일[0]`;
+
+function generateExampleCode(cfg) {
+  const cmt = `${cfg.comment} 예제 코드`;
+  const q = cfg.quote;
+  const kw = cfg.keywords;
+  return `${cmt}
+${kw[6]||'let'} x = 10
+${kw[6]||'let'} y = 20
+${kw[6]||'let'} result = x + y * 2
+
+${kw[0]||'출력'} "결과: " + result
+
+${kw[1]||'만약'} result > 30 {
+  ${kw[0]||'출력'} ${q}크다${q}
+}`;
+}
+
+function injectExample(type) {
+  const cfg = getConfig();
+  const q = cfg.quote; const kw = cfg.keywords;
+  let code = "";
+  if (type === 'hello') code = `${kw[0]||'출력'} ${q}Hello, World!${q}`;
+  else if (type === 'math') code = `${kw[6]||'let'} a = 3\n${kw[6]||'let'} b = 4\n${kw[6]||'let'} c = 5\n${kw[0]||'출력'} "우선순위: " + (a + b * c)`;
+  else if (type === 'func') code = `${kw[4]||'함수'} 팩토리얼(n) {\n  ${kw[1]||'만약'} n <= 1 {\n    ${kw[5]||'반환'} 1\n  }\n  ${kw[5]||'반환'} n * 팩토리얼(n - 1)\n}\n${kw[0]||'출력'} "5! = " + 팩토리얼(5)`;
+  else if (type === 'for') code = `${kw[6]||'let'} sum = 0\nfor (${kw[6]||'let'} i = 1; i <= 5; i = i + 1) {\n  sum = sum + i\n}\n${kw[0]||'출력'} "1~5 합: " + sum`;
+  else if (type === 'array') code = `${kw[6]||'let'} arr = [10, 20, 30]\n${kw[0]||'출력'} arr[0]\narr[1] = 99\n${kw[0]||'출력'} arr[1]`;
+  $('codeEditor').value = code;
+  onEditorInput();
+}
+
+function loadTutorial(el) {
+  $('codeEditor').value = el.textContent;
+  onEditorInput();
+  sfx('ok');
+}
+
+function updateAll() {
+  const cfg = getConfig();
+  $('displayExt').textContent = cfg.ext;
+  $('statusExt').textContent = cfg.ext;
+  checkCollisions(cfg);
+  $('previewCode').textContent = generateExampleCode(cfg);
+  updateHighlight();
+}
+
+// ==========================================
+// 💾 저장/불러오기/다운로드
+// ==========================================
+function saveProject() {
+  const state = {
+    infoName:$('infoName').value, infoVersion:$('infoVersion').value,
+    infoExt:$('infoExt').value, infoAuthor:$('infoAuthor').value,
+    cfgKeywords:$('cfgKeywords').value, cfgOperators:$('cfgOperators').value,
+    cfgTypes:$('cfgTypes').value, cfgComment:$('cfgComment').value,
+    cfgQuote:$('cfgQuote').value, code:$('codeEditor').value
+  };
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'AVE_Project.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  sfx('ok');
+}
+
+function loadProject(input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const s = JSON.parse(e.target.result);
+      $('infoName').value = s.infoName||'AVE';
+      $('infoVersion').value = s.infoVersion||'1.0.0';
+      $('infoExt').value = s.infoExt||'.ave';
+      $('infoAuthor').value = s.infoAuthor||'Dev';
+      $('cfgKeywords').value = s.cfgKeywords||'출력,만약,아니면,반복,함수,반환,let,for,break,continue';
+      $('cfgOperators').value = s.cfgOperators||'==,!=,>=,<=,&&,||,+,-,*,/,%,!,=';
+      $('cfgTypes').value = s.cfgTypes||'int,string,bool,array';
+      $('cfgComment').value = s.cfgComment||'//';
+      $('cfgQuote').value = s.cfgQuote||'"';
+      $('codeEditor').value = s.code||defaultCode;
+      updateAll();
+      sfx('ok');
+    } catch(err) { sfx('err'); alert('❌ 잘못된 프로젝트 파일'); }
+  };
+  reader.readAsText(file); input.value = '';
+}
+
+function openDownloadModal() { $('downloadModal').classList.add('show'); }
+function closeDownloadModal() { $('downloadModal').classList.remove('show'); }
+function selectExt(ext, el) {
+  dlExt = ext;
+  document.querySelectorAll('.download-option').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+async function doDownload() {
+  const code = $('codeEditor').value;
+  const fileName = 'main' + dlExt;
+  if('showSaveFilePicker' in window) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [{description:'AVE Source', accept:{'text/plain':[dlExt]}}]
+      });
+      const w = await handle.createWritable();
+      await w.write(code); await w.close();
+      sfx('ok'); closeDownloadModal();
+    } catch(err) {
+      if(err.name !== 'AbortError') fallbackDL(code, fileName);
+    }
+  } else fallbackDL(code, fileName);
+}
+function fallbackDL(code, fileName) {
+  const blob = new Blob([code], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  sfx('ok'); closeDownloadModal();
+}
+
+// ==========================================
+// ✨ VS Code 확장 생성
+// ==========================================
+function openGenerateModal() {
+  const cfg = getConfig();
+  const keywordRegex = cfg.keywords.join('|');
+  const operatorRegex = cfg.operators.map(op=>op.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
+  const tmLanguage = {
+    "$schema":"https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name":cfg.name, "scopeName":`source.${cfg.name.toLowerCase()}`,
+    "patterns":[
+      {"include":"#comments"},{"include":"#strings"},{"include":"#keywords"},{"include":"#operators"},{"include":"#numbers"}
+    ],
+    "repository":{
+      "comments":{"patterns":[{"name":"comment.line.ave","match":`${cfg.comment.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}.*$`}]},
+      "strings":{"name":"string.quoted.ave","match":`${cfg.quote}(\\\\.|[^${cfg.quote}\\\\])*${cfg.quote}`},
+      "keywords":{"name":"keyword.control.ave","match":`\\b(${keywordRegex})\\b`},
+      "operators":{"name":"keyword.operator.ave","match":`(${operatorRegex})`},
+      "numbers":{"name":"constant.numeric.ave","match":"\\b(0[xX][0-9a-fA-F]+|0[bB][01]+|[0-9]+(\\.[0-9]+)?)\\b"}
+    }
+  };
+  const pkg = {
+    "name":`${cfg.name.toLowerCase()}-syntax`,
+    "displayName":`${cfg.name} Language`,
+    "version":cfg.version, "publisher":cfg.author,
+    "engines":{"vscode":"^1.75.0"},
+    "contributes":{
+      "languages":[{"id":cfg.name.toLowerCase(),"aliases":[cfg.name],"extensions":[cfg.ext]}],
+      "grammars":[{"language":cfg.name.toLowerCase(),"scopeName":`source.${cfg.name.toLowerCase()}`,"path":"./syntaxes/ave.tmLanguage.json"}]
+    }
+  };
+  $('modalBody').innerHTML = `
+    <div style="color:var(--green);margin-bottom:10px;">🎉 아래 파일을 저장하고 <code>npm install && vsce package</code> 실행</div>
+    <div class="code-block">
+      <button class="btn btn-small btn-primary copy-btn" onclick="copyCode(this)">복사</button>
+      <h4 style="color:var(--blue);margin-bottom:8px;">1. package.json</h4>
+      <pre>${JSON.stringify(pkg,null,2)}</pre>
+    </div>
+    <div class="code-block">
+      <button class="btn btn-small btn-primary copy-btn" onclick="copyCode(this)">복사</button>
+      <h4 style="color:var(--blue);margin-bottom:8px;">2. syntaxes/ave.tmLanguage.json</h4>
+      <pre>${JSON.stringify(tmLanguage,null,2)}</pre>
+    </div>
+  `;
+  $('generateModal').classList.add('show');
+}
+function closeGenModal() { $('generateModal').classList.remove('show'); }
+function copyCode(btn) {
+  const code = btn.nextElementSibling.nextElementSibling.textContent;
+  navigator.clipboard.writeText(code).then(()=>{
+    const orig = btn.textContent; btn.textContent = '복사됨!'; btn.style.background = 'var(--green)';
+    setTimeout(()=>{btn.textContent = orig; btn.style.background = '';},1500);
+  });
+}
+
+// ==========================================
+// 🚀 초기화
+// ==========================================
+$('codeEditor').value = defaultCode;
+updateAll();
+</script>
+</body>
+</html>
