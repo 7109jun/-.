@@ -1,0 +1,1178 @@
+AVE studio3가 만들어졌고 4단계로 분류됩니다'
+기초:확장자 이름만 정하고 바로 사용
+표준:약간의 키워드 설정만 하기
+심화:1시간정도 투자하면 꽤 완성도 있음
+제작자: 많은것을 정의해야하며 하면 꽤 뿌듯함이 있을것임.
+코드:
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVE Studio - Creator Edition</title>
+<style>
+  :root {
+    --bg: #f4f4f9; --panel: #ffffff; --border: #d1d5db;
+    --text: #1f2937; --accent: #4f46e5; --accent-hover: #4338ca;
+    --green: #059669; --red: #dc2626; --yellow: #d97706; --blue: #2563eb;
+    --comment: #6b7280; --gutter: #e5e7eb;
+    --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+    --font-ui: 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg: #111827; --panel: #1f2937; --border: #374151;
+    --text: #f9fafb; --accent: #6366f1; --accent-hover: #818cf8;
+    --green: #10b981; --red: #ef4444; --yellow: #f59e0b; --blue: #3b82f6;
+    --comment: #9ca3af; --gutter: #111827;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; font-family: var(--font-ui); overflow: hidden; }
+  .icon { width: 16px; height: 16px; fill: currentColor; vertical-align: middle; flex-shrink: 0; }
+  header { background: var(--panel); padding: 10px 20px; border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; flex-shrink: 0; }
+  header h1 { font-size: 1.25rem; color: var(--accent); display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .btn { padding: 8px 14px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; background: var(--panel); color: var(--text); }
+  .btn:hover { background: var(--gutter); }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-success { background: var(--green); color: white; border-color: var(--green); }
+  .btn-warning { background: var(--yellow); color: white; border-color: var(--yellow); }
+  .btn-danger { background: var(--red); color: white; border-color: var(--red); }
+  .btn-small { padding: 5px 10px; font-size: 0.8rem; }
+  .container { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+  .config-panel { width: 380px; background: var(--panel); overflow-y: auto; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  body[data-level="creator"] .config-panel { width: 500px; }
+  .level-toggle { display: flex; background: var(--gutter); padding: 3px; margin: 12px; border-radius: 6px; flex-shrink: 0; }
+  .level-btn { flex: 1; text-align: center; padding: 8px; font-size: 0.8rem; cursor: pointer; border-radius: 4px; color: var(--comment); user-select: none; font-weight: 600; }
+  .level-btn.active { background: var(--panel); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .creator-search { margin: 0 12px 12px 12px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem; width: calc(100% - 24px); }
+  .category-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 12px 12px 12px; }
+  .filter-tag { padding: 4px 10px; border: 1px solid var(--border); border-radius: 12px; font-size: 0.75rem; cursor: pointer; background: var(--panel); color: var(--comment); }
+  .filter-tag.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .accordion-item { border-bottom: 1px solid var(--border); }
+  .accordion-header { padding: 12px 16px; cursor: pointer; font-size: 0.9rem; font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: center; background: var(--panel); user-select: none; }
+  .accordion-header:hover { background: var(--gutter); }
+  .accordion-header .arrow { transition: transform 0.2s; }
+  .accordion-item.open .accordion-header .arrow { transform: rotate(180deg); }
+  .accordion-content { display: none; padding: 14px; background: var(--bg); }
+  .accordion-item.open .accordion-content { display: block; }
+  .level-hidden { display: none !important; }
+  .config-group { margin-bottom: 12px; }
+  .config-group label { display: block; font-size: 0.8rem; color: var(--comment); margin-bottom: 4px; font-weight: 600; }
+  .config-group input, .config-group select, .config-group textarea { width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 7px 9px; border-radius: 5px; font-size: 0.85rem; font-family: var(--font-mono); }
+  .config-group textarea { height: 50px; resize: vertical; }
+  .category-badge { display: inline-block; background: var(--accent); color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 3px; margin-left: 8px; font-weight: 600; }
+  .warning-banner { background: #fef2f2; border-left: 4px solid var(--red); color: var(--red); padding: 10px; font-size: 0.8rem; display: none; margin: 10px; border-radius: 0 5px 5px 0; font-weight: 600; }
+  .warning-banner.show { display: flex; align-items: center; gap: 8px; }
+  .workspace { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .editor-area { flex: 1; display: flex; min-height: 0; }
+  .col { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .col-middle { flex: 1.2; border-right: 1px solid var(--border); }
+  .tab-header { background: var(--panel); padding: 10px 16px; font-size: 0.9rem; border-bottom: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+  .editor-wrapper { flex: 1; position: relative; overflow: hidden; background: var(--panel); min-height: 100px; }
+  #codeEditor, #highlightLayer { position: absolute; top: 0; left: 45px; right: 0; bottom: 0; padding: 16px; font-family: var(--font-mono); font-size: 15px; line-height: 1.6; white-space: pre; overflow: auto; border: none; outline: none; tab-size: 2; }
+  #codeEditor { z-index: 2; background: transparent; color: transparent; caret-color: var(--text); resize: none; }
+  #highlightLayer { z-index: 1; pointer-events: none; }
+  .line-numbers { position: absolute; top: 0; left: 0; width: 45px; bottom: 0; background: var(--gutter); border-right: 1px solid var(--border); padding: 16px 8px 16px 0; font-family: var(--font-mono); font-size: 15px; line-height: 1.6; color: var(--comment); text-align: right; overflow: hidden; z-index: 3; user-select: none; pointer-events: none; }
+  .t-kw { color: var(--blue); font-weight: 700; }
+  .t-op { color: var(--red); }
+  .t-str { color: var(--green); }
+  .t-num { color: var(--yellow); }
+  .t-id { color: var(--text); }
+  .t-cmt { color: var(--comment); font-style: italic; }
+  .t-brk { color: var(--yellow); }
+  .t-ws { white-space: pre; }
+  .output-box { flex: 1; padding: 16px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.95rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; white-space: pre-wrap; line-height: 1.6; }
+  .log-info { color: var(--blue); font-weight: 600; }
+  .log-error { color: var(--red); font-weight: 700; }
+  .log-success { color: var(--green); font-weight: 700; }
+  .tabs { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; }
+  .tab-btn { padding: 12px 18px; cursor: pointer; font-size: 0.9rem; color: var(--comment); border-bottom: 3px solid transparent; white-space: nowrap; user-select: none; font-weight: 600; }
+  .tab-btn:hover { color: var(--text); background: var(--gutter); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; flex: 1; min-height: 0; overflow-y: auto; padding: 20px; font-size: 0.95rem; line-height: 1.6; }
+  .tab-content.active { display: flex; flex-direction: column; }
+  .ast-tree { font-family: var(--font-mono); font-size: 0.9rem; }
+  .ast-node { margin-left: 24px; border-left: 2px dashed var(--border); padding-left: 12px; position: relative; margin-top: 4px; border-radius: 4px; padding: 4px 4px 4px 12px; cursor: pointer; }
+  .ast-node:hover { background: rgba(79, 70, 229, 0.1); }
+  .ast-node::before { content: ""; position: absolute; left: -2px; top: 12px; width: 12px; height: 2px; background: var(--border); }
+  .ast-root { font-weight: 800; color: var(--accent); font-size: 1.1rem; margin-bottom: 12px; }
+  .ast-type { color: var(--blue); font-weight: 700; }
+  .ast-key { color: var(--yellow); font-weight: 600; }
+  .ast-val { color: var(--green); }
+  .ast-mapping { font-size: 0.75rem; color: var(--comment); font-style: italic; margin-left: 8px; background: var(--gutter); padding: 2px 6px; border-radius: 4px; }
+  .grammar-map { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 14px; flex-shrink: 0; }
+  .grammar-map h4 { color: var(--accent); margin-bottom: 10px; font-size: 0.95rem; }
+  .map-item { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; margin: 5px 0; font-family: var(--font-mono); padding: 5px; background: var(--bg); border-radius: 4px; }
+  .map-arrow { color: var(--comment); font-weight: bold; }
+  .map-user { color: var(--green); font-weight: 700; background: rgba(5, 150, 105, 0.1); padding: 2px 6px; border-radius: 4px; }
+  .map-ast { color: var(--blue); font-weight: 600; }
+  .statusbar { background: var(--panel); border-top: 1px solid var(--border); padding: 6px 20px; font-size: 0.8rem; color: var(--comment); display: flex; justify-content: space-between; flex-shrink: 0; }
+  .statusbar .status-left, .statusbar .status-right { display: flex; gap: 20px; align-items: center; }
+  .status-item { display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .status-dot.ok { background: var(--green); }
+  .status-dot.err { background: var(--red); }
+  .project-item { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .project-info { flex: 1; min-width: 0; }
+  .project-name { font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .project-meta { font-size: 0.75rem; color: var(--comment); }
+  .project-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .user-example { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .user-example-info { flex: 1; min-width: 0; }
+  .user-example-title { font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .user-example-desc { font-size: 0.8rem; color: var(--comment); }
+  .user-example-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .tutorial-section { margin-bottom: 20px; padding: 20px; background: var(--panel); border-radius: 8px; border: 1px solid var(--border); }
+  .tutorial-section h3 { color: var(--accent); margin-bottom: 12px; font-size: 1.1rem; }
+  .tutorial-section p { margin-bottom: 12px; line-height: 1.6; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; display: none; justify-content: center; align-items: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: var(--panel); width: 90%; max-width: 800px; max-height: 85vh; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .modal-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+  .modal-header h3 { font-size: 1.1rem; color: var(--accent); }
+  .modal-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .json-editor { width: 100%; min-height: 400px; font-family: var(--font-mono); font-size: 0.85rem; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); resize: vertical; }
+  .creator-stats { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .stat-box { text-align: center; }
+  .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+  .stat-label { font-size: 0.75rem; color: var(--comment); margin-top: 4px; }
+</style>
+</head>
+<body data-theme="light" data-level="standard">
+
+<header>
+  <h1>
+    <svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+    AVE Studio
+  </h1>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <button class="btn btn-small" onclick="openProjectManager()">프로젝트</button>
+    <button class="btn btn-small" onclick="document.getElementById('fileInput').click()">열기</button>
+    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="loadProjectFile(this)">
+    <button class="btn btn-small btn-primary" onclick="saveProjectFile()">저장</button>
+    <button class="btn btn-small btn-success" onclick="runCode()">실행</button>
+    <select id="themeSelect" class="btn btn-small" style="background:var(--panel);color:var(--text);border:1px solid var(--border);">
+      <option value="light">밝은 테마</option>
+      <option value="dark">어두운 테마</option>
+    </select>
+  </div>
+</header>
+
+<div class="container">
+  <aside class="config-panel">
+    <div class="level-toggle">
+      <div class="level-btn" onclick="setLevel('basic',this)">기초</div>
+      <div class="level-btn active" onclick="setLevel('standard',this)">표준</div>
+      <div class="level-btn" onclick="setLevel('expert',this)">심화</div>
+      <div class="level-btn" onclick="setLevel('creator',this)">제작자</div>
+    </div>
+
+    <div id="creatorUI" style="display:none;">
+      <div class="creator-stats">
+        <div class="stat-box">
+          <div class="stat-value" id="totalSettings">0</div>
+          <div class="stat-label">총 설정</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="totalCategories">0</div>
+          <div class="stat-label">카테고리</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="completionRate">0%</div>
+          <div class="stat-label">완성도</div>
+        </div>
+      </div>
+      <input type="text" class="creator-search" id="creatorSearch" placeholder="설정 검색..." oninput="filterCategories()">
+      <div class="category-filter" id="categoryFilter"></div>
+    </div>
+
+    <div id="collisionWarning" class="warning-banner">
+      <span>예약어 충돌: <span id="collisionText"></span></span>
+    </div>
+
+    <div class="accordion-item open" data-min-level="basic">
+      <div class="accordion-header" onclick="toggleAccordion(this)">1. 언어 기본 정보 <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group"><label>이름</label><input type="text" id="infoName" value="AVE" oninput="updateAll()"></div>
+        <div class="config-group"><label>확장자</label><select id="infoExt" onchange="updateAll()"><option value=".ave">.ave</option><option value=".aveasy">.aveasy</option></select></div>
+      </div>
+    </div>
+
+    <div class="accordion-item" data-min-level="standard">
+      <div class="accordion-header" onclick="toggleAccordion(this)">2. 키워드 설정 <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group">
+          <label>키워드 (출력,만약,아니면,반복,함수,반환,let,for,break,continue)</label>
+          <textarea id="cfgKeywords" oninput="updateAll()">출력,만약,아니면,반복,함수,반환,let,for,break,continue</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" data-min-level="standard">
+      <div class="accordion-header" onclick="toggleAccordion(this)">3. 연산자 설정 <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group">
+          <label>연산자</label>
+          <textarea id="cfgOperators" oninput="updateAll()">==,!=,>=,<=,&&,||,+,-,*,/,%,!,=</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item open" data-min-level="standard">
+      <div class="accordion-header" onclick="toggleAccordion(this)">4. 문법 기호 <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group"><label>주석 기호</label><input type="text" id="cfgComment" value="//" oninput="updateAll()"></div>
+        <div class="config-group"><label>문자열 따옴표</label><select id="cfgQuote" onchange="updateAll()"><option value='"'>"큰따옴표"</option><option value="'">'작은따옴표'</option></select></div>
+      </div>
+    </div>
+
+    <!-- 제작자 모드 카테고리들 -->
+    <div class="accordion-item creator-only" data-min-level="creator" data-category="interpreter">
+      <div class="accordion-header" onclick="toggleAccordion(this)">인터프리터 엔진 <span class="category-badge">50개</span> <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group"><label>실행 방식</label><select id="crInterpreterMode" onchange="updateAll()"><option value="tree-walk">Tree-Walk</option><option value="bytecode">바이트코드</option><option value="jit">JIT 컴파일</option></select></div>
+        <div class="config-group"><label>최대 호출 스택 깊이</label><input type="number" id="crMaxCallStack" value="1000" oninput="updateAll()"></div>
+        <div class="config-group"><label>가비지 컬렉션 주기</label><input type="number" id="crGCInterval" value="1000" oninput="updateAll()"></div>
+        <div class="config-group"><label>메모리 제한 (MB)</label><input type="number" id="crMemLimit" value="512" oninput="updateAll()"></div>
+        <div class="config-group"><label>실행 시간 제한 (초)</label><input type="number" id="crTimeLimit" value="30" oninput="updateAll()"></div>
+        <div class="config-group"><label>옵티마이제이션 레벨</label><select id="crOptLevel" onchange="updateAll()"><option value="0">O0</option><option value="1">O1</option><option value="2">O2</option><option value="3">O3</option></select></div>
+        <div class="config-group"><label>인라인 함수 임계값</label><input type="number" id="crInlineThreshold" value="10" oninput="updateAll()"></div>
+        <div class="config-group"><label>상수 폴딩</label><select id="crConstFolding" onchange="updateAll()"><option value="true">활성화</option><option value="false">비활성화</option></select></div>
+        <div class="config-group"><label>사각지대 제거</label><select id="crDeadCodeElim" onchange="updateAll()"><option value="true">활성화</option><option value="false">비활성화</option></select></div>
+        <div class="config-group"><label>루프 언롤링</label><select id="crLoopUnroll" onchange="updateAll()"><option value="false">비활성화</option><option value="true">활성화</option></select></div>
+      </div>
+    </div>
+
+    <div class="accordion-item creator-only" data-min-level="creator" data-category="compiler">
+      <div class="accordion-header" onclick="toggleAccordion(this)">컴파일러 파이프라인 <span class="category-badge">40개</span> <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group"><label>파서 타입</label><select id="crParserType" onchange="updateAll()"><option value="recursive-descent">Recursive Descent</option><option value="pratt">Pratt Parser</option><option value="lr">LR Parser</option></select></div>
+        <div class="config-group"><label>AST 최적화</label><select id="crASTOpt" onchange="updateAll()"><option value="true">활성화</option><option value="false">비활성화</option></select></div>
+        <div class="config-group"><label>중간 표현(IR)</label><select id="crIR" onchange="updateAll()"><option value="none">없음</option><option value="three-address">3-Address Code</option><option value="ssa">SSA</option></select></div>
+        <div class="config-group"><label>코드 생성 타겟</label><input type="text" id="crCodeGenTarget" value="javascript" oninput="updateAll()"></div>
+        <div class="config-group"><label>소스맵 생성</label><select id="crSourceMap" onchange="updateAll()"><option value="true">생성</option><option value="false">미생성</option></select></div>
+      </div>
+    </div>
+
+    <div class="accordion-item creator-only" data-min-level="creator" data-category="runtime">
+      <div class="accordion-header" onclick="toggleAccordion(this)">런타임 환경 <span class="category-badge">30개</span> <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group"><label>표준 입출력</label><select id="crStdIO" onchange="updateAll()"><option value="console">콘솔</option><option value="gui">GUI</option><option value="web">웹</option></select></div>
+        <div class="config-group"><label>파일 시스템 접근</label><select id="crFileSystem" onchange="updateAll()"><option value="sandboxed">샌드박스</option><option value="full">전체 접근</option></select></div>
+        <div class="config-group"><label>네트워크 접근</label><select id="crNetwork" onchange="updateAll()"><option value="disabled">비활성화</option><option value="enabled">활성화</option></select></div>
+      </div>
+    </div>
+
+    <div class="accordion-item creator-only" data-min-level="creator" data-category="debug">
+      <div class="accordion-header" onclick="toggleAccordion(this)">디버깅 도구 <span class="category-badge">25개</span> <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div class="config-group"><label>브레이크포인트 지원</label><select id="crBreakpoint" onchange="updateAll()"><option value="true">지원</option><option value="false">미지원</option></select></div>
+        <div class="config-group"><label>단계별 실행</label><select id="crStepExec" onchange="updateAll()"><option value="true">지원</option><option value="false">미지원</option></select></div>
+        <div class="config-group"><label>변수 감시</label><select id="crWatchVars" onchange="updateAll()"><option value="true">지원</option><option value="false">미지원</option></select></div>
+      </div>
+    </div>
+
+    <div class="accordion-item creator-only" data-min-level="creator" data-category="json">
+      <div class="accordion-header" onclick="toggleAccordion(this)" style="background:rgba(79, 70, 229, 0.1);">JSON 직접 편집 (600개+ 확장) <span class="arrow">▼</span></div>
+      <div class="accordion-content">
+        <div style="color:var(--comment);font-size:0.8rem;margin-bottom:10px;">600개 이상의 모든 설정을 JSON으로 직접 편집할 수 있습니다.</div>
+        <button class="btn btn-primary btn-small" onclick="exportJSON()" style="margin-bottom:10px;">현재 설정 내보내기</button>
+        <button class="btn btn-warning btn-small" onclick="importJSON()" style="margin-bottom:10px;">JSON 가져오기</button>
+        <textarea id="jsonEditor" class="json-editor" placeholder="여기에 JSON을 붙여넣으세요..."></textarea>
+      </div>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <div class="editor-area">
+      <div class="col col-middle">
+        <div class="tab-header">
+          <span>코드 에디터 (<span id="displayExt" style="color:var(--green);font-weight:700;">.ave</span>)</span>
+          <span style="font-size:0.8rem;color:var(--comment);">Ctrl + Enter로 실행</span>
+        </div>
+        <div class="editor-wrapper">
+          <div class="line-numbers" id="lineNumbers"></div>
+          <div id="highlightLayer"></div>
+          <textarea id="codeEditor" spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="col">
+        <div class="tabs" id="rightTabs">
+          <div class="tab-btn active" data-tab="preview" onclick="switchTab('preview',this)">예제 코드</div>
+          <div class="tab-btn" data-tab="ast" onclick="switchTab('ast',this)">구조 분석</div>
+          <div class="tab-btn" data-tab="output" onclick="switchTab('output',this)">실행 결과</div>
+          <div class="tab-btn" data-tab="tutorial" onclick="switchTab('tutorial',this)">학습 가이드</div>
+        </div>
+        <div id="tab-preview" class="tab-content active">
+          <div style="color:var(--blue);margin-bottom:12px;font-size:0.9rem;font-weight:600;">사용자가 만든 예제 코드 목록입니다.</div>
+          <div style="margin-bottom:16px;">
+            <button class="btn btn-primary" onclick="openAddExampleModal()">현재 코드를 예제로 저장</button>
+          </div>
+          <div id="userExamplesList"></div>
+        </div>
+        <div id="tab-ast" class="tab-content">
+          <div style="color:var(--yellow);margin-bottom:12px;font-size:0.9rem;font-weight:600;">코드가 컴퓨터에게 어떻게 이해되는지 확인하세요.</div>
+          <div class="grammar-map" id="grammarMap">
+            <h4>문법 매핑 구조</h4>
+            <div id="mapContent"></div>
+          </div>
+          <div id="astOutput" class="ast-tree output-box" style="flex:1;">
+            <span class="log-info">[실행] 버튼을 눌러 구조를 확인하세요.</span>
+          </div>
+        </div>
+        <div id="tab-output" class="tab-content">
+          <div style="display:flex;gap:10px;margin-bottom:12px;">
+            <button class="btn btn-success" onclick="runCode()">실행</button>
+            <button class="btn btn-danger" onclick="clearOutput()">지우기</button>
+          </div>
+          <div id="outputBox" class="output-box" style="flex:1;min-height:0;">
+            <span class="log-info">[실행] 버튼을 눌러 결과를 확인하세요.</span>
+          </div>
+        </div>
+        <div id="tab-tutorial" class="tab-content">
+          <div class="tutorial-section">
+            <h3>AVE 언어 학습 가이드</h3>
+            <p>AVE는 프로그래밍의 원리를 배우기 위해 설계된 언어입니다.</p>
+          </div>
+          <div class="tutorial-section">
+            <h3>기초 레벨 (유치원생)</h3>
+            <p>언어 이름만 설정하고 바로 코딩을 시작하세요.</p>
+          </div>
+          <div class="tutorial-section">
+            <h3>표준 레벨 (초등학생)</h3>
+            <p>키워드와 연산자를 자유롭게 변경하여 나만의 언어를 만들어보세요.</p>
+          </div>
+          <div class="tutorial-section">
+            <h3>심화 레벨 (현직 개발자)</h3>
+            <p>300개 이상의 설정으로 완전한 프로그래밍 언어를 설계하세요.</p>
+          </div>
+          <div class="tutorial-section">
+            <h3>제작자 레벨 (언어 설계자)</h3>
+            <p>600개 이상의 설정으로 실제 프로그래밍 언어를 기획하고 설계하세요. 인터프리터 엔진, 컴파일러 파이프라인, 런타임 환경, 디버깅 도구까지 모든 것을 정의할 수 있습니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="statusbar">
+  <div class="status-left">
+    <div class="status-item"><span class="status-dot ok" id="statusDot"></span><span id="statusText">준비됨</span></div>
+    <div class="status-item" id="statusError" style="display:none;color:var(--red);font-weight:600;"></div>
+  </div>
+  <div class="status-right">
+    <div class="status-item">줄: <span id="cursorLine">1</span></div>
+    <div class="status-item">열: <span id="cursorCol">1</span></div>
+    <div class="status-item" id="statusExt">.ave</div>
+  </div>
+</div>
+
+<!-- 프로젝트 관리 모달 -->
+<div id="projectModal" class="modal-overlay" onclick="if(event.target===this)closeProjectManager()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>프로젝트 관리</h3>
+      <button class="btn btn-small btn-danger" onclick="closeProjectManager()">X</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:10px;margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="createNewProject()">새 프로젝트</button>
+        <button class="btn btn-success" onclick="saveCurrentProject()">현재 프로젝트 저장</button>
+      </div>
+      <div id="projectList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 예제 추가 모달 -->
+<div id="addExampleModal" class="modal-overlay" onclick="if(event.target===this)closeAddExampleModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>예제 코드 저장</h3>
+      <button class="btn btn-small btn-danger" onclick="closeAddExampleModal()">X</button>
+    </div>
+    <div class="modal-body">
+      <div class="config-group"><label>예제 이름</label><input type="text" id="exampleName" placeholder="예: 피보나치 수열"></div>
+      <div class="config-group"><label>설명</label><input type="text" id="exampleDesc" placeholder="예: 재귀 함수를 사용한 피보나치 계산"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-primary" onclick="saveUserExample()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ 상태 ============
+const $ = id => document.getElementById(id);
+let userExamples = JSON.parse(localStorage.getItem('aveUserExamples') || '[]');
+let projects = JSON.parse(localStorage.getItem('aveProjects') || '[]');
+let currentProjectId = null;
+
+function getConfig() {
+  const level = document.body.getAttribute('data-level');
+  const config = {
+    name: $('infoName').value||'AVE',
+    ext: $('infoExt').value||'.ave',
+    comment: level !== 'basic' ? ($('cfgComment')?.value || '//') : '//',
+    quote: level !== 'basic' ? ($('cfgQuote')?.value || '"') : '"',
+  };
+  if (level === 'basic') {
+    config.keywords = '출력,만약,아니면,반복,함수,반환,let,for,break,continue'.split(',');
+    config.operators = '==,!=,>=,<=,&&,||,+,-,*,/,%,!,='.split(',');
+    config.precedence = {'||':1,'&&':2,'==':3,'!=':3,'>':4,'<':4,'>=':4,'<=':4,'+':5,'-':5,'*':6,'/':6,'%':6};
+  } else {
+    config.keywords = $('cfgKeywords').value.split(',').map(s=>s.trim()).filter(Boolean);
+    config.operators = $('cfgOperators').value.split(',').map(s=>s.trim()).filter(Boolean).sort((a,b)=>b.length-a.length);
+    config.precedence = {'||':1,'&&':2,'==':3,'!=':3,'>':4,'<':4,'>=':4,'<=':4,'+':5,'-':5,'*':6,'/':6,'%':6};
+  }
+  config.decimal = '.'; config.hexPrefix = '0x'; config.binPrefix = '0b'; config.numSep = '_';
+  return config;
+}
+
+function toggleAccordion(h) { h.parentElement.classList.toggle('open'); }
+
+function checkCollisions(cfg) {
+  const all=[...cfg.keywords,...cfg.operators];
+  const dup=[...new Set(all.filter((v,i)=>all.indexOf(v)!==i))];
+  const w=$('collisionWarning');
+  if(dup.length){w.classList.add('show');$('collisionText').textContent=dup.join(', ');}
+  else w.classList.remove('show');
+}
+
+function setLevel(level, btn) {
+  document.body.setAttribute('data-level', level);
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const levels = {basic:0, standard:1, expert:2, creator:3};
+  const cur = levels[level]||0;
+  document.querySelectorAll('[data-min-level]').forEach(el => {
+    const req = levels[el.getAttribute('data-min-level')]||0;
+    if(cur >= req) el.classList.remove('level-hidden');
+    else el.classList.add('level-hidden');
+  });
+  document.querySelectorAll('.accordion-item.level-hidden.open').forEach(el => el.classList.remove('open'));
+  $('creatorUI').style.display = level === 'creator' ? 'block' : 'none';
+  if (level === 'creator') {
+    updateCreatorStats();
+    renderCategoryFilter();
+  }
+  updateAll();
+}
+
+$('themeSelect').addEventListener('change', function() {
+  document.body.setAttribute('data-theme', this.value);
+});
+
+function switchTab(name, btn) {
+  document.querySelectorAll('#rightTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
+  btn.classList.add('active');
+  const target = $('tab-' + name);
+  if(target) { target.style.display = ''; target.classList.add('active'); }
+}
+
+// ============ 제작자 모드 ============
+function updateCreatorStats() {
+  const allInputs = document.querySelectorAll('input[id^="cr"], select[id^="cr"], textarea[id^="cr"]');
+  const filledInputs = Array.from(allInputs).filter(el => el.value.trim() !== '');
+  $('totalSettings').textContent = allInputs.length;
+  $('totalCategories').textContent = document.querySelectorAll('.creator-only').length;
+  $('completionRate').textContent = allInputs.length > 0 ? Math.round((filledInputs.length / allInputs.length) * 100) + '%' : '0%';
+}
+
+function renderCategoryFilter() {
+  const categories = ['all', 'interpreter', 'compiler', 'runtime', 'debug', 'json'];
+  const filterDiv = $('categoryFilter');
+  filterDiv.innerHTML = categories.map(cat => 
+    `<div class="filter-tag ${cat === 'all' ? 'active' : ''}" onclick="filterByCategory('${cat}', this)">${cat}</div>`
+  ).join('');
+}
+
+function filterByCategory(category, btn) {
+  document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.creator-only').forEach(item => {
+    if (category === 'all' || item.getAttribute('data-category') === category) {
+      item.classList.remove('level-hidden');
+    } else {
+      item.classList.add('level-hidden');
+    }
+  });
+}
+
+function filterCategories() {
+  const query = $('creatorSearch').value.toLowerCase();
+  document.querySelectorAll('.creator-only').forEach(item => {
+    const text = item.textContent.toLowerCase();
+    if (text.includes(query)) {
+      item.classList.remove('level-hidden');
+    } else {
+      item.classList.add('level-hidden');
+    }
+  });
+}
+
+// ============ 프로젝트 관리 ============
+function openProjectManager() {
+  renderProjectList();
+  $('projectModal').classList.add('show');
+}
+
+function closeProjectManager() {
+  $('projectModal').classList.remove('show');
+}
+
+function renderProjectList() {
+  const list = $('projectList');
+  if (projects.length === 0) {
+    list.innerHTML = '<div style="color:var(--comment);font-style:italic;padding:20px;text-align:center;">저장된 프로젝트가 없습니다.</div>';
+    return;
+  }
+  list.innerHTML = projects.map((p, i) => `
+    <div class="project-item">
+      <div class="project-info">
+        <div class="project-name">${p.name.replace(/</g,'&lt;')}</div>
+        <div class="project-meta">생성: ${p.created} | 수정: ${p.modified}</div>
+      </div>
+      <div class="project-actions">
+        <button class="btn btn-small btn-primary" onclick="loadProjectFromList(${i})">열기</button>
+        <button class="btn btn-small btn-warning" onclick="duplicateProject(${i})">복제</button>
+        <button class="btn btn-small btn-danger" onclick="deleteProject(${i})">삭제</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function createNewProject() {
+  const name = prompt('새 프로젝트 이름을 입력하세요:');
+  if (!name) return;
+  const project = {
+    id: Date.now(),
+    name: name,
+    created: new Date().toLocaleString(),
+    modified: new Date().toLocaleString(),
+    data: {
+      infoName: 'AVE',
+      infoExt: '.ave',
+      cfgKeywords: '출력,만약,아니면,반복,함수,반환,let,for,break,continue',
+      cfgOperators: '==,!=,>=,<=,&&,||,+,-,*,/,%,!,=',
+      cfgComment: '//',
+      cfgQuote: '"',
+      code: '// 새 프로젝트\n출력 "Hello, World!"'
+    }
+  };
+  projects.push(project);
+  localStorage.setItem('aveProjects', JSON.stringify(projects));
+  renderProjectList();
+}
+
+function saveCurrentProject() {
+  const name = prompt('프로젝트 이름을 입력하세요:', currentProjectId ? projects.find(p => p.id === currentProjectId)?.name : '새 프로젝트');
+  if (!name) return;
+  const data = {
+    infoName: $('infoName').value,
+    infoExt: $('infoExt').value,
+    cfgKeywords: $('cfgKeywords').value,
+    cfgOperators: $('cfgOperators').value,
+    cfgComment: $('cfgComment').value,
+    cfgQuote: $('cfgQuote').value,
+    code: $('codeEditor').value
+  };
+  document.querySelectorAll('input[id^="cr"], textarea[id^="cr"], select[id^="cr"]').forEach(el => {
+    data[el.id] = el.value;
+  });
+  if (currentProjectId) {
+    const idx = projects.findIndex(p => p.id === currentProjectId);
+    if (idx !== -1) {
+      projects[idx].name = name;
+      projects[idx].modified = new Date().toLocaleString();
+      projects[idx].data = data;
+    }
+  } else {
+    const project = {
+      id: Date.now(),
+      name: name,
+      created: new Date().toLocaleString(),
+      modified: new Date().toLocaleString(),
+      data: data
+    };
+    projects.push(project);
+    currentProjectId = project.id;
+  }
+  localStorage.setItem('aveProjects', JSON.stringify(projects));
+  renderProjectList();
+  alert('프로젝트가 저장되었습니다.');
+}
+
+function loadProjectFromList(idx) {
+  const p = projects[idx];
+  if (!p) return;
+  $('infoName').value = p.data.infoName || 'AVE';
+  $('infoExt').value = p.data.infoExt || '.ave';
+  if (p.data.cfgKeywords) $('cfgKeywords').value = p.data.cfgKeywords;
+  if (p.data.cfgOperators) $('cfgOperators').value = p.data.cfgOperators;
+  if (p.data.cfgComment) $('cfgComment').value = p.data.cfgComment;
+  if (p.data.cfgQuote) $('cfgQuote').value = p.data.cfgQuote;
+  if (p.data.code) $('codeEditor').value = p.data.code;
+  Object.keys(p.data).forEach(key => {
+    if (key.startsWith('cr')) {
+      const el = $(key);
+      if (el) el.value = p.data[key];
+    }
+  });
+  currentProjectId = p.id;
+  updateAll();
+  closeProjectManager();
+}
+
+function duplicateProject(idx) {
+  const p = projects[idx];
+  if (!p) return;
+  const newProject = {
+    id: Date.now(),
+    name: p.name + ' (복사본)',
+    created: new Date().toLocaleString(),
+    modified: new Date().toLocaleString(),
+    data: JSON.parse(JSON.stringify(p.data))
+  };
+  projects.push(newProject);
+  localStorage.setItem('aveProjects', JSON.stringify(projects));
+  renderProjectList();
+}
+
+function deleteProject(idx) {
+  if (!confirm('이 프로젝트를 삭제하시겠습니까?')) return;
+  projects.splice(idx, 1);
+  localStorage.setItem('aveProjects', JSON.stringify(projects));
+  renderProjectList();
+}
+
+// ============ Lexer ============
+class LexerError extends Error { constructor(m,l,c){super(m);this.line=l;this.col=c;} }
+
+function tokenize(code, cfg) {
+  const tokens=[]; let i=0, line=1, col=1;
+  while(i<code.length) {
+    const sl=line, sc=col;
+    const prevI = i;
+    if(code[i]===' '||code[i]==='\t'){tokens.push({type:'t-ws',value:code[i],line:sl,col:sc,length:1});col++;i++;}
+    else if(code[i]==='\n'){tokens.push({type:'t-ws',value:'\n',line:sl,col:sc,length:1});line++;col=1;i++;}
+    else if(code[i]==='\r'){i++;}
+    else if(cfg.comment && code.startsWith(cfg.comment,i)){
+      let end=code.indexOf('\n',i); if(end===-1)end=code.length;
+      const val = code.slice(i,end);
+      tokens.push({type:'t-cmt',value:val,line:sl,col:sc,length:val.length});
+      col+=val.length; i=end;
+    }
+    else if(code[i]===cfg.quote){
+      let j=i+1, val=cfg.quote;
+      while(j<code.length && code[j]!==cfg.quote){
+        if(code[j]==='\\'&&j+1<code.length){val+=code[j]+code[j+1];j+=2;}
+        else{val+=code[j];j++;}
+      }
+      if(j>=code.length) throw new LexerError('닫히지 않은 문자열입니다.', sl, sc);
+      val+=cfg.quote;
+      tokens.push({type:'t-str',value:val,line:sl,col:sc,length:val.length});
+      col+=val.length; i=j+1;
+    }
+    else if(/[0-9]/.test(code[i])){
+      let j=i;
+      while(j<code.length&&(/[0-9.]/.test(code[j])||code[j]==='_'))j++;
+      const val = code.slice(i,j);
+      tokens.push({type:'t-num',value:val,line:sl,col:sc,length:val.length});
+      col+=val.length;i=j;
+    }
+    else {
+      let om=false;
+      for(let op of cfg.operators){
+        if(code.startsWith(op,i)){
+          tokens.push({type:'t-op',value:op,line:sl,col:sc,length:op.length});
+          col+=op.length;i+=op.length;om=true;break;
+        }
+      }
+      if(!om){
+        if('{ } ( ) [ ] , ;'.split(' ').includes(code[i])){
+          tokens.push({type:'t-brk',value:code[i],line:sl,col:sc,length:1});col++;i++;
+        } else {
+          const idMatch = code.slice(i).match(/^[\p{L}\p{N}_]+/u);
+          if(idMatch){
+            const w = idMatch[0];
+            const len = w.length;
+            let tp='t-id';
+            if(cfg.keywords.includes(w))tp='t-kw';
+            tokens.push({type:tp,value:w,line:sl,col:sc,length:len});
+            col+=len;i+=len;
+          } else {
+            tokens.push({type:'t-unknown',value:code[i],line:sl,col:sc,length:1});col++;i++;
+          }
+        }
+      }
+    }
+    if (i === prevI) throw new LexerError(`처리할 수 없는 문자: '${code[i]}'`, sl, sc);
+  }
+  return tokens;
+}
+
+// ============ 하이라이팅 ============
+function updateHighlight() {
+  const code=$('codeEditor').value, cfg=getConfig();
+  try {
+    const tokens=tokenize(code,cfg);
+    let html='';
+    tokens.forEach(t=>{
+      let v=t.value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      html+= t.type==='t-ws' ? v : `<span class="${t.type}">${v}</span>`;
+    });
+    $('highlightLayer').innerHTML=html;
+    $('statusDot').className='status-dot ok';
+    $('statusError').style.display='none';
+  } catch(e) {
+    $('statusDot').className='status-dot err';
+    $('statusError').style.display='';
+    $('statusError').textContent=`오류: ${e.line}줄 ${e.col}열 - ${e.message}`;
+  }
+  updateLineNumbers();
+}
+
+function updateLineNumbers() {
+  const code=$('codeEditor').value;
+  const count=code.split('\n').length;
+  let html='';
+  for(let i=1;i<=count;i++) html+=i+'\n';
+  $('lineNumbers').textContent=html;
+}
+
+let hlTimer=null;
+function onEditorInput(){
+  clearTimeout(hlTimer);
+  hlTimer=setTimeout(updateHighlight,80);
+  updateCursorPos();
+}
+
+function syncScroll(){
+  const e=$('codeEditor');
+  $('highlightLayer').scrollTop = e.scrollTop;
+  $('highlightLayer').scrollLeft = e.scrollLeft;
+  $('lineNumbers').scrollTop = e.scrollTop;
+}
+
+function updateCursorPos(){
+  const e=$('codeEditor'), v=e.value, pos=e.selectionStart;
+  const lines=v.substring(0,pos).split('\n');
+  $('cursorLine').textContent=lines.length;
+  $('cursorCol').textContent=lines[lines.length-1].length+1;
+}
+
+const editor = $('codeEditor');
+editor.addEventListener('input', onEditorInput);
+editor.addEventListener('scroll', syncScroll);
+editor.addEventListener('click', updateCursorPos);
+editor.addEventListener('keyup', updateCursorPos);
+window.addEventListener('resize', () => { syncScroll(); updateHighlight(); });
+
+editor.addEventListener('keydown', function(e) {
+  if(e.ctrlKey && e.key==='Enter'){ e.preventDefault(); runCode(); return; }
+  if(e.key==='Tab'){
+    e.preventDefault();
+    const s=editor.selectionStart, end=editor.selectionEnd;
+    editor.value=editor.value.substring(0,s)+'  '+editor.value.substring(end);
+    editor.selectionStart=editor.selectionEnd=s+2;
+    onEditorInput(); return;
+  }
+});
+
+// ============ Parser ============
+class ParseError extends Error { constructor(m,l,c){super(m);this.line=l;this.col=c;} }
+class Parser {
+  constructor(tokens,cfg){
+    this.t=tokens.filter(t=>t.type!=='t-ws');
+    this.cfg=cfg; this.pos=0;
+    this.kw = {
+      print: cfg.keywords[0] || '출력', if: cfg.keywords[1] || '만약', else: cfg.keywords[2] || '아니면',
+      while: cfg.keywords[3] || '반복', func: cfg.keywords[4] || '함수', return: cfg.keywords[5] || '반환',
+      let: cfg.keywords[6] || 'let', for: cfg.keywords[7] || 'for', break: cfg.keywords[8] || 'break', continue: cfg.keywords[9] || 'continue'
+    };
+  }
+  peek(o=0){return this.t[this.pos+o];}
+  eat(){return this.t[this.pos++];}
+  expect(tp,v){
+    const t=this.peek();
+    if(!t||t.type!==tp||(v&&t.value!==v))
+      throw new ParseError(`예상: ${tp} ${v||''}, 실제: ${t?t.value:'EOF'}`,t?t.line:'?',t?t.col:'?');
+    return this.eat();
+  }
+  parseProgram(){let b=[];while(this.pos<this.t.length)b.push(this.parseStmt());return{type:'Program',body:b};}
+  parseStmt(){
+    const t=this.peek(); if(!t)return null;
+    if(t.type==='t-kw'&&t.value===this.kw.let){
+      this.eat();const n=this.expect('t-id').value;this.expect('t-op','=');
+      return{type:'VarDecl',name:n,value:this.parseExpr(),line:t.line,col:t.col,length:t.length};
+    }
+    if(t.type==='t-kw'&&t.value===this.kw.print){
+      this.eat();
+      return{type:'PrintStatement',expr:this.parseExpr(),line:t.line,col:t.col,length:t.length};
+    }
+    if(t.type==='t-kw'&&t.value===this.kw.if){
+      this.eat();const cond=this.parseExpr();this.expect('t-brk','{');const con=this.parseBlock();
+      let alt=null;
+      if(this.peek()?.type==='t-kw'&&this.peek().value===this.kw.else){
+        this.eat();
+        if(this.peek()?.type==='t-kw'&&this.peek().value===this.kw.if) alt=[this.parseStmt()];
+        else{this.expect('t-brk','{');alt=this.parseBlock();}
+      }
+      return{type:'IfStatement',cond,consequent:con,alternate:alt,line:t.line,col:t.col,length:t.length};
+    }
+    if(t.type==='t-kw'&&t.value===this.kw.while){
+      this.eat();const c=this.parseExpr();this.expect('t-brk','{');
+      return{type:'WhileStatement',cond:c,body:this.parseBlock(),line:t.line,col:t.col,length:t.length};
+    }
+    if(t.type==='t-kw'&&t.value===this.kw.for){
+      this.eat();this.expect('t-brk','(');
+      let init=null;
+      if(this.peek().value!==';'){
+        if(this.peek().type==='t-kw'&&this.peek().value===this.kw.let){this.eat();const n=this.expect('t-id').value;this.expect('t-op','=');init={type:'VarDecl',name:n,value:this.parseExpr()};}
+        else init=this.parseExpr();
+      }
+      this.expect('t-brk',';');
+      let cond=this.peek().value!==';'?this.parseExpr():null;
+      this.expect('t-brk',';');
+      let upd=this.peek().value!==')'?this.parseExpr():null;
+      this.expect('t-brk',')');this.expect('t-brk','{');
+      return{type:'ForStatement',init,cond,update:upd,body:this.parseBlock(),line:t.line,col:t.col,length:t.length};
+    }
+    if(t.type==='t-kw'&&t.value===this.kw.func){
+      this.eat();const n=this.expect('t-id').value;this.expect('t-brk','(');
+      const p=[];if(this.peek().value!==')'){p.push(this.expect('t-id').value);while(this.peek()?.value===','){this.eat();p.push(this.expect('t-id').value);}}
+      this.expect('t-brk',')');this.expect('t-brk','{');
+      return{type:'FuncDecl',name:n,params:p,body:this.parseBlock(),line:t.line,col:t.col,length:t.length};
+    }
+    if(t.type==='t-kw'&&t.value===this.kw.return){
+      this.eat();let v=null;if(this.peek()&&this.peek().value!=='}'&&this.peek().value!==';')v=this.parseExpr();
+      return{type:'ReturnStatement',value:v,line:t.line,col:t.col,length:t.length};
+    }
+    if(t.type==='t-kw'&&t.value===this.kw.break){this.eat();return{type:'BreakStatement',line:t.line,col:t.col,length:t.length};}
+    if(t.type==='t-kw'&&t.value===this.kw.continue){this.eat();return{type:'ContinueStatement',line:t.line,col:t.col,length:t.length};}
+    return this.parseExprStmt();
+  }
+  parseBlock(){const s=[];while(this.peek()&&this.peek().value!=='}')s.push(this.parseStmt());this.expect('t-brk','}');return s;}
+  parseExprStmt(){
+    const e=this.parseExpr();
+    if(e.type==='Identifier'&&this.peek()?.type==='t-op'&&this.peek().value==='='){this.eat();return{type:'Assignment',name:e.name,value:this.parseExpr(),line:e.line,col:e.col,length:e.length};}
+    return{type:'ExprStmt',expr:e,line:e.line,col:e.col,length:e.length};
+  }
+  prec(op){return this.cfg.precedence[op] || 0;}
+  parseExpr(){return this.parseBin(0);}
+  parseBin(min){
+    let l=this.parseUnary();
+    while(this.peek()?.type==='t-op'&&this.prec(this.peek().value)>=min){
+      const op=this.eat().value; l={type:'BinOp',op,left:l,right:this.parseBin(this.prec(op)+1),line:l.line,col:l.col,length:l.length};
+    }
+    return l;
+  }
+  parseUnary(){
+    const t=this.peek();
+    if(t?.type==='t-op'&&(t.value==='!'||t.value==='-')){this.eat();return{type:'Unary',op:t.value,arg:this.parseUnary(),line:t.line,col:t.col,length:t.length};}
+    return this.parsePrimary();
+  }
+  parsePrimary(){
+    const t=this.peek();
+    if(!t)throw new ParseError('예상치 못한 EOF','?','?');
+    if(t.type==='t-num'){this.eat();return{type:'Literal',vt:'Num',value:t.value,line:t.line,col:t.col,length:t.length};}
+    if(t.type==='t-str'){
+      this.eat();
+      const raw=t.value.slice(1,-1);
+      const q=this.cfg.quote;
+      const p=raw.replace(/\\n/g,'\n').replace(/\\t/g,'\t').replace(/\\r/g,'\r').replace(/\\\\/g,'\\').replace(new RegExp('\\\\'+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'),q);
+      return{type:'Literal',vt:'Str',value:p,line:t.line,col:t.col,length:t.length};
+    }
+    if(t.type==='t-id'){
+      this.eat();
+      if(this.peek()?.value==='('){this.eat();const a=[];if(this.peek().value!==')'){a.push(this.parseExpr());while(this.peek()?.value===','){this.eat();a.push(this.parseExpr());}}this.expect('t-brk',')');return{type:'Call',callee:t.value,args:a,line:t.line,col:t.col,length:t.length};}
+      return{type:'Identifier',name:t.value,line:t.line,col:t.col,length:t.length};
+    }
+    if(t.value==='('){this.eat();const e=this.parseExpr();this.expect('t-brk',')');return e;}
+    throw new ParseError(`예상치 못한 토큰: '${t.value}'`,t.line,t.col);
+  }
+}
+
+// ============ Interpreter ============
+class RetSig{constructor(v){this.value=v;}}
+class BrkSig{}
+class CntSig{}
+class Env{
+  constructor(p=null){this.v={};this.p=p;this.fn={};}
+  def(n,val){this.v[n]=val;}
+  get(n){if(n in this.v)return this.v[n];if(this.p)return this.p.get(n);throw new Error(`미정의 변수: ${n}`);}
+  set(n,val){if(n in this.v){this.v[n]=val;return;}if(this.p){this.p.set(n,val);return;}throw new Error(`미정의 변수: ${n}`);}
+  defFn(n,f){this.fn[n]=f;}
+  getFn(n){if(n in this.fn)return this.fn[n];if(this.p)return this.p.getFn(n);throw new Error(`미정의 함수: ${n}`);}
+}
+
+class Interp {
+  constructor(cfg){this.cfg=cfg;this.env=new Env();this.iter=0;this.MAX=50000;}
+  async run(ast){this.out=[];this.iter=0;for(const n of ast.body)await this.eval(n,this.env);return this.out;}
+  async chk(){
+    if(++this.iter>this.MAX) throw new Error(`무한 루프 감지! (${this.MAX}회 초과).`);
+    if(this.iter % 1000 === 0) await new Promise(r => setTimeout(r, 0));
+  }
+  async eval(n,e){
+    if(!n)return;
+    switch(n.type){
+      case'VarDecl':e.def(n.name,await this.eval(n.value,e));break;
+      case'Assignment':e.set(n.name,await this.eval(n.value,e));break;
+      case'PrintStatement':this.out.push(String(await this.eval(n.expr,e)));break;
+      case'IfStatement':if(await this.eval(n.cond,e)){for(const c of n.consequent)await this.eval(c,e);}else if(n.alternate){for(const c of n.alternate)await this.eval(c,e);}break;
+      case'WhileStatement':while(await this.eval(n.cond,e)){await this.chk();try{for(const c of n.body)await this.eval(c,e);}catch(x){if(x instanceof BrkSig)break;if(x instanceof CntSig)continue;throw x;}}break;
+      case'ForStatement':{const fe=new Env(e);if(n.init)await this.eval(n.init,fe);while(!n.cond||await this.eval(n.cond,fe)){await this.chk();try{for(const c of n.body)await this.eval(c,fe);}catch(x){if(x instanceof BrkSig)break;if(x instanceof CntSig){if(n.update)await this.eval(n.update,fe);continue;}throw x;}if(n.update)await this.eval(n.update,fe);}break;}
+      case'FuncDecl':e.defFn(n.name,n);break;
+      case'ReturnStatement':throw new RetSig(n.value?await this.eval(n.value,e):undefined);
+      case'BreakStatement':throw new BrkSig();
+      case'ContinueStatement':throw new CntSig();
+      case'ExprStmt':await this.eval(n.expr,e);break;
+      case'BinOp':{const l=await this.eval(n.left,e),r=await this.eval(n.right,e),o=n.op;
+        if(o==='+')return(typeof l==='string'||typeof r==='string')?String(l)+String(r):l+r;
+        if(o==='-')return l-r;if(o==='*')return l*r;if(o==='/')return l/r;if(o==='%')return l%r;
+        if(o==='==')return l==r;if(o==='!=')return l!=r;if(o==='>')return l>r;if(o==='<')return l<r;
+        if(o==='>=')return l>=r;if(o==='<=')return l<=r;if(o==='&&')return l&&r;if(o==='||')return l||r;break;}
+      case'Unary':{const a=await this.eval(n.arg,e);if(n.op==='!')return!a;if(n.op==='-')return-a;break;}
+      case'Literal':{
+        if(n.vt==='Num'){
+          const val = n.value.replace(this.cfg.numSep || '_', '');
+          return parseFloat(val);
+        }
+        return n.value;
+      }
+      case'Identifier':return e.get(n.name);
+      case'Call':{const fn=e.getFn(n.callee),ne=new Env(e);
+        for(let i=0;i<fn.params.length;i++) ne.def(fn.params[i],i<n.args.length?await this.eval(n.args[i],e):undefined);
+        try{for(const c of fn.body)await this.eval(c,ne);}catch(x){if(x instanceof RetSig)return x.value;throw x;}return undefined;}
+    }
+  }
+}
+
+// ============ AST 렌더러 ============
+let astC=0;
+function renderAST(n,pfx='n'){
+  if(!n||typeof n!=='object'||!n.type)return '';
+  const id=pfx+'-'+(astC++);
+  let mappingText = '';
+  const cfg = getConfig();
+  if(n.type === 'PrintStatement') mappingText = `<span class="ast-mapping">'${cfg.keywords[0]}'</span>`;
+  else if(n.type === 'IfStatement') mappingText = `<span class="ast-mapping">'${cfg.keywords[1]}'</span>`;
+  else if(n.type === 'WhileStatement') mappingText = `<span class="ast-mapping">'${cfg.keywords[3]}'</span>`;
+  else if(n.type === 'ForStatement') mappingText = `<span class="ast-mapping">'${cfg.keywords[7]}'</span>`;
+  else if(n.type === 'FuncDecl') mappingText = `<span class="ast-mapping">'${cfg.keywords[4]}'</span>`;
+
+  let c=`<span class="ast-type">${n.type}</span>${mappingText ? ' ' + mappingText : ''}`;
+  if(n.name!==undefined)c+=` <span class="ast-key">이름:</span> <span class="ast-val">"${n.name}"</span>`;
+  if(n.vt)c+=` <span class="ast-key">값:</span> <span class="ast-val">${JSON.stringify(n.value)}</span>`;
+  if(n.op)c+=` <span class="ast-key">연산:</span> <span class="ast-val">"${n.op}"</span>`;
+  if(n.callee)c+=` <span class="ast-key">함수:</span> <span class="ast-val">"${n.callee}"</span>`;
+  
+  let h=`<div id="${id}" class="ast-node">${c}`;
+  const rc=(child,s)=>(child&&typeof child==='object'&&child.type)?renderAST(child,id+s):'';
+  if(Array.isArray(n.body))n.body.forEach((c,i)=>h+=rc(c,'-b'+i));
+  if(Array.isArray(n.consequent)){h+=`<div class="ast-node"><span class="ast-key">참일 때</span>`;n.consequent.forEach((c,i)=>h+=rc(c,'-cq'+i));h+=`</div>`;}
+  if(Array.isArray(n.alternate)){h+=`<div class="ast-node"><span class="ast-key">거짓일 때</span>`;n.alternate.forEach((c,i)=>h+=rc(c,'-al'+i));h+=`</div>`;}
+  h+=rc(n.left,'-l')+rc(n.right,'-r')+rc(n.arg,'-a')+rc(n.expr,'-e')+rc(n.cond,'-cd')+rc(n.init,'-in')+rc(n.update,'-up')+rc(n.value,'-v');
+  if(n.args){h+=`<div class="ast-node"><span class="ast-key">인수</span>`;n.args.forEach((a,i)=>h+=rc(a,'-ag'+i));h+=`</div>`;}
+  h+=`</div>`;return h;
+}
+
+function updateGrammarMap(cfg) {
+  const kw = cfg.keywords;
+  $('mapContent').innerHTML = `
+    <div class="map-item"><span class="map-user">${kw[0]||'출력'}</span> <span class="map-arrow">➔</span> <span class="map-ast">PrintStatement</span></div>
+    <div class="map-item"><span class="map-user">${kw[1]||'만약'}</span> <span class="map-arrow">➔</span> <span class="map-ast">IfStatement</span></div>
+    <div class="map-item"><span class="map-user">${kw[3]||'반복'}</span> <span class="map-arrow">➔</span> <span class="map-ast">WhileStatement</span></div>
+    <div class="map-item"><span class="map-user">${kw[4]||'함수'}</span> <span class="map-arrow">➔</span> <span class="map-ast">FuncDecl</span></div>
+    <div class="map-item"><span class="map-user">${kw[6]||'let'}</span> <span class="map-arrow">➔</span> <span class="map-ast">VarDecl</span></div>
+  `;
+}
+
+// ============ 실행 ============
+async function runCode(){
+  const out=$('outputBox'), ast=$('astOutput');
+  out.innerHTML=''; ast.innerHTML='<span class="log-info">구조를 분석하는 중입니다...</span>';
+  switchTab('ast',document.querySelector('[data-tab="ast"]'));
+  const code=$('codeEditor').value, cfg=getConfig();
+  try{
+    astC=0;
+    const tokens=tokenize(code,cfg);
+    const parser=new Parser(tokens,cfg);
+    const astObj=parser.parseProgram();
+    updateGrammarMap(cfg);
+    ast.innerHTML=`<div class="ast-root">Program</div>`+renderAST(astObj);
+    const interp=new Interp(cfg);
+    const results=await interp.run(astObj);
+    switchTab('output',document.querySelector('[data-tab="output"]'));
+    out.innerHTML=`<span class="log-success">실행 완료! (${interp.iter}번 반복)</span>\n<span style="color:var(--border);display:block;margin:8px 0;">--------------------------------------------------</span>`;
+    results.forEach(line=>{out.innerHTML+=`<div>${line}</div>`;});
+  } catch(e) {
+    const li=e.line?` (${e.line}줄 ${e.col}열)`:'';
+    ast.innerHTML=`<span class="log-error">오류: ${e.message}${li}</span>`;
+    switchTab('output',document.querySelector('[data-tab="output"]'));
+    out.innerHTML=`<span class="log-error">오류: ${e.message}${li}</span>`;
+  }
+}
+
+function clearOutput() {
+  $('outputBox').innerHTML = '<span class="log-info">[실행] 버튼을 눌러 결과를 확인하세요.</span>';
+  $('astOutput').innerHTML = '<span class="log-info">[실행] 버튼을 눌러 구조를 확인하세요.</span>';
+}
+
+// ============ 예제 관리 ============
+function renderUserExamples() {
+  const list = $('userExamplesList');
+  if (userExamples.length === 0) {
+    list.innerHTML = '<div style="color:var(--comment);font-style:italic;padding:20px;text-align:center;">아직 저장된 예제가 없습니다.</div>';
+    return;
+  }
+  list.innerHTML = userExamples.map((ex, i) => `
+    <div class="user-example">
+      <div class="user-example-info">
+        <div class="user-example-title">${ex.name.replace(/</g,'&lt;')}</div>
+        <div class="user-example-desc">${ex.desc.replace(/</g,'&lt;')}</div>
+      </div>
+      <div class="user-example-actions">
+        <button class="btn btn-small btn-primary" onclick="loadUserExample(${i})">불러오기</button>
+        <button class="btn btn-small btn-danger" onclick="deleteUserExample(${i})">삭제</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddExampleModal() {
+  $('exampleName').value = '';
+  $('exampleDesc').value = '';
+  $('addExampleModal').classList.add('show');
+}
+
+function closeAddExampleModal() {
+  $('addExampleModal').classList.remove('show');
+}
+
+function saveUserExample() {
+  const name = $('exampleName').value.trim();
+  const desc = $('exampleDesc').value.trim();
+  const code = $('codeEditor').value;
+  if (!name) { alert('예제 이름을 입력해주세요.'); return; }
+  if (!code.trim()) { alert('에디터에 코드를 먼저 작성해주세요.'); return; }
+  userExamples.push({ name, desc, code, date: new Date().toLocaleString() });
+  localStorage.setItem('aveUserExamples', JSON.stringify(userExamples));
+  renderUserExamples();
+  closeAddExampleModal();
+}
+
+function loadUserExample(idx) {
+  const ex = userExamples[idx];
+  if (ex) {
+    $('codeEditor').value = ex.code;
+    onEditorInput();
+  }
+}
+
+function deleteUserExample(idx) {
+  if (confirm('이 예제를 삭제하시겠습니까?')) {
+    userExamples.splice(idx, 1);
+    localStorage.setItem('aveUserExamples', JSON.stringify(userExamples));
+    renderUserExamples();
+  }
+}
+
+// ============ JSON 내보내기/가져오기 ============
+function exportJSON() {
+  const config = {};
+  document.querySelectorAll('input[id^="cr"], textarea[id^="cr"], select[id^="cr"]').forEach(el => {
+    config[el.id] = el.value;
+  });
+  $('jsonEditor').value = JSON.stringify(config, null, 2);
+}
+
+function importJSON() {
+  try {
+    const config = JSON.parse($('jsonEditor').value);
+    Object.keys(config).forEach(key => {
+      const el = $(key);
+      if (el) el.value = config[key];
+    });
+    updateAll();
+    alert('JSON을 성공적으로 가져왔습니다.');
+  } catch (e) {
+    alert('잘못된 JSON 형식입니다: ' + e.message);
+  }
+}
+
+// ============ 파일 저장/불러오기 ============
+const defaultCode = `// AVE 예제
+let 이름 = "AVE"
+let 버전 = 1
+
+출력 "안녕! " + 이름 + " v" + 버전
+
+함수 팩토리얼(n) {
+  만약 n <= 1 {
+    반환 1
+  }
+  반환 n * 팩토리얼(n - 1)
+}
+
+출력 "5! = " + 팩토리얼(5)`;
+
+function saveProjectFile() {
+  const state = {
+    infoName:$('infoName').value, infoExt:$('infoExt').value,
+    cfgKeywords:$('cfgKeywords').value, cfgOperators:$('cfgOperators').value,
+    cfgComment:$('cfgComment').value, cfgQuote:$('cfgQuote').value,
+    code:$('codeEditor').value
+  };
+  document.querySelectorAll('input[id^="cr"], textarea[id^="cr"], select[id^="cr"]').forEach(el => {
+    state[el.id] = el.value;
+  });
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'AVE_Project.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function loadProjectFile(input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const s = JSON.parse(e.target.result);
+      $('infoName').value = s.infoName||'AVE';
+      $('infoExt').value = s.infoExt||'.ave';
+      if(s.cfgKeywords) $('cfgKeywords').value = s.cfgKeywords;
+      if(s.cfgOperators) $('cfgOperators').value = s.cfgOperators;
+      if(s.cfgComment) $('cfgComment').value = s.cfgComment;
+      if(s.cfgQuote) $('cfgQuote').value = s.cfgQuote;
+      Object.keys(s).forEach(key => {
+        if (key.startsWith('cr')) {
+          const el = $(key);
+          if (el) el.value = s[key];
+        }
+      });
+      $('codeEditor').value = s.code||defaultCode;
+      updateAll();
+    } catch(err) { alert('잘못된 프로젝트 파일입니다.'); }
+  };
+  reader.readAsText(file); input.value = '';
+}
+
+function updateAll() {
+  const cfg = getConfig();
+  $('displayExt').textContent = cfg.ext;
+  $('statusExt').textContent = cfg.ext;
+  checkCollisions(cfg);
+  updateGrammarMap(cfg);
+  updateHighlight();
+}
+
+// ============ 초기화 ============
+$('codeEditor').value = defaultCode;
+renderUserExamples();
+updateAll();
+</script>
+</body>
+</html>
