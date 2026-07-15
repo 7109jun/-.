@@ -1,0 +1,361 @@
+제가 그냥 브라우저를 
+C#으로 창조했스빈다 😵‍💫😵‍💫😵‍💫
+브라우저가 망가지는것보다 화질에 더 중심을 맞춤요 
+Code:
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.WinForms;
+
+namespace JWorkBrowser
+{
+    public partial class Form1 : Form
+    {
+        private WebView2 webView;
+        private TextBox urlTextBox;
+        private Button btnBack;
+        private Button btnForward;
+        private Button btnRefresh;
+        private Button btnHome;
+        private FlowLayoutPanel bookmarkPanel;
+
+        private readonly string jworkHomeUrl = "jwork://home";
+
+        public Form1()
+        {
+            InitializeComponent();
+            InitializeBrowserLayout();
+            InitializeWebView();
+        }
+
+        private void InitializeBrowserLayout()
+        {
+            this.Text = "JWork Browser v5.1 (Stable HQ Edition)";
+            this.Size = new Size(1600, 950);
+            this.BackColor = Color.FromArgb(13, 17, 23); 
+
+            Panel controlContainer = new Panel { Dock = DockStyle.Top, Height = 95, BackColor = Color.FromArgb(22, 27, 34) };
+
+            // 내비게이션 영역
+            Panel navPanel = new Panel { Dock = DockStyle.Top, Height = 50, BackColor = Color.FromArgb(22, 27, 34) };
+            
+            // [개선 완료] Y 좌표와 높이(Height)까지 호출부에서 명확하게 제어하도록 팩토리 메서드 수정
+            Button CreateGitButton(string text, int x, int y, int width, int height) => new Button {
+                Location = new Point(x, y),
+                Size = new Size(width, height),
+                Text = text,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(33, 38, 45),
+                ForeColor = Color.FromArgb(201, 209, 217),
+                Cursor = Cursors.Hand
+            };
+
+            // 모든 버튼의 Y 좌표를 10, 높이를 30으로 직관적 통일
+            btnBack = CreateGitButton("◀", 15, 10, 35, 30);
+            btnBack.Click += (s, e) => { if (webView?.CoreWebView2 != null && webView.CoreWebView2.CanGoBack) webView.CoreWebView2.GoBack(); };
+
+            btnForward = CreateGitButton("▶", 55, 10, 35, 30);
+            btnForward.Click += (s, e) => { if (webView?.CoreWebView2 != null && webView.CoreWebView2.CanGoForward) webView.CoreWebView2.GoForward(); };
+
+            btnRefresh = CreateGitButton("⟳", 95, 10, 35, 30);
+            btnRefresh.Click += (s, e) => webView?.CoreWebView2?.Reload();
+
+            btnHome = CreateGitButton("🏠 JWork Home", 135, 10, 110, 30);
+            btnHome.Click += (s, e) => NavigateToUrl(jworkHomeUrl);
+
+            // 주소창 위치 (Y: 11)
+            urlTextBox = new TextBox { 
+                Location = new Point(255, 11), 
+                Width = 1180, 
+                Font = new Font("Segoe UI", 11),
+                BackColor = Color.FromArgb(13, 17, 23),
+                ForeColor = Color.FromArgb(240, 246, 252),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            urlTextBox.Text = jworkHomeUrl; 
+            urlTextBox.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) NavigateToUrl(urlTextBox.Text); };
+
+            // [버그 수정 완료] 다른 내비게이션 버튼과 Y좌표(10) 및 높이(30)를 칼같이 맞추고 파라미터 불일치 해결
+            Button btnGo = CreateGitButton("Go", 1445, 10, 55, 30);
+            btnGo.BackColor = Color.FromArgb(35, 134, 54); 
+            btnGo.ForeColor = Color.White;
+            btnGo.Click += (s, e) => NavigateToUrl(urlTextBox.Text);
+
+            navPanel.Controls.AddRange(new Control[] { btnBack, btnForward, btnRefresh, btnHome, urlTextBox, btnGo });
+
+            // 북마크 패널
+            bookmarkPanel = new FlowLayoutPanel { 
+                Dock = DockStyle.Bottom, 
+                Height = 45, 
+                BackColor = Color.FromArgb(33, 38, 45),
+                Padding = new Padding(15, 7, 10, 5)
+            };
+
+            void AddBookmark(string name, string url) {
+                Button btn = new Button {
+                    Text = name,
+                    AutoSize = true,
+                    Height = 26,
+                    Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = Color.FromArgb(22, 27, 34),
+                    ForeColor = Color.FromArgb(139, 148, 158),
+                    Cursor = Cursors.Hand
+                };
+                btn.FlatAppearance.BorderSize = 0;
+                btn.Click += (s, e) => NavigateToUrl(url);
+                bookmarkPanel.Controls.Add(btn);
+            }
+
+            AddBookmark("JWork Home", jworkHomeUrl);
+            AddBookmark("GitHub", "https://github.com");
+            AddBookmark("YouTube", "https://youtube.com");
+            AddBookmark("Google", "https://google.com");
+            AddBookmark("Naver", "https://naver.com");
+
+            controlContainer.Controls.Add(navPanel);
+            controlContainer.Controls.Add(bookmarkPanel);
+            this.Controls.Add(controlContainer);
+
+            webView = new WebView2 { Dock = DockStyle.Fill };
+            this.Controls.Add(webView);
+        }
+
+        private async void InitializeWebView()
+        {
+            try
+            {
+                string extremeHqArguments = 
+                    "--enable-gpu " +
+                    "--ignore-gpu-blocklist " +
+                    "--use-angle=d3d11on12 " + 
+                    "--enable-gpu-rasterization " +
+                    "--enable-oop-rasterization " +
+                    "--enable-zero-copy " +
+                    "--enable-features=UseSkiaRenderer,Vulkan,D3D11VideoDecoder,VaapiVideoDecoder " + 
+                    "--video-decoding-color-space=rgba " +
+                    "--high-dpi-support=1 " +
+                    "--force-device-scale-factor=1.0 " + 
+                    "--enable-hardware-overlays=single-fullscreen,underlay " +
+                    "--enable-hdr " +
+                    "--force-color-profile=srgb " +
+                    "--max-gum-fps=144";
+
+                var options = new CoreWebView2EnvironmentOptions(additionalBrowserArguments: extremeHqArguments);
+
+                var env = await CoreWebView2Environment.CreateAsync(null, null, options);
+                await webView.EnsureCoreWebView2Async(env);
+
+                webView.SourceChanged += WebView_SourceChanged;
+                NavigateToUrl(jworkHomeUrl);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("JWork Engine Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void WebView_SourceChanged(object sender, CoreWebView2SourceChangedEventArgs e)
+        {
+            if (webView != null && webView.Source != null)
+            {
+                if (webView.Source.ToString().StartsWith("data:text/html"))
+                {
+                    urlTextBox.Text = jworkHomeUrl;
+                }
+                else
+                {
+                    urlTextBox.Text = webView.Source.ToString();
+                }
+            }
+        }
+
+        private void NavigateToUrl(string url)
+        {
+            if (webView?.CoreWebView2 == null) return;
+
+            if (url.Equals(jworkHomeUrl, StringComparison.OrdinalIgnoreCase))
+            {
+                string customHtml = GetJWorkHomeHtml();
+                webView.CoreWebView2.NavigateToString(customHtml);
+                return;
+            }
+
+            if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+            {
+                url = "https://" + url;
+            }
+
+            try
+            {
+                webView.CoreWebView2.Navigate(url);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("페이지 이동 오류: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private string GetJWorkHomeHtml()
+        {
+            return @"
+            <!DOCTYPE html>
+            <html lang='ko'>
+            <head>
+                <meta charset='UTF-8'>
+                <title>JWork Home</title>
+                <style>
+                    body {
+                        background-color: #0d1117;
+                        color: #c9d1d9;
+                        font-family: 'Segoe UI', -apple-system, sans-serif;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        height: 100vh;
+                        margin: 0;
+                        overflow: hidden;
+                    }
+                    .logo-container {
+                        text-align: center;
+                        margin-bottom: 40px;
+                    }
+                    .logo-title {
+                        font-size: 72px;
+                        font-weight: 800;
+                        letter-spacing: -2px;
+                        margin: 0;
+                        background: linear-gradient(45deg, #58a6ff, #00ffff);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        text-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+                    }
+                    .logo-subtitle {
+                        font-size: 16px;
+                        color: #8b949e;
+                        margin-top: 10px;
+                        letter-spacing: 4px;
+                        text-transform: uppercase;
+                    }
+                    .search-box {
+                        display: flex;
+                        width: 600px;
+                        background-color: #161b22;
+                        border: 1px solid #30363d;
+                        border-radius: 50px;
+                        padding: 10px 20px;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                        transition: all 0.3s ease;
+                    }
+                    .search-box:focus-within {
+                        border-color: #58a6ff;
+                        box-shadow: 0 4px 25px rgba(88, 166, 255, 0.25);
+                    }
+                    .search-input {
+                        flex: 1;
+                        background: none;
+                        border: none;
+                        outline: none;
+                        color: #f0f6fc;
+                        font-size: 18px;
+                        padding-left: 10px;
+                    }
+                    .search-btn {
+                        background-color: #388636;
+                        color: white;
+                        border: none;
+                        border-radius: 25px;
+                        padding: 8px 20px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    }
+                    .search-btn:hover {
+                        background-color: #4ac246;
+                    }
+                    .shortcut-container {
+                        display: flex;
+                        gap: 20px;
+                        margin-top: 50px;
+                    }
+                    .shortcut-card {
+                        background-color: #21262d;
+                        border: 1px solid #30363d;
+                        border-radius: 12px;
+                        width: 110px;
+                        height: 110px;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        text-decoration: none;
+                        color: #c9d1d9;
+                        transition: all 0.2s ease;
+                    }
+                    .shortcut-card:hover {
+                        transform: translateY(-5px);
+                        border-color: #58a6ff;
+                        background-color: #282e38;
+                        box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+                    }
+                    .shortcut-icon {
+                        font-size: 32px;
+                        margin-bottom: 10px;
+                    }
+                    .shortcut-name {
+                        font-size: 13px;
+                        font-weight: 500;
+                    }
+                </style>
+                <script>
+                    function search() {
+                        var query = document.getElementById('search-query').value;
+                        if(query) {
+                            window.location.href = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+                        }
+                    }
+                    function checkEnter(e) {
+                        if(e.key === 'Enter') {
+                            search();
+                        }
+                    }
+                </script>
+            </head>
+            <body>
+                <div class='logo-container'>
+                    <h1 class='logo-title'>JWork</h1>
+                    <div class='logo-subtitle'>Extreme HQ Web Browser</div>
+                </div>
+                
+                <div class='search-box'>
+                    <input type='text' id='search-query' class='search-input' placeholder='Google 검색 또는 URL 입력...' onkeydown='checkEnter(event)'>
+                    <button class='search-btn' onclick='search()'>검색</button>
+                </div>
+
+                <div class='shortcut-container'>
+                    <a href='https://youtube.com' class='shortcut-card'>
+                        <div class='shortcut-icon'>📺</div>
+                        <div class='shortcut-name'>YouTube</div>
+                    </a>
+                    <a href='https://github.com' class='shortcut-card'>
+                        <div class='shortcut-icon'>🐙</div>
+                        <div class='shortcut-name'>GitHub</div>
+                    </a>
+                    <a href='https://google.com' class='shortcut-card'>
+                        <div class='shortcut-icon'>🔍</div>
+                        <div class='shortcut-name'>Google</div>
+                    </a>
+                    <a href='https://naver.com' class='shortcut-card'>
+                        <div class='shortcut-icon'>🟢</div>
+                        <div class='shortcut-name'>Naver</div>
+                    </a>
+                </div>
+            </body>
+            </html>";
+        }
+    }
+}
