@@ -1,0 +1,887 @@
+# 안녕하세요 오늘은
+
+## imacode라는것을 개발해버렸습니다!!
+
+#### imacode는 심심해서 만들었고 QRcode같은거빈다
+
+
+##### 코드:
+```<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImaCode Editor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #app { display: flex; flex-direction: column; height: 100vh; }
+
+        #toolbar {
+            background: #16213e;
+            padding: 12px 20px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #0f3460;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            background: #0f3460;
+            color: #eee;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toolbar-btn:hover {
+            background: #e94560;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(233, 69, 96, 0.3);
+        }
+
+        .toolbar-btn:active { transform: translateY(0); }
+
+        #main-content { display: flex; flex: 1; overflow: hidden; }
+
+        #code-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            background: #0f0f1e;
+            border-right: 2px solid #0f3460;
+        }
+
+        #code-editor {
+            flex: 1;
+            background: #0f0f1e;
+            color: #a0e0a0;
+            border: none;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+        }
+
+        #svg-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            background: #1a1a2e;
+            overflow: hidden;
+        }
+
+        #svg-container {
+            flex: 1;
+            overflow: auto;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0f0f1e;
+        }
+
+        #svg-preview {
+            max-width: 100%;
+            max-height: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+        }
+
+        #log-panel {
+            height: 150px;
+            background: #0f0f1e;
+            border-top: 2px solid #0f3460;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #log-header {
+            background: #16213e;
+            padding: 8px 20px;
+            font-weight: bold;
+            color: #e94560;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        #log-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin: 4px 0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .log-info { color: #a0e0a0; background: rgba(160, 224, 160, 0.1); }
+        .log-error { color: #ff6b6b; background: rgba(255, 107, 107, 0.1); }
+        .log-debug { color: #6bcfff; background: rgba(107, 207, 255, 0.1); }
+        .log-success { color: #ffd93d; background: rgba(255, 217, 61, 0.1); }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0f1e; }
+        ::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #e94560; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="toolbar">
+            <button class="toolbar-btn" id="btn-encode">🎨 Text → ImaCode</button>
+            <button class="toolbar-btn" id="btn-decode">📝 ImaCode → Text</button>
+            <button class="toolbar-btn" id="btn-download">💾 SVG 다운로드</button>
+            <button class="toolbar-btn" id="btn-open">📂 SVG 열기</button>
+            <button class="toolbar-btn" id="btn-zoom-in">🔍+ 확대</button>
+            <button class="toolbar-btn" id="btn-zoom-out">🔍- 축소</button>
+            <button class="toolbar-btn" id="btn-reset">🔄 초기화</button>
+        </div>
+
+        <div id="main-content">
+            <div id="code-panel">
+                <textarea id="code-editor" placeholder="아무 텍스트나 입력하세요.
+글자 수에 따라 도형 크기가 자동으로 조절됩니다.
+
+1글자 → 도형 큼
+1000글자 → 도형 작음
+10000글자 → 도형 매우 작음
+
+예시:
+console.log('Hello');
+안녕하세요
+😀🚀🍕"></textarea>
+            </div>
+
+            <div id="svg-panel">
+                <div id="svg-container">
+                    <svg id="svg-preview" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"></svg>
+                </div>
+            </div>
+        </div>
+
+        <div id="log-panel">
+            <div id="log-header">📋 로그</div>
+            <div id="log-content"></div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ImaCode v3.0 - 반응형 레이아웃
+         * 
+         * 핵심 변경:
+         * - viewBox는 항상 1000x1000 고정
+         * - 글자 수에 따라 도형 크기와 그리드가 동적으로 조절
+         * - 헤더에 columns, rows 정보를 저장하여 디코딩 시 복원
+         */
+
+        /**
+         * ByteEncoder - UTF-8 텍스트 ↔ 바이트 배열
+         */
+        class ByteEncoder {
+            constructor() {
+                this.textEncoder = new TextEncoder();
+                this.textDecoder = new TextDecoder();
+            }
+
+            encode(text) {
+                return Array.from(this.textEncoder.encode(text));
+            }
+
+            decode(bytes) {
+                return this.textDecoder.decode(new Uint8Array(bytes));
+            }
+        }
+
+        /**
+         * LayoutEngine - 반응형 레이아웃 계산
+         * 글자 수에 따라 도형 크기와 그리드를 자동 조절
+         */
+        class LayoutEngine {
+            constructor() {
+                // 고정된 데이터 영역 (viewBox 1000x1000 내부)
+                this.dataAreaX = 80;
+                this.dataAreaY = 80;
+                this.dataAreaWidth = 840;
+                this.dataAreaHeight = 840;
+            }
+
+            /**
+             * 바이트 수에 따른 레이아웃 정보 계산
+             */
+            calculateLayout(bytesLength) {
+                const shapesCount = Math.max(1, Math.ceil(bytesLength / 5));
+                
+                // 정사각형에 가깝게 열 수 계산 (√도형수)
+                let columns = Math.ceil(Math.sqrt(shapesCount));
+                if (columns < 1) columns = 1;
+                const rows = Math.ceil(shapesCount / columns);
+                
+                // 셀 크기 계산
+                const cellWidth = this.dataAreaWidth / columns;
+                const cellHeight = this.dataAreaHeight / rows;
+                const cellSize = Math.min(cellWidth, cellHeight);
+                
+                // 도형 크기 범위 (cell 크기의 10%~90%)
+                const maxShapeSize = cellSize * 0.9;
+                const minShapeSize = Math.max(2, cellSize * 0.1);
+                
+                return {
+                    columns,
+                    rows,
+                    cellWidth,
+                    cellHeight,
+                    cellSize,
+                    maxShapeSize,
+                    minShapeSize,
+                    shapesCount
+                };
+            }
+
+            /**
+             * 도형들에 좌표 할당
+             */
+            layout(shapes, layoutInfo) {
+                shapes.forEach((shape, index) => {
+                    const col = index % layoutInfo.columns;
+                    const row = Math.floor(index / layoutInfo.columns);
+                    shape.x = this.dataAreaX + col * layoutInfo.cellWidth + layoutInfo.cellWidth / 2;
+                    shape.y = this.dataAreaY + row * layoutInfo.cellHeight + layoutInfo.cellHeight / 2;
+                });
+                return shapes;
+            }
+        }
+
+        /**
+         * DataEncoder - 바이트 배열 → 도형 시퀀스
+         * 1개 도형 = 5바이트
+         */
+        class DataEncoder {
+            constructor() {
+                this.shapeTypes = [
+                    'hexagon', 'star', 'circle', 'rect',
+                    'diamond', 'triangle', 'hexagon-small', 'star-small'
+                ];
+            }
+
+            encode(bytes, layoutInfo) {
+                const shapes = [];
+                const bytesPerShape = 5;
+
+                for (let i = 0; i < bytes.length; i += bytesPerShape) {
+                    const chunk = bytes.slice(i, i + bytesPerShape);
+                    while (chunk.length < bytesPerShape) chunk.push(0);
+
+                    const shape = this.bytesToShape(chunk, i / bytesPerShape, layoutInfo);
+                    shapes.push(shape);
+                }
+                return shapes;
+            }
+
+            bytesToShape(bytes, index, layoutInfo) {
+                const [b1, b2, b3, b4, b5] = bytes;
+                
+                // 도형 크기를 동적 범위로 매핑
+                const shapeSize = layoutInfo.minShapeSize + 
+                    (b4 * (layoutInfo.maxShapeSize - layoutInfo.minShapeSize)) / 255;
+                
+                return {
+                    type: this.shapeTypes[index % this.shapeTypes.length],
+                    hue: (b1 * 359) / 255,
+                    saturation: (b2 * 100) / 255,
+                    lightness: (b3 * 100) / 255,
+                    size: shapeSize,
+                    rotation: (b5 * 359) / 255
+                };
+            }
+        }
+
+        /**
+         * DataDecoder - 도형 시퀀스 → 바이트 배열
+         */
+        class DataDecoder {
+            decode(shapes, layoutInfo) {
+                const bytes = [];
+                for (const shape of shapes) {
+                    const chunk = this.shapeToBytes(shape, layoutInfo);
+                    bytes.push(...chunk);
+                }
+                return bytes;
+            }
+
+            shapeToBytes(shape, layoutInfo) {
+                const sizeRange = layoutInfo.maxShapeSize - layoutInfo.minShapeSize;
+                const b4 = sizeRange > 0 
+                    ? Math.round(((shape.size - layoutInfo.minShapeSize) * 255) / sizeRange)
+                    : 0;
+                
+                return [
+                    Math.round((shape.hue * 255) / 359),
+                    Math.round((shape.saturation * 255) / 100),
+                    Math.round((shape.lightness * 255) / 100),
+                    Math.max(0, Math.min(255, b4)),
+                    Math.round((shape.rotation * 255) / 359)
+                ];
+            }
+        }
+
+        /**
+         * HeaderEncoder - 메타데이터를 도형으로 인코딩
+         * 총 12바이트: 매직(4) + 길이(4) + columns(2) + rows(2)
+         */
+        class HeaderEncoder {
+            encode(originalLength, layoutInfo) {
+                const shapes = [];
+                const bytes = [
+                    0x49, 0x4D, 0x41, 0x47, // "IMAG" 매직 넘버
+                    (originalLength >> 24) & 0xFF,
+                    (originalLength >> 16) & 0xFF,
+                    (originalLength >> 8) & 0xFF,
+                    originalLength & 0xFF,
+                    (layoutInfo.columns >> 8) & 0xFF,
+                    layoutInfo.columns & 0xFF,
+                    (layoutInfo.rows >> 8) & 0xFF,
+                    layoutInfo.rows & 0xFF
+                ];
+
+                bytes.forEach((byte, i) => {
+                    shapes.push({
+                        type: 'header-circle',
+                        x: 50 + i * 25,
+                        y: 40,
+                        size: 6,
+                        byte: byte,
+                        hue: (byte * 359) / 255,
+                        saturation: 80,
+                        lightness: 50
+                    });
+                });
+
+                return shapes;
+            }
+        }
+
+        /**
+         * HeaderDecoder - 헤더에서 메타데이터 추출
+         */
+        class HeaderDecoder {
+            decode(headerShapes) {
+                if (headerShapes.length < 12) {
+                    throw new Error('헤더가 불완전합니다.');
+                }
+
+                // 매직 넘버 검증
+                const magic = headerShapes.slice(0, 4).map(s => s.byte);
+                if (magic[0] !== 0x49 || magic[1] !== 0x4D || 
+                    magic[2] !== 0x41 || magic[3] !== 0x47) {
+                    throw new Error('유효한 ImaCode 파일이 아닙니다.');
+                }
+
+                // 원본 길이 추출
+                const lengthBytes = headerShapes.slice(4, 8).map(s => s.byte);
+                const originalLength = 
+                    (lengthBytes[0] << 24) |
+                    (lengthBytes[1] << 16) |
+                    (lengthBytes[2] << 8) |
+                    lengthBytes[3];
+
+                // columns, rows 추출
+                const colBytes = headerShapes.slice(8, 10).map(s => s.byte);
+                const rowBytes = headerShapes.slice(10, 12).map(s => s.byte);
+                const columns = (colBytes[0] << 8) | colBytes[1];
+                const rows = (rowBytes[0] << 8) | rowBytes[1];
+
+                return { originalLength, columns, rows };
+            }
+        }
+
+        /**
+         * SVGRenderer - 도형들을 SVG 문자열로 렌더링
+         */
+        class SVGRenderer {
+            render(headerShapes, dataShapes) {
+                const parts = [];
+
+                // 배경
+                parts.push(`<rect x="0" y="0" width="1000" height="1000" fill="#f8f9fa"/>`);
+
+                // 데이터 영역 테두리 (디버깅용, 선택적)
+                // parts.push(`<rect x="80" y="80" width="840" height="840" fill="none" stroke="#ddd" stroke-width="1"/>`);
+
+                // 헤더 도형
+                headerShapes.forEach(shape => {
+                    parts.push(this.renderHeaderShape(shape));
+                });
+
+                // 데이터 도형
+                dataShapes.forEach(shape => {
+                    parts.push(this.renderDataShape(shape));
+                });
+
+                return parts.join('\n');
+            }
+
+            renderHeaderShape(shape) {
+                const fill = `hsl(${shape.hue}, ${shape.saturation}%, ${shape.lightness}%)`;
+                return `<circle cx="${shape.x}" cy="${shape.y}" r="${shape.size}" fill="${fill}" stroke="#333" stroke-width="0.5"/>`;
+            }
+
+            renderDataShape(shape) {
+                const fill = `hsl(${shape.hue}, ${shape.saturation}%, ${shape.lightness}%)`;
+                const stroke = '#333';
+                const strokeWidth = Math.max(0.3, shape.size * 0.03);
+                const transform = `rotate(${shape.rotation} ${shape.x} ${shape.y})`;
+
+                switch (shape.type) {
+                    case 'hexagon':
+                    case 'hexagon-small':
+                        return this.renderHexagon(shape.x, shape.y, shape.size, fill, stroke, strokeWidth, transform);
+                    case 'star':
+                    case 'star-small':
+                        return this.renderStar(shape.x, shape.y, shape.size, fill, stroke, strokeWidth, transform);
+                    case 'circle':
+                        return `<circle cx="${shape.x}" cy="${shape.y}" r="${shape.size / 2}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" transform="${transform}"/>`;
+                    case 'rect':
+                        return `<rect x="${shape.x - shape.size / 2}" y="${shape.y - shape.size / 2}" width="${shape.size}" height="${shape.size}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" transform="${transform}"/>`;
+                    case 'diamond':
+                        return this.renderDiamond(shape.x, shape.y, shape.size, fill, stroke, strokeWidth, transform);
+                    case 'triangle':
+                        return this.renderTriangle(shape.x, shape.y, shape.size, fill, stroke, strokeWidth, transform);
+                    default:
+                        return '';
+                }
+            }
+
+            renderHexagon(cx, cy, size, fill, stroke, strokeWidth, transform) {
+                const points = [];
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI / 3) * i - Math.PI / 2;
+                    const x = cx + (size / 2) * Math.cos(angle);
+                    const y = cy + (size / 2) * Math.sin(angle);
+                    points.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+                }
+                return `<polygon points="${points.join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" transform="${transform}"/>`;
+            }
+
+            renderStar(cx, cy, size, fill, stroke, strokeWidth, transform) {
+                const points = [];
+                const outerR = size / 2;
+                const innerR = size / 4;
+                for (let i = 0; i < 10; i++) {
+                    const angle = (Math.PI / 5) * i - Math.PI / 2;
+                    const r = i % 2 === 0 ? outerR : innerR;
+                    const x = cx + r * Math.cos(angle);
+                    const y = cy + r * Math.sin(angle);
+                    points.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+                }
+                return `<polygon points="${points.join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" transform="${transform}"/>`;
+            }
+
+            renderDiamond(cx, cy, size, fill, stroke, strokeWidth, transform) {
+                const half = size / 2;
+                const points = `${cx},${cy - half} ${cx + half},${cy} ${cx},${cy + half} ${cx - half},${cy}`;
+                return `<polygon points="${points}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" transform="${transform}"/>`;
+            }
+
+            renderTriangle(cx, cy, size, fill, stroke, strokeWidth, transform) {
+                const half = size / 2;
+                const points = `${cx},${cy - half} ${cx + half},${cy + half} ${cx - half},${cy + half}`;
+                return `<polygon points="${points}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" transform="${transform}"/>`;
+            }
+        }
+
+        /**
+         * SVGParser - SVG 문자열에서 도형 정보 추출
+         */
+        class SVGParser {
+            parse(svgString) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(svgString, 'image/svg+xml');
+                const svg = doc.querySelector('svg');
+
+                if (!svg) {
+                    throw new Error('유효한 SVG를 찾을 수 없습니다.');
+                }
+
+                const headerShapes = [];
+                const dataShapes = [];
+
+                const elements = svg.querySelectorAll('circle, rect, polygon');
+                elements.forEach(el => {
+                    const shape = this.parseElement(el);
+                    if (shape) {
+                        if (shape.type === 'header-circle') {
+                            headerShapes.push(shape);
+                        } else {
+                            dataShapes.push(shape);
+                        }
+                    }
+                });
+
+                // 위치 기준으로 정렬 (Z-패턴: Y 우선, 그다음 X)
+                dataShapes.sort((a, b) => {
+                    if (Math.abs(a.y - b.y) > 5) return a.y - b.y;
+                    return a.x - b.x;
+                });
+
+                return { headerShapes, dataShapes };
+            }
+
+            parseElement(el) {
+                const tagName = el.tagName.toLowerCase();
+                const fill = el.getAttribute('fill') || '';
+                const transform = el.getAttribute('transform') || '';
+
+                // HSL 색상 파싱
+                const hslMatch = fill.match(/hsl\(([^,]+),\s*([^,]+)%,\s*([^)]+)%\)/);
+                if (!hslMatch) return null;
+
+                const hue = parseFloat(hslMatch[1]);
+                const saturation = parseFloat(hslMatch[2]);
+                const lightness = parseFloat(hslMatch[3]);
+
+                // 회전 각도 파싱
+                const rotMatch = transform.match(/rotate\(([^)]+)\)/);
+                let rotation = 0;
+                if (rotMatch) {
+                    rotation = parseFloat(rotMatch[1].split(' ')[0]);
+                }
+
+                let x, y, size;
+
+                if (tagName === 'circle') {
+                    x = parseFloat(el.getAttribute('cx'));
+                    y = parseFloat(el.getAttribute('cy'));
+                    const r = parseFloat(el.getAttribute('r'));
+                    size = r * 2;
+
+                    // 헤더 원 감지 (상단 영역, 작은 크기)
+                    if (y < 80 && size < 20) {
+                        return {
+                            type: 'header-circle',
+                            x, y, size,
+                            hue, saturation, lightness,
+                            byte: Math.round((hue * 255) / 359)
+                        };
+                    }
+                } else if (tagName === 'rect') {
+                    const rx = parseFloat(el.getAttribute('x'));
+                    const ry = parseFloat(el.getAttribute('y'));
+                    const w = parseFloat(el.getAttribute('width'));
+                    const h = parseFloat(el.getAttribute('height'));
+                    x = rx + w / 2;
+                    y = ry + h / 2;
+                    size = w;
+                } else if (tagName === 'polygon') {
+                    const pointsStr = el.getAttribute('points');
+                    if (!pointsStr) return null;
+                    
+                    const points = pointsStr.trim().split(/\s+/).map(p => {
+                        const [px, py] = p.split(',').map(Number);
+                        return { x: px, y: py };
+                    });
+                    
+                    if (points.length === 0) return null;
+                    
+                    x = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+                    y = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+                    
+                    // 중심에서 점까지의 평균 거리로 크기 추정
+                    const avgDist = points.reduce((sum, p) => {
+                        const dx = p.x - x;
+                        const dy = p.y - y;
+                        return sum + Math.sqrt(dx * dx + dy * dy);
+                    }, 0) / points.length;
+                    size = avgDist * 2;
+                }
+
+                // 도형 종류는 시각적 다양성만 제공, 디코딩에는 영향 없음
+                const shapeType = this.inferShapeType(tagName);
+
+                return {
+                    type: shapeType,
+                    x, y, size,
+                    hue, saturation, lightness, rotation
+                };
+            }
+
+            inferShapeType(tagName) {
+                if (tagName === 'circle') return 'circle';
+                if (tagName === 'rect') return 'rect';
+                if (tagName === 'polygon') return 'hexagon';
+                return 'hexagon';
+            }
+        }
+
+        /**
+         * UIManager - UI 관리
+         */
+        class UIManager {
+            constructor() {
+                this.codeEditor = document.getElementById('code-editor');
+                this.svgPreview = document.getElementById('svg-preview');
+                this.logContent = document.getElementById('log-content');
+                this.zoomLevel = 1;
+            }
+
+            log(message, type = 'info') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                this.logContent.appendChild(entry);
+                this.logContent.scrollTop = this.logContent.scrollHeight;
+            }
+
+            updateSVG(svgContent) {
+                this.svgPreview.innerHTML = svgContent;
+            }
+
+            zoomIn() {
+                this.zoomLevel += 0.1;
+                this.svgPreview.style.transform = `scale(${this.zoomLevel})`;
+            }
+
+            zoomOut() {
+                this.zoomLevel = Math.max(0.1, this.zoomLevel - 0.1);
+                this.svgPreview.style.transform = `scale(${this.zoomLevel})`;
+            }
+
+            resetZoom() {
+                this.zoomLevel = 1;
+                this.svgPreview.style.transform = `scale(1)`;
+            }
+        }
+
+        /**
+         * FileManager - 파일 입출력
+         */
+        class FileManager {
+            downloadSVG(svgContent) {
+                const fullSVG = `<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+${svgContent}
+</svg>`;
+                const blob = new Blob([fullSVG], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'imacode.svg';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            openSVG(callback) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.svg';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => callback(event.target.result);
+                    reader.readAsText(file);
+                };
+                input.click();
+            }
+        }
+
+        /**
+         * ImaCodeEditor - 메인 애플리케이션
+         */
+        class ImaCodeEditor {
+            constructor() {
+                this.byteEncoder = new ByteEncoder();
+                this.layoutEngine = new LayoutEngine();
+                this.dataEncoder = new DataEncoder();
+                this.dataDecoder = new DataDecoder();
+                this.headerEncoder = new HeaderEncoder();
+                this.headerDecoder = new HeaderDecoder();
+                this.svgRenderer = new SVGRenderer();
+                this.svgParser = new SVGParser();
+                this.ui = new UIManager();
+                this.fileManager = new FileManager();
+
+                this.initEventListeners();
+                this.ui.log('ImaCode v3.0 시작 - 반응형 레이아웃', 'info');
+                this.ui.log('글자 수에 따라 도형 크기가 자동 조절됩니다.', 'info');
+            }
+
+            initEventListeners() {
+                document.getElementById('btn-encode').addEventListener('click', () => this.encode());
+                document.getElementById('btn-decode').addEventListener('click', () => this.decode());
+                document.getElementById('btn-download').addEventListener('click', () => this.downloadSVG());
+                document.getElementById('btn-open').addEventListener('click', () => this.openSVG());
+                document.getElementById('btn-zoom-in').addEventListener('click', () => this.ui.zoomIn());
+                document.getElementById('btn-zoom-out').addEventListener('click', () => this.ui.zoomOut());
+                document.getElementById('btn-reset').addEventListener('click', () => this.reset());
+            }
+
+            encode() {
+                try {
+                    const text = this.ui.codeEditor.value;
+                    this.ui.log('인코딩 시작...', 'info');
+
+                    // 1. 텍스트 → UTF-8 바이트
+                    const bytes = this.byteEncoder.encode(text);
+                    this.ui.log(`UTF-8 바이트 변환: ${bytes.length} 바이트`, 'debug');
+
+                    // 2. 반응형 레이아웃 계산
+                    const layoutInfo = this.layoutEngine.calculateLayout(bytes.length);
+                    this.ui.log(`레이아웃: ${layoutInfo.columns}열 × ${layoutInfo.rows}줄`, 'debug');
+                    this.ui.log(`도형 크기: ${layoutInfo.minShapeSize.toFixed(1)}~${layoutInfo.maxShapeSize.toFixed(1)}px`, 'debug');
+
+                    // 3. 헤더 생성 (길이 + columns + rows 저장)
+                    const headerShapes = this.headerEncoder.encode(bytes.length, layoutInfo);
+
+                    // 4. 바이트 → 도형
+                    const dataShapes = this.dataEncoder.encode(bytes, layoutInfo);
+                    this.ui.log(`도형 생성: ${dataShapes.length}개`, 'debug');
+
+                    // 5. 레이아웃 적용 (좌표 할당)
+                    this.layoutEngine.layout(dataShapes, layoutInfo);
+
+                    // 6. SVG 렌더링 (viewBox는 항상 1000x1000)
+                    const svgContent = this.svgRenderer.render(headerShapes, dataShapes);
+                    this.ui.updateSVG(svgContent);
+                    this.ui.log('SVG 렌더링 완료 ✓', 'success');
+                    this.ui.log(`총 ${headerShapes.length + dataShapes.length}개 도형, viewBox 1000×1000`, 'info');
+
+                } catch (error) {
+                    this.ui.log(`인코딩 오류: ${error.message}`, 'error');
+                    console.error(error);
+                }
+            }
+
+            decode() {
+                try {
+                    this.ui.log('디코딩 시작...', 'info');
+
+                    const svgString = this.ui.svgPreview.outerHTML;
+                    
+                    // 1. SVG 파싱
+                    const { headerShapes, dataShapes } = this.svgParser.parse(svgString);
+                    this.ui.log(`파싱 완료: 헤더 ${headerShapes.length}개, 데이터 ${dataShapes.length}개`, 'debug');
+
+                    // 2. 헤더에서 메타데이터 추출
+                    const header = this.headerDecoder.decode(headerShapes);
+                    this.ui.log(`원본 길이: ${header.originalLength} 바이트`, 'debug');
+                    this.ui.log(`그리드: ${header.columns}열 × ${header.rows}줄`, 'debug');
+
+                    // 3. 레이아웃 정보 재구성
+                    const layoutInfo = this.reconstructLayout(header);
+
+                    // 4. 도형 → 바이트
+                    const allBytes = this.dataDecoder.decode(dataShapes, layoutInfo);
+                    this.ui.log(`바이트 복원: ${allBytes.length} 바이트`, 'debug');
+
+                    // 5. 패딩 제거
+                    const bytes = allBytes.slice(0, header.originalLength);
+
+                    // 6. 바이트 → 텍스트
+                    const text = this.byteEncoder.decode(bytes);
+                    this.ui.codeEditor.value = text;
+                    this.ui.log('텍스트 복원 완료 ✓', 'success');
+                    this.ui.log(`복원된 텍스트: ${text.length} 문자`, 'info');
+
+                } catch (error) {
+                    this.ui.log(`디코딩 오류: ${error.message}`, 'error');
+                    console.error(error);
+                }
+            }
+
+            /**
+             * 헤더 정보로부터 레이아웃 정보 재구성
+             */
+            reconstructLayout(header) {
+                const dataAreaWidth = 840;
+                const dataAreaHeight = 840;
+                
+                const cellWidth = dataAreaWidth / header.columns;
+                const cellHeight = dataAreaHeight / header.rows;
+                const cellSize = Math.min(cellWidth, cellHeight);
+                
+                const maxShapeSize = cellSize * 0.9;
+                const minShapeSize = Math.max(2, cellSize * 0.1);
+                
+                return {
+                    columns: header.columns,
+                    rows: header.rows,
+                    cellWidth,
+                    cellHeight,
+                    cellSize,
+                    maxShapeSize,
+                    minShapeSize
+                };
+            }
+
+            downloadSVG() {
+                try {
+                    const svgContent = this.ui.svgPreview.innerHTML;
+                    this.fileManager.downloadSVG(svgContent);
+                    this.ui.log('SVG 다운로드 완료', 'info');
+                } catch (error) {
+                    this.ui.log(`다운로드 오류: ${error.message}`, 'error');
+                }
+            }
+
+            openSVG() {
+                this.fileManager.openSVG((content) => {
+                    try {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(content, 'image/svg+xml');
+                        const svg = doc.querySelector('svg');
+                        if (svg) {
+                            this.ui.svgPreview.innerHTML = svg.innerHTML;
+                            this.ui.log('SVG 열기 완료', 'info');
+                        } else {
+                            this.ui.log('SVG 요소를 찾을 수 없습니다.', 'error');
+                        }
+                    } catch (error) {
+                        this.ui.log(`SVG 파싱 오류: ${error.message}`, 'error');
+                    }
+                });
+            }
+
+            reset() {
+                this.ui.codeEditor.value = '';
+                this.ui.svgPreview.innerHTML = '';
+                this.ui.resetZoom();
+                this.ui.log('초기화 완료', 'info');
+            }
+        }
+
+        // 애플리케이션 시작
+        const editor = new ImaCodeEditor();
+    </script>
+</body>
+</html>```
+
