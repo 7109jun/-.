@@ -1,0 +1,1629 @@
+imacoding이빈다 
+코드를 짜고
+사진으로 바꾸고
+사진으로 코드를 실행하세요 사진은 어디에나 업로드가 가능합니다
+코드:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PixelVM Studio</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;user-select:none}
+body{font-family:'Segoe UI',sans-serif;background:#2d2d2d;color:#ccc;overflow:hidden;height:100vh;font-size:12px}
+#app{display:flex;flex-direction:column;height:100vh}
+
+/* TOP BAR */
+#topbar{background:#3c3c3c;border-bottom:1px solid #1a1a1a;padding:6px 12px;display:flex;align-items:center;gap:8px;height:40px}
+.play-controls{display:flex;gap:2px;background:#2d2d2d;padding:3px;border-radius:4px}
+.play-btn{width:28px;height:24px;background:transparent;border:none;color:#aaa;cursor:pointer;border-radius:3px;font-size:13px;display:flex;align-items:center;justify-content:center}
+.play-btn:hover{background:#4d4d4d;color:#fff}
+.play-btn.active{background:#4ecdc4;color:#000}
+.top-sep{width:1px;height:24px;background:#1a1a1a;margin:0 4px}
+.scene-select{background:#2d2d2d;border:1px solid #1a1a1a;color:#ccc;padding:4px 8px;border-radius:3px;font-size:11px;cursor:pointer}
+.top-label{color:#888;font-size:11px}
+.top-right{margin-left:auto;display:flex;gap:6px;align-items:center}
+.top-btn{background:#3c3c3c;border:1px solid #1a1a1a;color:#ccc;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:11px}
+.top-btn:hover{background:#4d4d4d}
+.top-btn.primary{background:#4ecdc4;color:#000;border-color:#3ab5a3}
+.top-btn.primary:hover{background:#5fded5}
+
+/* MAIN 4-PANEL */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* Left */
+#left-col{width:280px;display:flex;flex-direction:column;background:#2d2d2d;border-right:1px solid #1a1a1a}
+.panel{display:flex;flex-direction:column;flex:1;min-height:0}
+.panel-header{background:#3c3c3c;padding:5px 10px;font-size:11px;font-weight:bold;color:#aaa;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:0.5px}
+.panel-header .btn-sm{background:transparent;border:none;color:#888;cursor:pointer;font-size:12px;padding:2px 4px}
+.panel-header .btn-sm:hover{color:#fff}
+.panel-body{flex:1;overflow:auto;background:#252525}
+
+.tree-item{padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;border-bottom:1px solid #1f1f1f;font-size:11px}
+.tree-item:hover{background:#333}
+.tree-item.selected{background:#4ecdc4;color:#000}
+.tree-icon{font-size:12px}
+
+#code-editor{flex:1;background:#1e1e1e;color:#d4d4d4;border:none;padding:10px;font-family:'Consolas',monospace;font-size:12px;line-height:1.5;resize:none;outline:none;tab-size:2;user-select:text}
+
+/* Center */
+#center-col{flex:1;display:flex;flex-direction:column;background:#1e1e1e;min-width:0}
+#view-tabs{display:flex;background:#3c3c3c;border-bottom:1px solid #1a1a1a}
+.view-tab{padding:6px 16px;cursor:pointer;color:#888;font-size:11px;border-right:1px solid #1a1a1a;text-transform:uppercase;letter-spacing:0.5px}
+.view-tab:hover{color:#ccc;background:#444}
+.view-tab.active{background:#252525;color:#4ecdc4;border-bottom:2px solid #4ecdc4}
+#view-content{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#1a1a1a}
+.view-pane{position:absolute;inset:0;display:none;align-items:center;justify-content:center}
+.view-pane.active{display:flex}
+#scene-canvas, #game-canvas{image-rendering:pixelated;background:#000;max-width:100%;max-height:100%;border:1px solid #333}
+#scene-info{position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.7);padding:6px 10px;border-radius:4px;font-size:10px;color:#4ecdc4;font-family:monospace}
+
+/* Right */
+#right-col{width:280px;display:flex;flex-direction:column;background:#2d2d2d;border-left:1px solid #1a1a1a}
+.inspector-section{padding:10px;border-bottom:1px solid #1a1a1a}
+.inspector-title{color:#4ecdc4;font-size:11px;font-weight:bold;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+.inspector-row{display:flex;align-items:center;margin-bottom:6px;gap:6px}
+.inspector-label{color:#888;font-size:11px;width:70px;flex-shrink:0}
+.inspector-input{flex:1;background:#1e1e1e;border:1px solid #1a1a1a;color:#ccc;padding:3px 6px;border-radius:2px;font-size:11px;font-family:monospace}
+.inspector-input:focus{border-color:#4ecdc4;outline:none}
+.inspector-select{flex:1;background:#1e1e1e;border:1px solid #1a1a1a;color:#ccc;padding:3px 6px;border-radius:2px;font-size:11px}
+.color-preview{width:24px;height:24px;border:1px solid #1a1a1a;border-radius:2px;cursor:pointer}
+
+/* Bottom */
+#bottom-col{height:160px;display:flex;flex-direction:column;background:#2d2d2d;border-top:1px solid #1a1a1a}
+#bottom-tabs{display:flex;background:#3c3c3c;border-bottom:1px solid #1a1a1a}
+.bottom-tab{padding:5px 14px;cursor:pointer;color:#888;font-size:11px;border-right:1px solid #1a1a1a;text-transform:uppercase}
+.bottom-tab:hover{color:#ccc}
+.bottom-tab.active{color:#4ecdc4;background:#252525}
+#bottom-content{flex:1;overflow:auto;background:#1e1e1e;padding:6px 10px;font-family:'Consolas',monospace;font-size:11px}
+.log-line{padding:1px 0;white-space:pre-wrap}
+.log-info{color:#6bcfff}
+.log-warn{color:#ffd93d}
+.log-error{color:#ff6b6b}
+.log-exec{color:#a0e0a0}
+.log-compile{color:#c7ceea}
+
+#statusbar{background:#4ecdc4;color:#000;padding:3px 12px;font-size:10px;display:flex;justify-content:space-between;height:20px;align-items:center}
+
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#1a1a1a}
+::-webkit-scrollbar-thumb{background:#4d4d4d;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#4ecdc4}
+
+/* ===== TUTORIAL OVERLAY ===== */
+#tutorial-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:2000;
+  pointer-events:none;
+}
+#tutorial-overlay.active{display:block}
+
+#tutorial-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.75);
+  pointer-events:auto;
+}
+
+#tutorial-spotlight{
+  position:absolute;
+  box-shadow:0 0 0 9999px rgba(0,0,0,0.75);
+  border:2px solid #4ecdc4;
+  border-radius:4px;
+  pointer-events:none;
+  transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+  z-index:2001;
+}
+
+#tutorial-tooltip{
+  position:absolute;
+  background:#2d2d2d;
+  border:2px solid #4ecdc4;
+  border-radius:6px;
+  padding:16px 20px;
+  max-width:400px;
+  min-width:320px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  pointer-events:auto;
+  z-index:2002;
+  animation:tutorialFadeIn 0.3s ease;
+}
+
+@keyframes tutorialFadeIn {
+  from { opacity:0; transform:translateY(10px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+#tutorial-progress{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
+}
+#tutorial-progress-bar{
+  flex:1;
+  height:4px;
+  background:#1a1a1a;
+  border-radius:2px;
+  overflow:hidden;
+}
+#tutorial-progress-fill{
+  height:100%;
+  background:#4ecdc4;
+  transition:width 0.3s ease;
+}
+#tutorial-progress-text{
+  color:#888;
+  font-size:10px;
+  font-weight:bold;
+}
+
+#tutorial-title{
+  color:#4ecdc4;
+  font-size:14px;
+  font-weight:bold;
+  margin-bottom:8px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+
+#tutorial-content{
+  color:#ccc;
+  font-size:12px;
+  line-height:1.6;
+  margin-bottom:14px;
+}
+
+#tutorial-content strong{color:#4ecdc4}
+#tutorial-content code{
+  background:#1a1a1a;
+  color:#ffd93d;
+  padding:1px 5px;
+  border-radius:2px;
+  font-family:monospace;
+  font-size:11px;
+}
+
+#tutorial-actions{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+}
+.tut-btn{
+  background:#3c3c3c;
+  border:1px solid #1a1a1a;
+  color:#ccc;
+  padding:6px 14px;
+  border-radius:3px;
+  cursor:pointer;
+  font-size:11px;
+  transition:all 0.2s;
+}
+.tut-btn:hover{background:#4d4d4d;color:#fff}
+.tut-btn.primary{background:#4ecdc4;color:#000;border-color:#3ab5a3;font-weight:bold}
+.tut-btn.primary:hover{background:#5fded5}
+.tut-btn.skip{color:#888}
+
+/* Tutorial welcome modal */
+.tut-welcome{
+  text-align:center;
+}
+.tut-welcome h2{
+  color:#4ecdc4;
+  font-size:20px;
+  margin-bottom:10px;
+}
+.tut-welcome p{
+  color:#aaa;
+  font-size:12px;
+  line-height:1.6;
+  margin-bottom:16px;
+}
+.tut-welcome-buttons{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+}
+
+/* Help button always visible */
+#btn-tutorial{
+  background:#4ecdc4;
+  color:#000;
+  border:none;
+  padding:4px 10px;
+  border-radius:3px;
+  cursor:pointer;
+  font-size:11px;
+  font-weight:bold;
+}
+#btn-tutorial:hover{background:#5fded5}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="play-controls">
+      <button class="play-btn" id="btn-play" title="Play">▶</button>
+      <button class="play-btn" id="btn-pause" title="Pause">⏸</button>
+      <button class="play-btn" id="btn-stop" title="Stop">⏹</button>
+    </div>
+    <div class="top-sep"></div>
+    <span class="top-label">Build:</span>
+    <button class="top-btn primary" id="btn-compile">⚙ Compile to Image</button>
+    <div class="top-sep"></div>
+    <span class="top-label">Scene:</span>
+    <select class="scene-select" id="scene-select">
+      <option>Main</option>
+    </select>
+    <div class="top-right">
+      <button id="btn-tutorial">🎓 Tutorial</button>
+      <button class="top-btn" id="btn-load">📂 Load PNG</button>
+      <button class="top-btn" id="btn-save">💾 Save PNG</button>
+      <button class="top-btn" id="btn-help">? Help</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="left-col">
+      <div class="panel" style="flex:0 0 200px">
+        <div class="panel-header">
+          <span>📋 Hierarchy</span>
+          <button class="btn-sm" id="btn-add-entity" title="Add Entity">+</button>
+        </div>
+        <div class="panel-body" id="hierarchy-list"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <span>📝 Code Editor</span>
+          <button class="btn-sm" id="btn-template" title="Load Template">📄</button>
+        </div>
+        <textarea id="code-editor" spellcheck="false">// PixelVM Studio - Code → Image → Game
+// Write code, compile to image, run the game!
+
+mode: doom
+
+entity P {
+  shape: triangle
+  color: #4ecdc4
+  pos: (150, 150)
+  ai: idle
+  hp: 100
+}
+
+entity E1 {
+  shape: star
+  color: #ff6b6b
+  pos: (300, 100)
+  ai: chase
+  hp: 50
+}
+
+entity E2 {
+  shape: hexagon
+  color: #ffd93d
+  pos: (100, 300)
+  ai: wander
+  hp: 75
+}
+
+entity E3 {
+  shape: circle
+  color: #c7ceea
+  pos: (400, 250)
+  ai: chase
+  hp: 60
+}
+
+map {
+  1111111111
+  1000000001
+  1010001001
+  1000000001
+  1001110001
+  1000000001
+  1010001001
+  1000000001
+  1000100001
+  1111111111
+}
+</textarea>
+      </div>
+    </div>
+
+    <div id="center-col">
+      <div id="view-tabs">
+        <div class="view-tab active" data-view="scene">Scene</div>
+        <div class="view-tab" data-view="game">Game</div>
+      </div>
+      <div id="view-content">
+        <div class="view-pane active" id="scene-pane">
+          <canvas id="scene-canvas" width="512" height="512"></canvas>
+          <div id="scene-info">Scene View - Compiled Image</div>
+        </div>
+        <div class="view-pane" id="game-pane">
+          <canvas id="game-canvas" width="640" height="400"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="right-col">
+      <div class="panel">
+        <div class="panel-header"><span>🔍 Inspector</span></div>
+        <div class="panel-body" id="inspector-body">
+          <div style="padding:20px;color:#666;text-align:center;font-size:11px">
+            Select an entity from Hierarchy<br>or compile code to inspect
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div id="bottom-col">
+    <div id="bottom-tabs">
+      <div class="bottom-tab active" data-panel="console">Console</div>
+      <div class="bottom-tab" data-panel="assets">Assets</div>
+      <div class="bottom-tab" data-panel="syntax">Syntax</div>
+    </div>
+    <div id="bottom-content">
+      <div id="console-panel" class="bottom-pane"></div>
+      <div id="assets-panel" class="bottom-pane" style="display:none"></div>
+      <div id="syntax-panel" class="bottom-pane" style="display:none;color:#aaa;line-height:1.8">
+<strong style="color:#4ecdc4">PixelVM DSL Syntax:</strong>
+
+mode: 2d | doom                    // Render mode
+
+entity &lt;Name&gt; {                    // Define entity
+  shape: triangle|rectangle|circle|star|hexagon|pentagon
+  color: #RRGGBB                   // Entity color
+  pos: (x, y)                      // Position
+  vel: (vx, vy)                    // Velocity
+  ai: idle|wander|chase|flee       // AI behavior
+  hp: 100                          // Health points
+  layer: 0                         // Render layer
+  scale: 1                         // Scale factor
+}
+
+map {                              // Doom-style wall map
+  11111111                         // 1 = wall, 0 = empty
+  10000001
+  11111111
+}
+
+// Comments start with //
+// Press "Compile to Image" to generate PNG from code
+// Press ▶ Play to run the game
+      </div>
+    </div>
+  </div>
+
+  <div id="statusbar">
+    <span id="status-left">Ready</span>
+    <span id="status-right">PixelVM Studio v1.0</span>
+  </div>
+</div>
+
+<!-- TUTORIAL OVERLAY -->
+<div id="tutorial-overlay">
+  <div id="tutorial-backdrop"></div>
+  <div id="tutorial-spotlight"></div>
+  <div id="tutorial-tooltip">
+    <div id="tutorial-progress">
+      <div id="tutorial-progress-bar"><div id="tutorial-progress-fill"></div></div>
+      <span id="tutorial-progress-text">1/8</span>
+    </div>
+    <div id="tutorial-title">Welcome</div>
+    <div id="tutorial-content">Content</div>
+    <div id="tutorial-actions">
+      <button class="tut-btn skip" id="tut-skip">Skip Tutorial</button>
+      <div style="display:flex;gap:6px">
+        <button class="tut-btn" id="tut-prev">← Back</button>
+        <button class="tut-btn primary" id="tut-next">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="modal" id="help-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#2d2d2d;border:1px solid #1a1a1a;border-radius:4px;padding:20px;min-width:400px;max-width:600px">
+    <div style="color:#4ecdc4;font-size:14px;margin-bottom:12px;text-transform:uppercase">📖 How to Use</div>
+    <div style="color:#ccc;font-size:12px;line-height:1.6;margin-bottom:15px">
+      <strong>Workflow: Code → Image → Game</strong><br><br>
+      1. Write DSL code in the Code Editor (left panel)<br>
+      2. Click <strong>"⚙ Compile to Image"</strong> to generate a PNG<br>
+      3. The PNG appears in the Scene view (center)<br>
+      4. Click <strong>▶ Play</strong> to run the game<br>
+      5. Switch to Game tab to see it running<br><br>
+      <strong>Controls:</strong><br>
+      • 2D mode: WASD or Arrow keys to move<br>
+      • DOOM mode: WASD to move, A/D to rotate<br>
+      • Space: action/beep<br><br>
+      <strong>The PNG IS the game.</strong> Save it, share it, load it back — it's a complete program encoded as an image.
+    </div>
+    <button class="top-btn primary" onclick="document.getElementById('help-modal').style.display='none'">Close</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   PIXELVM STUDIO - Code → Image → Game Engine
+   ============================================================ */
+
+const SHAPE_RANGES = {
+  triangle:  {r:[180,255],g:[0,120],b:[0,120]},
+  rectangle: {r:[0,120],g:[180,255],b:[150,255]},
+  circle:    {r:[80,180],g:[180,255],b:[180,255]},
+  star:      {r:[200,255],g:[180,255],b:[0,120]},
+  hexagon:   {r:[80,180],g:[180,255],b:[100,180]},
+  pentagon:  {r:[140,220],g:[140,220],b:[200,255]}
+};
+const SHAPE_LIST = ['triangle','rectangle','circle','star','hexagon','pentagon'];
+
+/* ---------- LOGGER ---------- */
+class Logger {
+  constructor(el) { this.el = el; }
+  log(msg, type='info') {
+    const d = document.createElement('div');
+    d.className = `log-line log-${type}`;
+    d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    this.el.appendChild(d);
+    this.el.scrollTop = this.el.scrollHeight;
+  }
+  clear() { this.el.innerHTML = ''; }
+  status(msg) {
+    document.getElementById('status-left').textContent = msg;
+  }
+}
+
+/* ---------- TUTORIAL SYSTEM ---------- */
+class Tutorial {
+  constructor() {
+    this.overlay = document.getElementById('tutorial-overlay');
+    this.spotlight = document.getElementById('tutorial-spotlight');
+    this.tooltip = document.getElementById('tutorial-tooltip');
+    this.titleEl = document.getElementById('tutorial-title');
+    this.contentEl = document.getElementById('tutorial-content');
+    this.progressFill = document.getElementById('tutorial-progress-fill');
+    this.progressText = document.getElementById('tutorial-progress-text');
+    this.currentStep = 0;
+    this.active = false;
+    
+    this.steps = [
+      {
+        title: '🎮 Welcome to PixelVM Studio',
+        content: `
+          <div class="tut-welcome">
+            <h2>Welcome!</h2>
+            <p>
+              PixelVM Studio is a <strong>code-to-image-to-game</strong> engine.<br>
+              You write DSL code → it compiles to a PNG image → that image becomes a playable game.<br><br>
+              This tutorial will walk you through the basics in <strong>8 steps</strong>.
+            </p>
+          </div>
+        `,
+        target: null,
+        position: 'center'
+      },
+      {
+        title: '📝 Step 1: The Code Editor',
+        content: `
+          This is where you write your game logic using the PixelVM DSL.<br><br>
+          Each <code>entity</code> block defines a game object with:<br>
+          • <code>shape</code> - visual form (triangle, star, etc.)<br>
+          • <code>color</code> - hex color code<br>
+          • <code>pos</code> - (x, y) position<br>
+          • <code>ai</code> - behavior (idle, wander, chase, flee)<br><br>
+          Try editing the code! You can change shapes, colors, positions.
+        `,
+        target: '#code-editor',
+        position: 'right'
+      },
+      {
+        title: '⚙ Step 2: Compile to Image',
+        content: `
+          Click this button to <strong>compile your code into a PNG image</strong>.<br><br>
+          The compiler:<br>
+          1. Parses your DSL code<br>
+          2. Generates a PNG where each pixel encodes an entity<br>
+          3. Displays it in the Scene view<br><br>
+          <strong>The image IS your game.</strong> Save it, share it, load it anywhere.
+        `,
+        target: '#btn-compile',
+        position: 'bottom'
+      },
+      {
+        title: '🖼️ Step 3: Scene View',
+        content: `
+          After compiling, you'll see the generated PNG here.<br><br>
+          Each colored pixel represents an entity from your code:<br>
+          • 🔺 Red-ish = Triangle entity<br>
+          • 🟦 Cyan-ish = Rectangle entity<br>
+          • ⭐ Yellow-ish = Star entity<br>
+          • etc.<br><br>
+          This is your <strong>game encoded as an image</strong>!
+        `,
+        target: '#scene-pane',
+        position: 'left'
+      },
+      {
+        title: '▶ Step 4: Play the Game',
+        content: `
+          Click the <strong>Play button</strong> to run your game!<br><br>
+          The engine will:<br>
+          1. Decode the compiled image<br>
+          2. Spawn all entities<br>
+          3. Start the game loop<br>
+          4. Switch to Game view automatically<br><br>
+          Use <strong>WASD</strong> to move in 2D mode, or <strong>WASD</strong> to walk + <strong>A/D</strong> to rotate in DOOM mode.
+        `,
+        target: '#btn-play',
+        position: 'bottom'
+      },
+      {
+        title: '🎮 Step 5: Game View',
+        content: `
+          This is where your game runs in real-time.<br><br>
+          You can switch between <strong>Scene</strong> and <strong>Game</strong> tabs anytime.<br><br>
+          In DOOM mode, you'll see a raycasted 3D view with walls and enemies. In 2D mode, you'll see a top-down view with all entities.
+        `,
+        target: '#view-tabs',
+        position: 'bottom'
+      },
+      {
+        title: '🔍 Step 6: Inspector',
+        content: `
+          Select any entity from the <strong>Hierarchy</strong> panel to inspect and edit its properties here.<br><br>
+          Changes you make in the Inspector are <strong>synced back to the code editor</strong> automatically. This is a visual + code hybrid workflow!
+        `,
+        target: '#inspector-body',
+        position: 'left'
+      },
+      {
+        title: '💾 Step 7: Save & Load',
+        content: `
+          <strong>Save PNG:</strong> Export your compiled game as a PNG file.<br>
+          <strong>Load PNG:</strong> Load any PixelVM PNG back into the studio.<br><br>
+          You can share your games as simple image files. Anyone with PixelVM Studio can load and play them!<br><br>
+          <strong>🎓 Tutorial button:</strong> Click this anytime to restart the tutorial.
+        `,
+        target: '#btn-tutorial',
+        position: 'bottom'
+      },
+      {
+        title: '🚀 You\'re Ready!',
+        content: `
+          <div class="tut-welcome">
+            <h2>That's it!</h2>
+            <p>
+              You now know the basics of PixelVM Studio.<br><br>
+              <strong>Quick recap:</strong><br>
+              1. Write code in the editor<br>
+              2. Click ⚙ Compile<br>
+              3. Click ▶ Play<br>
+              4. Use WASD to move<br><br>
+              Try editing the default code and see what happens!<br>
+              Change <code>mode: doom</code> to <code>mode: 2d</code> for a different experience.
+            </p>
+          </div>
+        `,
+        target: null,
+        position: 'center'
+      }
+    ];
+    
+    this.setupEvents();
+  }
+  
+  setupEvents() {
+    document.getElementById('tut-next').onclick = () => this.next();
+    document.getElementById('tut-prev').onclick = () => this.prev();
+    document.getElementById('tut-skip').onclick = () => this.end();
+    document.getElementById('btn-tutorial').onclick = () => this.start();
+  }
+  
+  start() {
+    this.currentStep = 0;
+    this.active = true;
+    this.overlay.classList.add('active');
+    this.showStep();
+  }
+  
+  end() {
+    this.active = false;
+    this.overlay.classList.remove('active');
+    localStorage.setItem('pixelvm_tutorial_done', '1');
+  }
+  
+  next() {
+    if (this.currentStep < this.steps.length - 1) {
+      this.currentStep++;
+      this.showStep();
+    } else {
+      this.end();
+    }
+  }
+  
+  prev() {
+    if (this.currentStep > 0) {
+      this.currentStep--;
+      this.showStep();
+    }
+  }
+  
+  showStep() {
+    const step = this.steps[this.currentStep];
+    
+    // Update content
+    this.titleEl.textContent = step.title;
+    this.contentEl.innerHTML = step.content;
+    
+    // Update progress
+    const progress = ((this.currentStep + 1) / this.steps.length) * 100;
+    this.progressFill.style.width = progress + '%';
+    this.progressText.textContent = `${this.currentStep + 1}/${this.steps.length}`;
+    
+    // Update buttons
+    document.getElementById('tut-prev').style.visibility = this.currentStep === 0 ? 'hidden' : 'visible';
+    document.getElementById('tut-next').textContent = this.currentStep === this.steps.length - 1 ? 'Finish ✓' : 'Next →';
+    
+    // Spotlight
+    if (step.target) {
+      const el = document.querySelector(step.target);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const pad = 6;
+        this.spotlight.style.left = (rect.left - pad) + 'px';
+        this.spotlight.style.top = (rect.top - pad) + 'px';
+        this.spotlight.style.width = (rect.width + pad*2) + 'px';
+        this.spotlight.style.height = (rect.height + pad*2) + 'px';
+        this.spotlight.style.display = 'block';
+        this.positionTooltip(rect, step.position);
+      }
+    } else {
+      this.spotlight.style.display = 'none';
+      this.tooltip.style.left = '50%';
+      this.tooltip.style.top = '50%';
+      this.tooltip.style.transform = 'translate(-50%, -50%)';
+    }
+  }
+  
+  positionTooltip(targetRect, position) {
+    const tt = this.tooltip;
+    tt.style.transform = 'none';
+    
+    const margin = 20;
+    const ttWidth = 400;
+    const ttHeight = tt.offsetHeight || 200;
+    
+    switch(position) {
+      case 'right':
+        tt.style.left = (targetRect.right + margin) + 'px';
+        tt.style.top = targetRect.top + 'px';
+        if (targetRect.right + margin + ttWidth > window.innerWidth) {
+          tt.style.left = (targetRect.left - ttWidth - margin) + 'px';
+        }
+        break;
+      case 'left':
+        tt.style.left = (targetRect.left - ttWidth - margin) + 'px';
+        tt.style.top = targetRect.top + 'px';
+        if (targetRect.left - ttWidth - margin < 0) {
+          tt.style.left = (targetRect.right + margin) + 'px';
+        }
+        break;
+      case 'bottom':
+        tt.style.left = targetRect.left + 'px';
+        tt.style.top = (targetRect.bottom + margin) + 'px';
+        if (targetRect.bottom + margin + ttHeight > window.innerHeight) {
+          tt.style.top = (targetRect.top - ttHeight - margin) + 'px';
+        }
+        break;
+      case 'top':
+        tt.style.left = targetRect.left + 'px';
+        tt.style.top = (targetRect.top - ttHeight - margin) + 'px';
+        break;
+      default:
+        tt.style.left = '50%';
+        tt.style.top = '50%';
+        tt.style.transform = 'translate(-50%, -50%)';
+    }
+  }
+}
+
+/* ---------- CODE PARSER ---------- */
+class CodeParser {
+  parse(code) {
+    const result = { mode:'2d', entities:[], map:null };
+    const lines = code.split('\n');
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i].trim();
+      if (!line || line.startsWith('//')) { i++; continue; }
+      const modeMatch = line.match(/^mode:\s*(\w+)/);
+      if (modeMatch) { result.mode = modeMatch[1]; i++; continue; }
+      const entMatch = line.match(/^entity\s+(\w+)\s*\{/);
+      if (entMatch) {
+        const name = entMatch[1];
+        const ent = { name, shape:'circle', color:'#ffffff', pos:[200,200], vel:[0,0], ai:'idle', hp:100, layer:0, scale:1 };
+        i++;
+        while (i < lines.length && !lines[i].includes('}')) {
+          const prop = lines[i].trim();
+          if (prop && !prop.startsWith('//')) {
+            const m = prop.match(/^(\w+):\s*(.+)$/);
+            if (m) this.parseProp(ent, m[1], m[2]);
+          }
+          i++;
+        }
+        result.entities.push(ent);
+        i++; continue;
+      }
+      if (line === 'map {') {
+        const rows = [];
+        i++;
+        while (i < lines.length && !lines[i].includes('}')) {
+          const row = lines[i].trim();
+          if (row && /^[01]+$/.test(row)) rows.push(row.split('').map(Number));
+          i++;
+        }
+        result.map = rows;
+        i++; continue;
+      }
+      i++;
+    }
+    return result;
+  }
+  parseProp(ent, key, val) {
+    val = val.trim();
+    switch(key) {
+      case 'shape': ent.shape = val; break;
+      case 'color': ent.color = val; break;
+      case 'pos':
+        const pm = val.match(/\(([^,]+),\s*([^)]+)\)/);
+        if (pm) ent.pos = [parseFloat(pm[1]), parseFloat(pm[2])];
+        break;
+      case 'vel':
+        const vm = val.match(/\(([^,]+),\s*([^)]+)\)/);
+        if (vm) ent.vel = [parseFloat(vm[1]), parseFloat(vm[2])];
+        break;
+      case 'ai': ent.ai = val; break;
+      case 'hp': ent.hp = parseFloat(val); break;
+      case 'layer': ent.layer = parseInt(val); break;
+      case 'scale': ent.scale = parseFloat(val); break;
+    }
+  }
+}
+
+/* ---------- IMAGE GENERATOR ---------- */
+class ImageGenerator {
+  constructor() {
+    this.canvas = document.createElement('canvas');
+    this.ctx = this.canvas.getContext('2d');
+  }
+  generate(ast) {
+    const numEntities = ast.entities.length;
+    const numColors = new Set(ast.entities.map(e => e.color)).size;
+    const cols = Math.max(16, numEntities + numColors + 2);
+    const mapRows = ast.map ? ast.map.length : 0;
+    const rows = 2 + Math.max(mapRows, Math.ceil(numEntities / cols));
+    this.canvas.width = Math.max(64, cols);
+    this.canvas.height = Math.max(64, rows);
+    this.ctx.fillStyle = '#000';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    const uniqueColors = [...new Set(ast.entities.map(e => e.color))];
+    const colorMap = {};
+    uniqueColors.forEach((c, i) => {
+      const rgb = this.hexToRgb(c);
+      const r = Math.min(100, rgb[0] / 2);
+      const g = 180 + (i % 70);
+      const b = 150 + (i % 100);
+      colorMap[c] = { r, g, b };
+      this.setPixel(i, 0, r, g, b);
+    });
+    ast.entities.forEach((ent, i) => {
+      const col = i % (cols - 1);
+      const row = 1 + Math.floor(i / (cols - 1));
+      const shapeIdx = SHAPE_LIST.indexOf(ent.shape);
+      const range = SHAPE_RANGES[ent.shape] || SHAPE_RANGES.circle;
+      const colorIdx = uniqueColors.indexOf(ent.color);
+      const r = range.r[0] + ((shapeIdx * 10) + (ent.pos[0] / 10)) % (range.r[1] - range.r[0]);
+      const g = 180 + (colorIdx * 10) % 70;
+      const b = range.b[0] + ((ent.layer * 20) + ent.pos[1] / 10) % (range.b[1] - range.b[0]);
+      this.setPixel(col, row, r, g, b);
+    });
+    if (ast.map) {
+      for (let y = 0; y < ast.map.length; y++) {
+        for (let x = 0; x < ast.map[y].length; x++) {
+          if (ast.map[y][x] === 1) {
+            const r = 100 + (x * 5) % 80;
+            const g = 200 + (y * 3) % 50;
+            const b = 120 + ((x+y) * 7) % 60;
+            this.setPixel(x, 2 + y, r, g, b);
+          }
+        }
+      }
+    }
+    return this.canvas;
+  }
+  setPixel(x, y, r, g, b) {
+    const img = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    const i = (y * this.canvas.width + x) * 4;
+    img.data[i] = r; img.data[i+1] = g; img.data[i+2] = b; img.data[i+3] = 255;
+    this.ctx.putImageData(img, 0, 0);
+  }
+  hexToRgb(hex) {
+    const m = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+    return m ? [parseInt(m[1],16), parseInt(m[2],16), parseInt(m[3],16)] : [255,255,255];
+  }
+}
+
+/* ---------- IMAGE DECODER ---------- */
+class ImageDecoder {
+  decode(canvas) {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const entities = [];
+    const colors = {};
+    for (let x = 0; x < canvas.width; x++) {
+      const i = (0 * canvas.width + x) * 4;
+      const r = img.data[i], g = img.data[i+1], b = img.data[i+2];
+      if (r === 0 && g === 0 && b === 0) continue;
+      if (this.inRange(r, [0,120]) && this.inRange(g, [180,255]) && this.inRange(b, [150,255])) {
+        const name = String.fromCharCode(65 + (g - 180) % 26);
+        colors[name] = `rgb(${Math.min(255,r*2)},${g},${b})`;
+      }
+    }
+    let entIdx = 0;
+    for (let y = 1; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        const i = (y * canvas.width + x) * 4;
+        const r = img.data[i], g = img.data[i+1], b = img.data[i+2];
+        if (r === 0 && g === 0 && b === 0) continue;
+        const shape = this.detectShape(r, g, b);
+        if (shape) {
+          const colorKey = String.fromCharCode(65 + (g - 180) % 26);
+          const color = colors[colorKey] || '#ffffff';
+          entities.push({
+            name: `E${entIdx}`, shape, color,
+            pos: [x * 30 + 50, y * 30 + 50],
+            vel: [0, 0], ai: 'idle', hp: 100, layer: b % 10, scale: 1
+          });
+          entIdx++;
+        }
+      }
+    }
+    return { entities, mode: '2d', map: null };
+  }
+  detectShape(r, g, b) {
+    for (const [shape, range] of Object.entries(SHAPE_RANGES)) {
+      if (this.inRange(r, range.r) && this.inRange(g, range.g) && this.inRange(b, range.b)) return shape;
+    }
+    return null;
+  }
+  inRange(v, [min, max]) { return v >= min && v <= max; }
+}
+
+/* ---------- ENTITY ---------- */
+class Entity {
+  constructor(data) {
+    Object.assign(this, {
+      id: Math.random().toString(36).slice(2),
+      name:'?', shape:'circle', color:'#fff',
+      pos:[0,0], vel:[0,0], hp:100, ai:'idle', layer:0, scale:1,
+      angle:0, alive:true
+    }, data);
+    this.x = this.pos[0]; this.y = this.pos[1];
+    this.vx = this.vel[0]; this.vy = this.vel[1];
+    this.width = 30 * this.scale;
+    this.height = 30 * this.scale;
+  }
+}
+
+/* ---------- PHYSICS ---------- */
+class Physics {
+  update(entities, dt) {
+    for (const e of entities) {
+      if (!e.alive) continue;
+      e.x += e.vx * dt; e.y += e.vy * dt;
+      if (e.x < 0) { e.x = 0; e.vx *= -0.5; }
+      if (e.x > 640-e.width) { e.x = 640-e.width; e.vx *= -0.5; }
+      if (e.y < 0) { e.y = 0; e.vy *= -0.5; }
+      if (e.y > 400-e.height) { e.y = 400-e.height; e.vy *= -0.5; }
+    }
+    for (let i=0; i<entities.length; i++) {
+      for (let j=i+1; j<entities.length; j++) {
+        const a = entities[i], b = entities[j];
+        if (!a.alive || !b.alive) continue;
+        if (this.aabb(a,b)) this.resolve(a,b);
+      }
+    }
+  }
+  aabb(a,b) {
+    return a.x < b.x+b.width && a.x+a.width > b.x && a.y < b.y+b.height && a.y+a.height > b.y;
+  }
+  resolve(a,b) {
+    const dx = (a.x+a.width/2) - (b.x+b.width/2);
+    const dy = (a.y+a.height/2) - (b.y+b.height/2);
+    a.vx += dx * 0.05; a.vy += dy * 0.05;
+    b.vx -= dx * 0.05; b.vy -= dy * 0.05;
+  }
+}
+
+/* ---------- AI ---------- */
+class AI {
+  update(entities, dt, player) {
+    for (const e of entities) {
+      if (!e.alive || e === player) continue;
+      switch(e.ai) {
+        case 'wander':
+          if (Math.random() < 0.02) {
+            e.vx = (Math.random()-0.5) * 100;
+            e.vy = (Math.random()-0.5) * 100;
+          }
+          break;
+        case 'chase':
+          if (player && player.alive) {
+            const dx = player.x - e.x, dy = player.y - e.y;
+            const d = Math.hypot(dx,dy);
+            if (d > 1) { e.vx = (dx/d)*80; e.vy = (dy/d)*80; }
+          }
+          break;
+        case 'flee':
+          if (player && player.alive) {
+            const dx = e.x - player.x, dy = e.y - player.y;
+            const d = Math.hypot(dx,dy);
+            if (d > 1 && d < 200) { e.vx = (dx/d)*120; e.vy = (dy/d)*120; }
+          }
+          break;
+      }
+    }
+  }
+}
+
+/* ---------- INPUT ---------- */
+class Input {
+  constructor() {
+    this.keys = {};
+    window.addEventListener('keydown', e => this.keys[e.key.toLowerCase()] = true);
+    window.addEventListener('keyup', e => this.keys[e.key.toLowerCase()] = false);
+  }
+  isDown(k) { return !!this.keys[k]; }
+}
+
+/* ---------- AUDIO ---------- */
+class Audio {
+  constructor() { this.ctx = null; }
+  init() {
+    if (!this.ctx) try { this.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){}
+  }
+  beep(freq=440, dur=0.1, type='square', vol=0.1) {
+    if (!this.ctx) return;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(); o.stop(this.ctx.currentTime + dur);
+  }
+}
+
+/* ---------- RENDERER ---------- */
+class Renderer {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+  }
+  clear() {
+    this.ctx.fillStyle = '#000';
+    this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+  }
+  render2D(entities) {
+    this.clear();
+    const sorted = [...entities].filter(e=>e.alive).sort((a,b)=>a.layer-b.layer);
+    for (const e of sorted) this.drawEntity(e);
+  }
+  drawEntity(e) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(e.x + e.width/2, e.y + e.height/2);
+    ctx.rotate(e.angle);
+    ctx.scale(e.scale, e.scale);
+    ctx.fillStyle = e.color;
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    const s = Math.min(e.width, e.height)/2;
+    this.drawShape(ctx, e.shape, s);
+    ctx.restore();
+    ctx.fillStyle = '#fff';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(e.name, e.x + e.width/2, e.y - 4);
+  }
+  drawShape(ctx, shape, s) {
+    ctx.beginPath();
+    switch(shape) {
+      case 'triangle':
+        ctx.moveTo(0,-s); ctx.lineTo(s,s); ctx.lineTo(-s,s); break;
+      case 'rectangle':
+        ctx.rect(-s,-s,s*2,s*2); break;
+      case 'circle':
+        ctx.arc(0,0,s,0,Math.PI*2); break;
+      case 'star':
+        for (let i=0; i<10; i++) {
+          const a = (Math.PI/5)*i - Math.PI/2;
+          const r = i%2===0 ? s : s/2;
+          const x = r*Math.cos(a), y = r*Math.sin(a);
+          if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        break;
+      case 'hexagon':
+        for (let i=0; i<6; i++) {
+          const a = (Math.PI/3)*i - Math.PI/2;
+          const x = s*Math.cos(a), y = s*Math.sin(a);
+          if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        break;
+      case 'pentagon':
+        for (let i=0; i<5; i++) {
+          const a = (Math.PI*2/5)*i - Math.PI/2;
+          const x = s*Math.cos(a), y = s*Math.sin(a);
+          if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        break;
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+  renderRaycast(entities, player, map) {
+    if (!map || !player) { this.render2D(entities); return; }
+    const ctx = this.ctx;
+    const W = this.canvas.width, H = this.canvas.height;
+    const sky = ctx.createLinearGradient(0,0,0,H/2);
+    sky.addColorStop(0,'#223'); sky.addColorStop(1,'#556');
+    ctx.fillStyle = sky; ctx.fillRect(0,0,W,H/2);
+    const floor = ctx.createLinearGradient(0,H/2,0,H);
+    floor.addColorStop(0,'#443'); floor.addColorStop(1,'#221');
+    ctx.fillStyle = floor; ctx.fillRect(0,H/2,W,H/2);
+    const fov = Math.PI/3;
+    const maxDist = 20;
+    for (let i=0; i<W; i++) {
+      const rayAngle = player.angle - fov/2 + (i/W)*fov;
+      const {dist, side} = this.castRay(player.x/40, player.y/40, rayAngle, maxDist, map);
+      const corrected = dist * Math.cos(rayAngle - player.angle);
+      const wallH = Math.min(H, (H / corrected) * 0.8);
+      const shade = Math.max(0, 1 - dist/maxDist);
+      ctx.fillStyle = side === 0 ?
+        `rgb(${180*shade|0},${80*shade|0},${80*shade|0})` :
+        `rgb(${130*shade|0},${60*shade|0},${60*shade|0})`;
+      ctx.fillRect(i, (H-wallH)/2, 1, wallH);
+    }
+    const sprites = entities.filter(e => e.alive && e !== player).map(e => {
+      const dx = e.x/40 - player.x/40;
+      const dy = e.y/40 - player.y/40;
+      return { e, dist: Math.hypot(dx,dy), angle: Math.atan2(dy,dx) };
+    }).sort((a,b) => b.dist - a.dist);
+    for (const sp of sprites) {
+      let rel = sp.angle - player.angle;
+      while (rel > Math.PI) rel -= Math.PI*2;
+      while (rel < -Math.PI) rel += Math.PI*2;
+      if (Math.abs(rel) > fov/2 + 0.2) continue;
+      const sx = (0.5 + rel/fov) * W;
+      const size = Math.min(H, (H / sp.dist) * 0.8);
+      const shade = Math.max(0.2, 1 - sp.dist/maxDist);
+      ctx.save();
+      ctx.globalAlpha = shade;
+      ctx.fillStyle = sp.e.color;
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      const s = size/2;
+      ctx.translate(sx, H/2);
+      this.drawShape(ctx, sp.e.shape, s);
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = '#fff';
+      ctx.font = '12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(sp.e.name, sx, H/2 - s - 5);
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(0,H-40,W,40);
+    ctx.fillStyle = '#4ecdc4';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`HP: ${player.hp}  POS: (${player.x.toFixed(0)},${player.y.toFixed(0)})  ANG: ${(player.angle*180/Math.PI).toFixed(0)}°`, 10, H-15);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(W/2-10, H/2); ctx.lineTo(W/2+10, H/2);
+    ctx.moveTo(W/2, H/2-10); ctx.lineTo(W/2, H/2+10);
+    ctx.stroke();
+  }
+  castRay(ox, oy, angle, maxDist, map) {
+    const dx = Math.cos(angle), dy = Math.sin(angle);
+    const step = 0.05;
+    for (let d=0; d<maxDist; d+=step) {
+      const x = ox + dx*d, y = oy + dy*d;
+      const mx = Math.floor(x), my = Math.floor(y);
+      if (mx<0||my<0||my>=map.length||mx>=map[0].length) return {dist:d,side:0};
+      if (map[my][mx] === 1) {
+        const fx = x - mx;
+        return {dist:d, side: (fx < 0.05 || fx > 0.95) ? 0 : 1};
+      }
+    }
+    return {dist:maxDist, side:0};
+  }
+}
+
+/* ---------- GAME ENGINE ---------- */
+class GameEngine {
+  constructor(logger) {
+    this.logger = logger;
+    this.entities = [];
+    this.player = null;
+    this.map = null;
+    this.mode = '2d';
+    this.physics = new Physics();
+    this.ai = new AI();
+    this.input = new Input();
+    this.audio = new Audio();
+    this.running = false;
+    this.lastTime = 0;
+  }
+  reset() { this.entities = []; this.player = null; this.map = null; }
+  loadAST(ast) {
+    this.reset();
+    this.mode = ast.mode;
+    this.map = ast.map;
+    ast.entities.forEach((data, i) => {
+      const e = new Entity(data);
+      if (i === 0 || data.name === 'P') { this.player = e; e.ai = 'idle'; }
+      this.entities.push(e);
+    });
+    if (!this.player && this.entities.length > 0) {
+      this.player = this.entities[0];
+      this.player.ai = 'idle';
+    }
+    if (this.mode === 'doom' && this.player) this.player.angle = 0;
+  }
+  start() {
+    if (this.running) return;
+    this.running = true;
+    this.audio.init();
+    this.lastTime = performance.now();
+    requestAnimationFrame(t => this.loop(t));
+    this.logger.log('Engine started', 'info');
+  }
+  stop() {
+    this.running = false;
+    this.logger.log('Engine stopped', 'info');
+  }
+  loop(now) {
+    if (!this.running) return;
+    const dt = Math.min(0.05, (now - this.lastTime) / 1000);
+    this.lastTime = now;
+    this.handleInput(dt);
+    this.ai.update(this.entities, dt, this.player);
+    this.physics.update(this.entities, dt);
+    requestAnimationFrame(t => this.loop(t));
+  }
+  handleInput(dt) {
+    if (!this.player) return;
+    const speed = 150 * dt;
+    const rotSpeed = 3 * dt;
+    if (this.mode === 'doom') {
+      if (this.input.isDown('w')) {
+        this.player.x += Math.cos(this.player.angle) * speed;
+        this.player.y += Math.sin(this.player.angle) * speed;
+      }
+      if (this.input.isDown('s')) {
+        this.player.x -= Math.cos(this.player.angle) * speed;
+        this.player.y -= Math.sin(this.player.angle) * speed;
+      }
+      if (this.input.isDown('a')) this.player.angle -= rotSpeed;
+      if (this.input.isDown('d')) this.player.angle += rotSpeed;
+      if (this.map) {
+        const mx = Math.floor(this.player.x / 40);
+        const my = Math.floor(this.player.y / 40);
+        if (my>=0 && my<this.map.length && mx>=0 && mx<this.map[0].length && this.map[my][mx]===1) {
+          this.player.x -= Math.cos(this.player.angle) * speed;
+          this.player.y -= Math.sin(this.player.angle) * speed;
+        }
+      }
+    } else {
+      if (this.input.isDown('w')||this.input.isDown('arrowup')) this.player.vy = -speed;
+      else if (this.input.isDown('s')||this.input.isDown('arrowdown')) this.player.vy = speed;
+      else this.player.vy *= 0.8;
+      if (this.input.isDown('a')||this.input.isDown('arrowleft')) this.player.vx = -speed;
+      else if (this.input.isDown('d')||this.input.isDown('arrowright')) this.player.vx = speed;
+      else this.player.vx *= 0.8;
+    }
+    if (this.input.isDown(' ')) this.audio.beep(880, 0.05);
+  }
+}
+
+/* ---------- MAIN APP ---------- */
+class Studio {
+  constructor() {
+    this.logger = new Logger(document.getElementById('console-panel'));
+    this.parser = new CodeParser();
+    this.imgGen = new ImageGenerator();
+    this.imgDec = new ImageDecoder();
+    this.engine = new GameEngine(this.logger);
+    this.sceneRenderer = new Renderer(document.getElementById('scene-canvas'));
+    this.gameRenderer = new Renderer(document.getElementById('game-canvas'));
+    this.tutorial = new Tutorial();
+    
+    this.currentAST = null;
+    this.compiledImage = null;
+    this.selectedEntity = null;
+    
+    this.setupUI();
+    this.logger.log('PixelVM Studio initialized', 'info');
+    this.logger.log('Write code → Compile → Play', 'info');
+    this.logger.status('Ready');
+    
+    // Auto-start tutorial on first visit
+    setTimeout(() => {
+      if (!localStorage.getItem('pixelvm_tutorial_done')) {
+        this.tutorial.start();
+      }
+    }, 500);
+  }
+  
+  setupUI() {
+    document.getElementById('btn-compile').onclick = () => this.compile();
+    document.getElementById('btn-play').onclick = () => this.play();
+    document.getElementById('btn-pause').onclick = () => this.pause();
+    document.getElementById('btn-stop').onclick = () => this.stop();
+    document.getElementById('btn-load').onclick = () => this.loadPNG();
+    document.getElementById('btn-save').onclick = () => this.savePNG();
+    document.getElementById('btn-help').onclick = () => document.getElementById('help-modal').style.display = 'flex';
+    document.getElementById('btn-add-entity').onclick = () => this.addEntityTemplate();
+    document.getElementById('btn-template').onclick = () => this.loadTemplate();
+    
+    document.querySelectorAll('.view-tab').forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(`${tab.dataset.view}-pane`).classList.add('active');
+      };
+    });
+    
+    document.querySelectorAll('.bottom-tab').forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.bottom-pane').forEach(p => p.style.display = 'none');
+        tab.classList.add('active');
+        document.getElementById(`${tab.dataset.panel}-panel`).style.display = 'block';
+      };
+    });
+    
+    this.renderLoop();
+  }
+  
+  compile() {
+    try {
+      this.logger.clear();
+      this.logger.log('Compiling code...', 'compile');
+      const code = document.getElementById('code-editor').value;
+      const ast = this.parser.parse(code);
+      this.logger.log(`Parsed: ${ast.entities.length} entities, mode=${ast.mode}`, 'compile');
+      if (ast.map) this.logger.log(`Map: ${ast.map.length}x${ast.map[0].length}`, 'compile');
+      const img = this.imgGen.generate(ast);
+      this.compiledImage = img;
+      const sceneCanvas = document.getElementById('scene-canvas');
+      sceneCanvas.width = img.width;
+      sceneCanvas.height = img.height;
+      const sctx = sceneCanvas.getContext('2d');
+      sctx.imageSmoothingEnabled = false;
+      sctx.drawImage(img, 0, 0);
+      const scale = Math.min(512 / img.width, 512 / img.height, 8);
+      sceneCanvas.style.width = (img.width * scale) + 'px';
+      sceneCanvas.style.height = (img.height * scale) + 'px';
+      this.currentAST = ast;
+      this.updateHierarchy();
+      this.logger.log(`✓ Compiled to ${img.width}×${img.height} image`, 'exec');
+      this.logger.status(`Compiled: ${img.width}×${img.height} PNG`);
+    } catch (err) {
+      this.logger.log(`✗ Compile error: ${err.message}`, 'error');
+      this.logger.status('Compile failed');
+    }
+  }
+  
+  play() {
+    if (!this.currentAST) {
+      this.compile();
+      if (!this.currentAST) return;
+    }
+    this.engine.loadAST(this.currentAST);
+    this.engine.start();
+    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-view="game"]').classList.add('active');
+    document.getElementById('game-pane').classList.add('active');
+    document.getElementById('btn-play').classList.add('active');
+    this.logger.log('▶ Playing', 'info');
+    this.logger.status('Running');
+  }
+  
+  pause() {
+    this.engine.running = !this.engine.running;
+    if (this.engine.running) {
+      this.engine.lastTime = performance.now();
+      requestAnimationFrame(t => this.engine.loop(t));
+      this.logger.log('▶ Resumed', 'info');
+    } else {
+      this.logger.log('⏸ Paused', 'info');
+    }
+  }
+  
+  stop() {
+    this.engine.stop();
+    this.gameRenderer.clear();
+    document.getElementById('btn-play').classList.remove('active');
+    this.logger.status('Stopped');
+  }
+  
+  updateHierarchy() {
+    const list = document.getElementById('hierarchy-list');
+    list.innerHTML = '';
+    if (!this.currentAST) return;
+    this.currentAST.entities.forEach((ent, i) => {
+      const item = document.createElement('div');
+      item.className = 'tree-item';
+      item.innerHTML = `<span class="tree-icon">◆</span> ${ent.name} <span style="color:#666;font-size:10px">(${ent.shape})</span>`;
+      item.onclick = () => {
+        document.querySelectorAll('.tree-item').forEach(t => t.classList.remove('selected'));
+        item.classList.add('selected');
+        this.selectEntity(ent);
+      };
+      list.appendChild(item);
+    });
+    if (this.currentAST.map) {
+      const item = document.createElement('div');
+      item.className = 'tree-item';
+      item.innerHTML = `<span class="tree-icon">▦</span> Map <span style="color:#666;font-size:10px">(${this.currentAST.map.length}×${this.currentAST.map[0].length})</span>`;
+      list.appendChild(item);
+    }
+  }
+  
+  selectEntity(ent) {
+    this.selectedEntity = ent;
+    const body = document.getElementById('inspector-body');
+    body.innerHTML = `
+      <div class="inspector-section">
+        <div class="inspector-title">Transform</div>
+        <div class="inspector-row">
+          <span class="inspector-label">Name</span>
+          <input class="inspector-input" value="${ent.name}" data-prop="name">
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Position</span>
+          <input class="inspector-input" value="${ent.pos[0]}, ${ent.pos[1]}" data-prop="pos">
+        </div>
+      </div>
+      <div class="inspector-section">
+        <div class="inspector-title">Visual</div>
+        <div class="inspector-row">
+          <span class="inspector-label">Shape</span>
+          <select class="inspector-select" data-prop="shape">
+            ${SHAPE_LIST.map(s => `<option ${s===ent.shape?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Color</span>
+          <input type="color" class="color-preview" value="${ent.color}" data-prop="color">
+          <input class="inspector-input" value="${ent.color}" data-prop="color-text">
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Scale</span>
+          <input class="inspector-input" type="number" step="0.1" value="${ent.scale}" data-prop="scale">
+        </div>
+      </div>
+      <div class="inspector-section">
+        <div class="inspector-title">Behavior</div>
+        <div class="inspector-row">
+          <span class="inspector-label">AI</span>
+          <select class="inspector-select" data-prop="ai">
+            ${['idle','wander','chase','flee'].map(a => `<option ${a===ent.ai?'selected':''}>${a}</option>`).join('')}
+          </select>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">HP</span>
+          <input class="inspector-input" type="number" value="${ent.hp}" data-prop="hp">
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Layer</span>
+          <input class="inspector-input" type="number" value="${ent.layer}" data-prop="layer">
+        </div>
+      </div>
+    `;
+    body.querySelectorAll('[data-prop]').forEach(input => {
+      input.onchange = () => this.updateEntityProp(input.dataset.prop, input.value);
+    });
+  }
+  
+  updateEntityProp(prop, value) {
+    if (!this.selectedEntity) return;
+    const ent = this.selectedEntity;
+    switch(prop) {
+      case 'name': ent.name = value; break;
+      case 'pos':
+        const m = value.match(/([^,]+),\s*([^)]+)/);
+        if (m) ent.pos = [parseFloat(m[1]), parseFloat(m[2])];
+        break;
+      case 'shape': ent.shape = value; break;
+      case 'color':
+      case 'color-text':
+        ent.color = value;
+        break;
+      case 'scale': ent.scale = parseFloat(value); break;
+      case 'ai': ent.ai = value; break;
+      case 'hp': ent.hp = parseFloat(value); break;
+      case 'layer': ent.layer = parseInt(value); break;
+    }
+    this.syncCodeFromAST();
+  }
+  
+  syncCodeFromAST() {
+    if (!this.currentAST) return;
+    let code = `mode: ${this.currentAST.mode}\n\n`;
+    for (const ent of this.currentAST.entities) {
+      code += `entity ${ent.name} {\n`;
+      code += `  shape: ${ent.shape}\n`;
+      code += `  color: ${ent.color}\n`;
+      code += `  pos: (${ent.pos[0]}, ${ent.pos[1]})\n`;
+      code += `  ai: ${ent.ai}\n`;
+      code += `  hp: ${ent.hp}\n`;
+      code += `  layer: ${ent.layer}\n`;
+      code += `  scale: ${ent.scale}\n`;
+      code += `}\n\n`;
+    }
+    if (this.currentAST.map) {
+      code += `map {\n`;
+      for (const row of this.currentAST.map) code += `  ${row.join('')}\n`;
+      code += `}\n`;
+    }
+    document.getElementById('code-editor').value = code;
+  }
+  
+  addEntityTemplate() {
+    const ta = document.getElementById('code-editor');
+    ta.value += `\nentity NewEntity {\n  shape: circle\n  color: #ffffff\n  pos: (200, 200)\n  ai: idle\n  hp: 100\n}\n`;
+    this.logger.log('Added entity template', 'info');
+  }
+  
+  loadTemplate() {
+    const templates = [
+      `// Simple 2D scene
+mode: 2d
+
+entity P {
+  shape: triangle
+  color: #4ecdc4
+  pos: (320, 200)
+  ai: idle
+}
+
+entity E1 {
+  shape: star
+  color: #ff6b6b
+  pos: (100, 100)
+  ai: wander
+}
+
+entity E2 {
+  shape: hexagon
+  color: #ffd93d
+  pos: (500, 300)
+  ai: chase
+}`,
+      `// DOOM-style FPS
+mode: doom
+
+entity P {
+  shape: triangle
+  color: #4ecdc4
+  pos: (150, 150)
+  ai: idle
+  hp: 100
+}
+
+entity E1 {
+  shape: star
+  color: #ff6b6b
+  pos: (300, 100)
+  ai: chase
+}
+
+entity E2 {
+  shape: hexagon
+  color: #ffd93d
+  pos: (400, 300)
+  ai: chase
+}
+
+map {
+  1111111111
+  1000000001
+  1010001001
+  1000000001
+  1001110001
+  1000000001
+  1010001001
+  1000000001
+  1000100001
+  1111111111
+}`
+    ];
+    document.getElementById('code-editor').value = templates[Math.floor(Math.random()*templates.length)];
+    this.logger.log('Template loaded', 'info');
+  }
+  
+  async loadPNG() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.png';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        const sceneCanvas = document.getElementById('scene-canvas');
+        sceneCanvas.width = img.width;
+        sceneCanvas.height = img.height;
+        const sctx = sceneCanvas.getContext('2d');
+        sctx.drawImage(img, 0, 0);
+        const tmp = document.createElement('canvas');
+        tmp.width = img.width; tmp.height = img.height;
+        tmp.getContext('2d').drawImage(img, 0, 0);
+        const decoded = this.imgDec.decode(tmp);
+        this.currentAST = decoded;
+        this.updateHierarchy();
+        this.logger.log(`Loaded PNG: ${img.width}×${img.height}, ${decoded.entities.length} entities`, 'info');
+        this.logger.status(`Loaded: ${file.name}`);
+      };
+      img.src = URL.createObjectURL(file);
+    };
+    input.click();
+  }
+  
+  savePNG() {
+    if (!this.compiledImage) {
+      this.logger.log('No compiled image to save. Compile first!', 'warn');
+      return;
+    }
+    const link = document.createElement('a');
+    link.download = 'pixelvm-program.png';
+    link.href = this.compiledImage.toDataURL();
+    link.click();
+    this.logger.log('PNG saved', 'info');
+  }
+  
+  renderLoop() {
+    const loop = () => {
+      if (this.engine.running) {
+        if (this.engine.mode === 'doom') {
+          this.gameRenderer.renderRaycast(this.engine.entities, this.engine.player, this.engine.map);
+        } else {
+          this.gameRenderer.render2D(this.engine.entities);
+        }
+      }
+      requestAnimationFrame(loop);
+    };
+    loop();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  window.studio = new Studio();
+});
+</script>
+</body>
+</html>
