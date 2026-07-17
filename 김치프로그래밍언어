@@ -1,0 +1,2007 @@
+안녕하세 
+(AI가 만든걸로 대체)
+# 🥬 김치랭 (KimchiLang)
+
+<div align="center">
+
+**김치 재료만으로 작성하는 난해 프로그래밍 언어**
+
+[![Version](https://img.shields.io/badge/version-2.0-c41e3a?style=for-the-badge)](https://github.com/yourusername/kimchilang)
+[![License](https://img.shields.io/badge/license-MIT-c41e3a?style=for-the-badge)](LICENSE)
+[![Interpreter](https://img.shields.io/badge/interpreter-JavaScript-c41e3a?style=for-the-badge)](https://html.spec.whatwg.org/)
+
+[시작하기](#시작하기) • [문법 가이드](#문법-가이드) • [예제](#예제-모음) • [기여하기](#기여하기)
+
+</div>
+
+---
+
+## 📖 목차
+
+- [소개](#-소개)
+- [특징](#-특징)
+- [시작하기](#-시작하기)
+- [문법 가이드](#-문법-가이드)
+  - [기본 출력](#기본-출력)
+  - [숫자와 변수](#숫자와-변수)
+  - [연산자](#연산자)
+  - [조건문](#조건문)
+  - [반복문](#반복문)
+  - [함수](#함수)
+  - [리스트](#리스트)
+  - [클래스와 객체](#클래스와-객체)
+  - [모듈 시스템](#모듈-시스템)
+- [표준 라이브러리](#-표준-라이브러리)
+- [예제 모음](#-예제-모음)
+- [디버깅](#-디버깅)
+- [에러 처리](#-에러-처리)
+- [기여하기](#-기여하기)
+- [라이선스](#-라이선스)
+
+---
+
+## 🌶️ 소개
+
+**김치랭(KimchiLang)**은 김치 재료(김, 치, 배, 추)로만 코드를 작성하는 난해 프로그래밍 언어(Esoteric Programming Language)입니다.
+
+이 언어는:
+- 🥬 **실제 실행 가능한 인터프리터**를 가진 진지한 난해 언어
+- 🧪 **함수, 클래스, 모듈, 리스트** 등 현대적인 기능 지원
+- 🔧 **AST 최적화**와 **타입 시스템** 구현
+- 🐛 **디버거**와 **상세한 에러 메시지** 제공
+
+김치를 만들듯 코드를 발효시켜보세요! 🌶️
+
+---
+
+## ✨ 특징
+
+### 주요 기능
+
+| 기능 | 설명 |
+|:----:|:-----|
+| **함수 매개변수** | `고치 더하기(김, 치) ... 치고` |
+| **클래스/객체** | `그릇 김치그릇 ... 치고` |
+| **모듈 시스템** | `가져오기("모듈명")` |
+| **리스트 (1-based)** | `목록고추`, `목록쪽고(인덱스)` |
+| **타입 시스템** | Number, String, Boolean, List, Class, Instance |
+| **AST 최적화** | 상수 폴딩 자동 적용 |
+| **재귀 함수** | 최대 1000단계 깊이 지원 |
+
+### 설계 철학
+
+1. **실제 실행 가능한 언어**: 단순 문법 흉내가 아닌 완전한 인터프리터 구조
+2. **강력한 오류 처리**: 모든 오류에 정확한 위치와 메시지 제공
+3. **확장성**: 모듈 시스템으로 코드 재사용 가능
+
+---
+
+## 🚀 시작하기
+
+### 브라우저에서 실행
+
+1. [`index.html`](index.html) 파일을 다운로드
+2. 브라우저로 열기
+3. 코드 입력 후 **🥢 발효** 버튼 클릭
+
+### 첫 번째 프로그램
+
+```kimel
+배고추("안녕 김치!")
+```
+
+**실행 결과:**
+```
+안녕 김치!
+```
+
+---
+
+## 📚 문법 가이드
+
+### 기본 출력
+
+```kimel
+배고추(값)
+```
+
+**예제:**
+```kimel
+배고추("김치랭")
+배고추(........)        $ 8 출력 $
+```
+
+---
+
+### 숫자와 변수
+
+#### 숫자 표현
+
+| 표현 | 값 |
+|:----:|:--:|
+| `.` | 1 |
+| `..` | 2 |
+| `...` | 3 |
+| `........` | 8 |
+| `하나` | 1 |
+
+#### 변수 선언
+
+변수는 **김, 치, 배, 추**의 조합으로 이름을 만듭니다.
+
+```kimel
+김김치쪽김(........)     $ 김김치 = 8 $
+치김치쪽김(.....)        $ 치김치 = 5 $
+김배추쪽김(...)          $ 김배추 = 3 $
+```
+
+> ⚠️ **주의**: 단독 `배`는 공백으로 처리됩니다. 변수 이름 내부의 배/추는 문자로 취급됩니다.
+
+---
+
+### 연산자
+
+#### 연산자 표
+
+| 연산자 | 의미 | 우선순위 |
+|:------:|:----:|:--------:|
+| `&` | 곱하기 (×) | 높음 |
+| `#` | 나누기 (÷) | 높음 |
+| `*` | 더하기 (+) | 낮음 |
+| `%` | 빼기 (-) | 낮음 |
+
+> ⚠️ **주의**: 일반적인 언어와 반대로 **`&`와 `#`이 먼저 계산**됩니다!
+
+#### 예제
+
+```kimel
+김김치쪽김(.....*...&....)  $ 5 + (3 × 4) = 17 $
+배고추(김김치)
+
+치김치쪽김(........#..)     $ 8 ÷ 2 = 4 $
+배고추(치김치)
+
+배고추("김치"*"랭")         $ "김치랭" (문자열 연결) $
+```
+
+---
+
+### 조건문
+
+#### 비교 연산자
+
+| 연산자 | 의미 |
+|:------:|:----:|
+| `!` | 크다 (>) |
+| `@` | 작다 (<) |
+| `##` | 같다 (==) |
+
+#### 문법
+
+```kimel
+가루김치{조건} ^& {
+    $ 참일 때 실행 $
+} &^ {
+    $ 거짓일 때 실행 $
+}
+```
+
+#### 예제
+
+```kimel
+김김치쪽김(........)
+치김치쪽김(.....)
+
+가루김치{김김치!치김치} ^& {
+    배고추("김치가 더 큽니다")
+} &^ {
+    배고추("치김치가 더 큽니다")
+}
+```
+
+**실행 결과:**
+```
+김치가 더 큽니다
+```
+
+---
+
+### 반복문
+
+#### 문법
+
+```kimel
+김치김치가루(횟수) {
+    $ 반복할 코드 $
+}
+```
+
+#### 예제
+
+```kimel
+김치김치가루(.....) {
+    배고추("김치")
+}
+```
+
+**실행 결과:**
+```
+김치
+김치
+김치
+김치
+김치
+```
+
+---
+
+### 함수
+
+#### 함수 정의 (매개변수 포함)
+
+```kimel
+고치 함수이름(매개변수1, 매개변수2)
+    $ 함수 본문 $
+    김쪽파김치(반환값)
+치고
+```
+
+#### 함수 호출
+
+```kimel
+고치 더하기(김, 치)
+    김쪽파김치(김*치)
+치고
+
+배고추(더하기(....., ....))  $ 5 + 4 = 9 $
+```
+
+#### 표현식 내부 함수 호출
+
+```kimel
+배고추(더하기(....., ....)*.....)  $ (5+4) + 5 = 14 $
+```
+
+#### 재귀 함수 예제 (팩토리얼)
+
+```kimel
+고치 팩토리얼(김)
+    가루김치{김 ! .} ^& {
+        김쪽파김치(김 & 팩토리얼(김%.))
+    } &^ {
+        김쪽파김치(.)
+    }
+치고
+
+배고추(팩토리얼(.....))  $ 5! = 120 $
+```
+
+---
+
+### 리스트
+
+> 💡 김치랭 리스트는 **1-based 인덱스**를 사용합니다.
+
+#### 리스트 연산
+
+| 연산 | 문법 | 설명 |
+|:----:|:-----|:-----|
+| 선언 | `목록고추` | 빈 리스트 생성 |
+| 추가 | `목록김쪽고(값)` | 끝에 값 추가 |
+| 가져오기 | `목록쪽고(인덱스)` | 인덱스의 값 반환 |
+| 수정 | `목록고고쪽파(인덱스)(값)` | 인덱스의 값 수정 |
+| 삭제 | `목록고쪽고(인덱스)` | 인덱스의 값 삭제 |
+
+#### 예제
+
+```kimel
+목록고추
+목록김쪽고(........)        $ [8] $
+목록김쪽고(.....)           $ [8, 5] $
+목록김쪽고(....)            $ [8, 5, 4] $
+
+배고추(목록쪽고(하나))      $ 8 (첫 번째) $
+배고추(목록쪽고(.....))     $ 5 (두 번째) $
+
+목록고고쪽파(.....)(...........)  $ [8, 13, 4] $
+배고추(목록쪽고(.....))     $ 13 $
+
+목록고쪽고(....)            $ [8, 13] $
+```
+
+---
+
+### 클래스와 객체
+
+#### 클래스 정의
+
+```kimel
+그릇 클래스이름
+    속성이름쪽김(초기값)
+    
+    고치 메서드이름(매개변수)
+        $ 메서드 본문 $
+        김쪽파김치(반환값)
+    치고
+치고
+```
+
+#### 인스턴스 생성
+
+```kimel
+김치인스턴스(변수명, 클래스이름)
+```
+
+#### 예제
+
+```kimel
+$ 클래스 정의 $
+그릇 김치그릇
+    배추쪽김(........)
+    무쪽김(.....)
+    
+    고치 맛보기
+        김쪽파김치(배추*무)
+    치고
+    
+    고치 소개
+        배고추("김치그릇입니다")
+    치고
+치고
+
+$ 인스턴스 생성 $
+김치인스턴스(나의김치, 김치그릇)
+
+$ 속성 접근 $
+배고추(나의김치.배추)           $ 8 $
+
+$ 메서드 호출 $
+배고추(나의김치.맛보기())       $ 40 $
+나의김치.소개()                 $ "김치그릇입니다" $
+
+$ 속성 수정 $
+나의김치.배추쪽김(...........)
+배고추(나의김치.배추)           $ 13 $
+```
+
+---
+
+### 모듈 시스템
+
+#### 모듈 가져오기
+
+```kimel
+가져오기("모듈명")
+```
+
+#### 사용법
+
+1. `.kimel` 파일을 작성하여 저장 (예: `보조.kimel`)
+2. 실행기에서 **📦 모듈 추가** 버튼으로 등록
+3. 코드에서 `가져오기("보조")`로 로드
+4. 모듈 내의 함수/클래스 사용 가능
+
+#### 모듈 파일 예시 (`보조.kimel`)
+
+```kimel
+$ 보조 모듈 $
+고치 보조함수
+    배고추("보조 모듈에서 안녕!")
+치고
+
+고치 제곱(김)
+    김쪽파김치(김&김)
+치고
+```
+
+#### 모듈 사용 예시
+
+```kimel
+가져오기("보조")
+
+보조함수()                    $ "보조 모듈에서 안녕!" $
+배고추(제곱(.....))           $ 25 $
+```
+
+---
+
+## 🧰 표준 라이브러리
+
+| 함수 | 설명 | 예제 |
+|:----:|:-----|:-----|
+| `길이(목록)` | 리스트의 길이 반환 | `길이(목록)` → `3` |
+| `문자길이("문자열")` | 문자열의 길이 반환 | `문자길이("김치랭")` → `4` |
+| `랜덤(최소)(최대)` | 최솟값~최댓값 사이 난수 | `랜덤(.)(........)` → `1~8` |
+
+#### 예제
+
+```kimel
+목록고추
+목록김쪽고(........)
+목록김쪽고(.....)
+목록김쪽고(....)
+
+배고추(길이(목록))           $ 3 $
+배고추(문자길이("김치랭"))    $ 4 $
+배고추(랜덤(.)(........))     $ 1~8 사이 난수 $
+```
+
+---
+
+## 🎯 예제 모음
+
+### Hello World
+
+```kimel
+배고추("안녕 김치!")
+```
+
+### 구구단 출력
+
+```kimel
+고치 구구단(김)
+    김치김치가루(........) {
+        배고추(김*" × "*무*" = "*김&무)
+    }
+치고
+
+김치김치가루(........) {
+    구구단(무)
+}
+```
+
+### 피보나치 수열
+
+```kimel
+고치 피보나치(김)
+    가루김치{김 @ ...} ^& {
+        김쪽파김치(피보나치(김%.) * 피보나치(김%.%.))
+    } &^ {
+        김쪽파김치(.)
+    }
+치고
+
+김치김치가루(........) {
+    배고추(피보나치(무))
+}
+```
+
+---
+
+## 🐛 디버깅
+
+### 디버그 모드 활성화
+
+코드 내에서:
+```kimel
+DEBUG ON
+$ 디버깅할 코드 $
+DEBUG OFF
+```
+
+또는 실행기의 **🐛 디버그 실행** 버튼 클릭
+
+### 디버그 출력 예시
+
+```
+[LEXER] 토큰 15개 생성
+[LEXER] VARIABLE "김김치"
+[LEXER] NUMBER 8
+[PARSER] AST 3개 노드 생성
+[OPTIMIZER] 최적화 완료
+[VM] 실행: Assign
+[VM] 김김치 = 8
+[OUTPUT] 8
+```
+
+---
+
+## 🚨 에러 처리
+
+김치랭은 모든 오류에 대해 상세한 메시지를 제공합니다.
+
+### 에러 종류
+
+| 에러 | 설명 | 예시 |
+|:----:|:-----|:-----|
+| 🌶️ 양념 문법 오류 | 구문 오류 | 괄호 누락, `치고` 누락 |
+| 🌶️ 발효 오류 | 실행 중 오류 | 0으로 나누기, 재귀 깊이 초과 |
+| 🌶️ 배추 부족 | 변수/함수 없음 | 존재하지 않는 식별자 |
+| 🌶️ 타입 오류 | 타입 불일치 | 문자열과 숫자 연산 |
+| 🌶️ 함수 오류 | 함수 관련 | 존재하지 않는 함수 호출 |
+| 🌶️ 리스트 오류 | 리스트 관련 | 인덱스 범위 초과 |
+| 🌶️ 모듈 오류 | 모듈 관련 | 모듈 파일 없음 |
+
+### 에러 메시지 예시
+
+```
+🌶️ 타입 오류: String과 Number을(를) 곱할 수 없습니다
+라인 5:
+  배고추("abc"&....)
+
+🌶️ 리스트 오류: 인덱스 10 범위 초과 (리스트 크기: 3)
+
+🌶️ 발효 오류: 재귀 깊이가 너무 깊습니다 (최대 1000)
+
+🌶️ 모듈 오류: '없는모듈' 모듈을 찾을 수 없습니다.
+```
+
+---
+코드를 사용하십시오.
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>🥬 김치랭 (KimchiLang) v2.0 인터프리터 🌶️</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    margin: 0; padding: 20px; min-height: 100vh;
+  }
+  h1 { color: #c41e3a; text-align: center; margin-bottom: 6px; text-shadow: 2px 2px 4px rgba(196, 30, 58, 0.2); }
+  .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; }
+  .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  .panel { background: #fff; border: 2px solid #c41e3a; border-radius: 12px; padding: 18px; box-shadow: 0 4px 12px rgba(196, 30, 58, 0.1); }
+  .panel h3 { color: #c41e3a; margin: 0 0 12px 0; border-bottom: 2px dashed #ffd0d0; padding-bottom: 6px; }
+  .file-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .file-bar input[type="text"] { flex: 1; min-width: 140px; padding: 8px 10px; border: 2px solid #e0a0a0; border-radius: 6px; font-family: monospace; font-size: 14px; background: #fffdf8; }
+  .file-bar input[type="text"]:focus { outline: none; border-color: #c41e3a; }
+  .file-bar input[type="file"] { display: none; }
+  textarea { width: 100%; height: 360px; font-family: 'Consolas', 'D2Coding', monospace; font-size: 14px; padding: 12px; border: 2px solid #e0a0a0; border-radius: 8px; background: #fffdf8; resize: vertical; line-height: 1.5; }
+  textarea:focus { outline: none; border-color: #c41e3a; }
+  #output { background: #1e1e1e; color: #00ff88; font-family: 'Consolas', monospace; height: 160px; overflow-y: auto; padding: 12px; border-radius: 6px; white-space: pre-wrap; font-size: 14px; line-height: 1.5; }
+  #debug { background: #2d2d2d; color: #ffaa00; font-family: 'Consolas', monospace; height: 140px; overflow-y: auto; padding: 10px; border-radius: 6px; white-space: pre-wrap; font-size: 11px; line-height: 1.4; border: 1px solid #555; }
+  #vars { background: #fafafa; height: 140px; overflow-y: auto; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 12px; border: 1px solid #eee; }
+  #errors { color: #c41e3a; font-weight: bold; min-height: 24px; margin-top: 10px; padding: 10px; background: #fff5f5; border-radius: 6px; font-size: 13px; white-space: pre-wrap; font-family: monospace; line-height: 1.5; border: 1px dashed #c41e3a; }
+  #errors:empty { display: none; }
+  .btn-row { margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+  button { background: #c41e3a; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+  button:hover { background: #a01830; transform: translateY(-1px); }
+  button.secondary { background: #666; }
+  button.secondary:hover { background: #444; }
+  button.file { background: #2d7a2d; }
+  button.file:hover { background: #1e5a1e; }
+  button.debug { background: #ff8800; }
+  button.debug:hover { background: #cc6600; }
+  button.module { background: #5a3a8a; }
+  button.module:hover { background: #3a2a6a; }
+  .ref { background: #fffaf0; border: 1px dashed #c41e3a; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; line-height: 1.7; }
+  .ref b { color: #c41e3a; }
+  .version { display: inline-block; background: #c41e3a; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 8px; vertical-align: middle; }
+  .module-list { background: #fafafa; border: 1px solid #ddd; border-radius: 6px; padding: 8px; font-family: monospace; font-size: 12px; max-height: 100px; overflow-y: auto; margin-top: 8px; }
+  .module-item { padding: 4px 6px; background: #fff; margin: 2px 0; border-radius: 4px; border-left: 3px solid #5a3a8a; display: flex; justify-content: space-between; align-items: center; }
+  .module-item button { padding: 2px 8px; font-size: 11px; background: #c44; }
+</style>
+</head>
+<body>
+<h1>🥬 김치랭 (KimchiLang) <span class="version">v2.0</span> 🌶️</h1>
+<div class="subtitle">난해 프로그래밍 언어 · 매개변수 · 클래스 · 모듈 · AST 최적화 (안정화 버전)</div>
+
+<div class="container">
+
+  <!-- 언어 이름 / 버전 -->
+  <div class="panel">
+    <h3>📜 김치랭 v2.0 레시피</h3>
+    <div class="ref">
+      <b>함수 매개변수:</b> <code>고치 더하기(김, 치) ... 치고</code> · 호출: <code>더하기(....., ....)</code><br>
+      <b>클래스:</b> <code>그릇 김치그릇 ... 치고</code> (속성: <code>이름쪽김(값)</code>, 메서드: <code>고치 ... 치고</code>)<br>
+      <b>인스턴스:</b> <code>김치인스턴스(변수명, 클래스명)</code> · 접근: <code>변수.속성</code>, <code>변수.메서드()</code><br>
+      <b>모듈:</b> <code>가져오기("이름")</code> · 📦 모듈 추가 버튼으로 .kimel 등록<br>
+      <b>타입:</b> Number, String, Boolean, List, Class, Instance<br>
+      <b>연산:</b> <code>&amp;</code>=×, <code>#</code>=÷ <b>먼저</b> → <code>*</code>=+, <code>%</code>=- <b>나중</b> · 문자열 연결은 <code>*</code><br>
+      <b>조건:</b> <code>가루김치{조건} ^&amp;{참} &amp;^ {거짓}</code> · 비교: <code>!</code>=&gt;, <code>@</code>=&lt;, <code>##</code>===<br>
+      <b>반복:</b> <code>김치김치가루(횟수) { ... }</code> · <b>리스트(1-based):</b> <code>이름고추</code> / <code>이름쪽고(인덱스)</code><br>
+      <b>표준 라이브러리:</b> <code>길이(목록)</code>, <code>문자길이("문자열")</code>, <code>랜덤(최소)(최대)</code><br>
+      <b>AST 최적화:</b> 상수 폴딩 자동 적용 (예: <code>...&amp;....</code> → <code>...............</code>)
+    </div>
+  </div>
+
+  <!-- 코드 입력창 -->
+  <div class="panel">
+    <h3>📝 코드 입력</h3>
+    <div class="file-bar">
+      <input type="text" id="filename" value="main" placeholder="파일명">
+      <span style="color:#888;font-family:monospace;">.kimel</span>
+    </div>
+    <textarea id="code" spellcheck="false">$ ========================================= $
+$ 김치랭 v2.0 종합 테스트 $
+$ ========================================= $
+
+$ 1. 함수 매개변수 $
+고치 더하기(김, 치)
+  김쪽파김치(김*치)
+치고
+
+고치 인사(이름)
+  배고추("안녕"*이름*"!")
+치고
+
+배고추(더하기(....., ....))
+인사("김치")
+
+$ 2. 클래스/객체 $
+그릇 김치그릇
+  배추쪽김(........)
+  무쪽김(.....)
+  
+  고치 맛보기
+    김쪽파김치(배추*무)
+  치고
+  
+  고치 소개
+    배고추("김치그릇입니다")
+  치고
+치고
+
+김치인스턴스(나의김치, 김치그릇)
+배고추(나의김치.배추)
+배고추(나의김치.맛보기())
+나의김치.소개()
+
+$ 3. 속성 수정 $
+나의김치.배추쪽김(...........)
+배고추(나의김치.배추)
+
+$ 4. 모듈 시스템 $
+가져오기("보조")
+보조함수()
+
+$ 5. 재귀 함수 (매개변수) $
+고치 팩토리얼(김)
+  가루김치{김 ! .} ^& {
+    김쪽파김치(김 & 팩토리얼(김%.))
+  } &^ {
+    김쪽파김치(.)
+  }
+치고
+
+배고추(팩토리얼(.....))</textarea>
+  </div>
+
+  <!-- 실행 버튼 -->
+  <div class="panel">
+    <div class="btn-row">
+      <button onclick="runCode()">🥢 발효</button>
+      <button class="debug" onclick="runDebug()">🐛 디버그</button>
+      <button class="file" onclick="document.getElementById('fileInput').click()">📂 열기</button>
+      <input type="file" id="fileInput" accept=".kimel" onchange="loadFile(event)">
+      <button class="file" onclick="saveFile()">💾 저장</button>
+      <button class="module" onclick="document.getElementById('moduleInput').click()">📦 모듈 추가</button>
+      <input type="file" id="moduleInput" accept=".kimel" onchange="loadModule(event)" multiple>
+      <button class="secondary" onclick="loadSample()">📖 예제</button>
+      <button class="secondary" onclick="clearAll()">🧹 뒤집기</button>
+    </div>
+    <div class="module-list" id="moduleList">(등록된 모듈 없음)</div>
+  </div>
+
+  <!-- 출력 결과 -->
+  <div class="panel">
+    <h3>🍲 발효 결과</h3>
+    <div id="output"></div>
+    <div id="errors"></div>
+  </div>
+
+  <!-- 변수 상태 -->
+  <div class="panel">
+    <h3>🏺 항아리 상태</h3>
+    <div id="vars"></div>
+  </div>
+
+  <!-- 디버그 로그 -->
+  <div class="panel">
+    <h3>🐛 디버그 로그</h3>
+    <div id="debug"></div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   KimchiLang Interpreter v2.0 (안정화 버전)
+   구조: Source → Lexer → Parser → AST → Optimizer → VM
+   
+   안정화 개선:
+   - Lexer: 모든 오류에 정확한 줄 번호/코드 표시
+   - Parser: 괄호 누락, 종료 누락, 빈 식 처리 강화
+   - VM: 재귀 깊이 제한, undefined/null 체크, 모듈 로딩 오류 처리
+   - 데이터: 리스트 범위, 타입 검증 강화
+   - UI: 모든 오류 catch, 실패 후 상태 초기화
+   ============================================================ */
+
+let SOURCE_LINES = [];
+let DEBUG_MODE = false;
+let DEBUG_LOG = [];
+const MODULE_REGISTRY = {};
+
+const MAX_RECURSION = 1000;
+let currentRecursionDepth = 0;
+
+function debugLog(stage, msg) {
+  if (DEBUG_MODE) {
+    DEBUG_LOG.push(`[${stage}] ${msg}`);
+  }
+}
+
+// ============================================================
+// LEXER
+// ============================================================
+function tokenize(source) {
+  SOURCE_LINES = source.split('\n');
+  const tokens = [];
+  let i = 0, line = 1;
+  
+  const keywords = new Set([
+    '쪽김', '배고추', '가루김치', '김치김치가루',
+    '고치', '치고', '김쪽파김치',
+    '고추', '쪽고', '김쪽고', '고쪽고', '고고쪽파',
+    '하나', '길이', '랜덤', '문자길이',
+    'DEBUG', 'ON', 'OFF',
+    '그릇', '김치인스턴스', '가져오기'
+  ]);
+  const varChars = new Set(['김', '치', '배', '추']);
+
+  while (i < source.length) {
+    const c = source[i];
+    const currentLineCode = SOURCE_LINES[line - 1] || '';
+    
+    if (c === '\n') { line++; i++; continue; }
+    if (c === '\r' || c === '\t' || c === ' ') { i++; continue; }
+
+    if (c === '$') {
+      const startLine = line;
+      let j = i + 1;
+      while (j < source.length && source[j] !== '$') {
+        if (source[j] === '\n') line++;
+        j++;
+      }
+      if (j >= source.length) {
+        throw makeError('양념 문법 오류: 주석이 $ 로 닫히지 않았습니다', startLine, SOURCE_LINES[startLine - 1] || '');
+      }
+      i = j + 1;
+      continue;
+    }
+
+    if (c === '.') {
+      let j = i;
+      while (j < source.length && source[j] === '.') j++;
+      tokens.push({ type: 'NUMBER', value: j - i, line });
+      i = j;
+      continue;
+    }
+
+    if (c === '"') {
+      const startLine = line;
+      let j = i + 1, str = '';
+      while (j < source.length && source[j] !== '"') {
+        if (source[j] === '\n') line++;
+        str += source[j];
+        j++;
+      }
+      if (j >= source.length) {
+        throw makeError('양념 문법 오류: 문자열이 " 로 닫히지 않았습니다', startLine, SOURCE_LINES[startLine - 1] || '');
+      }
+      tokens.push({ type: 'STRING', value: str, line: startLine });
+      i = j + 1;
+      continue;
+    }
+
+    if (varChars.has(c)) {
+      let j = i;
+      while (j < source.length && varChars.has(source[j])) j++;
+      const word = source.slice(i, j);
+      if (keywords.has(word)) {
+        if (word === '하나') tokens.push({ type: 'NUMBER', value: 1, line });
+        else tokens.push({ type: 'KEYWORD', value: word, line });
+      } else if (word === '배') {
+        tokens.push({ type: 'SPACE', value: ' ', line });
+      } else {
+        tokens.push({ type: 'VARIABLE', value: word, line });
+      }
+      i = j;
+      continue;
+    }
+
+    if ('*/%&#(){}[]!,@^.'.includes(c)) {
+      if (c === '#' && source[i + 1] === '#') {
+        tokens.push({ type: 'OP', value: '##', line });
+        i += 2;
+        continue;
+      }
+      if (c === '^' && source[i + 1] === '&') {
+        tokens.push({ type: 'BOOL', value: true, line });
+        i += 2;
+        continue;
+      }
+      if (c === '&' && source[i + 1] === '^') {
+        tokens.push({ type: 'BOOL', value: false, line });
+        i += 2;
+        continue;
+      }
+      tokens.push({ type: 'SYMBOL', value: c, line });
+      i++;
+      continue;
+    }
+
+    throw makeError(`발효 오류: 알 수 없는 문자 '${c}'`, line, currentLineCode);
+  }
+  tokens.push({ type: 'EOF', value: null, line });
+  debugLog('LEXER', `토큰 ${tokens.length}개 생성`);
+  return tokens;
+}
+
+function makeError(msg, line, code) {
+  const err = new Error();
+  err.kimchiLine = line || 0;
+  err.kimchiCode = code || '';
+  err.kimchiMsg = msg;
+  return err;
+}
+
+function formatError(err) {
+  if (err.kimchiMsg) {
+    let s = `🌶️ ${err.kimchiMsg}\n`;
+    if (err.kimchiLine > 0) s += `라인 ${err.kimchiLine}:\n`;
+    if (err.kimchiCode) s += `  ${err.kimchiCode}`;
+    return s;
+  }
+  return '🌶️ ' + (err.message || '알 수 없는 오류');
+}
+
+// ============================================================
+// PARSER
+// ============================================================
+function parse(tokens) {
+  let pos = 0;
+  const peek = () => tokens[pos] || { type: 'EOF', value: null, line: tokens[tokens.length - 1]?.line || 1 };
+  const advance = () => {
+    const t = tokens[pos];
+    pos++;
+    return t;
+  };
+  
+  const expect = (type, value) => {
+    const t = peek();
+    if (!t || t.type === 'EOF') {
+      const line = tokens[pos - 1]?.line || 1;
+      throw makeError(`양념 문법 오류: '${value || type}' 이(가) 필요하지만 코드가 끝났습니다`, line, SOURCE_LINES[line - 1] || '');
+    }
+    if (t.type !== type || (value !== undefined && t.value !== value)) {
+      throw makeError(`양념 문법 오류: '${value || type}' 이(가) 필요하지만 '${t.value || t.type}' 이(가) 나왔습니다`, t.line, SOURCE_LINES[t.line - 1] || '');
+    }
+    return advance();
+  };
+
+  function parseArgList() {
+    expect('SYMBOL', '(');
+    const args = [];
+    if (!(peek().type === 'SYMBOL' && peek().value === ')')) {
+      args.push(parseExpr());
+      while (peek().type === 'SYMBOL' && peek().value === ',') {
+        advance();
+        if (peek().type === 'SYMBOL' && peek().value === ')') {
+          throw makeError('양념 문법 오류: 쉼표 뒤에 인자가 필요합니다', peek().line, SOURCE_LINES[peek().line - 1] || '');
+        }
+        args.push(parseExpr());
+      }
+    }
+    expect('SYMBOL', ')');
+    return args;
+  }
+
+  function parseParamList() {
+    expect('SYMBOL', '(');
+    const params = [];
+    if (!(peek().type === 'SYMBOL' && peek().value === ')')) {
+      const p = expect('VARIABLE');
+      params.push(p.value);
+      while (peek().type === 'SYMBOL' && peek().value === ',') {
+        advance();
+        const p2 = expect('VARIABLE');
+        params.push(p2.value);
+      }
+    }
+    expect('SYMBOL', ')');
+    return params;
+  }
+
+  function parseExpr() {
+    const result = parseAddExpr();
+    if (!result) {
+      const line = peek().line;
+      throw makeError('배추 부족: 식이 불완전합니다', line, SOURCE_LINES[line - 1] || '');
+    }
+    return result;
+  }
+
+  function parseAddExpr() {
+    let left = parseMulExpr();
+    while (true) {
+      const t = peek();
+      if (t && t.type === 'SYMBOL' && (t.value === '*' || t.value === '%')) {
+        const op = advance().value;
+        const right = parseMulExpr();
+        if (!right) {
+          throw makeError('배추 부족: 연산자 뒤에 식이 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+        }
+        left = { type: 'BinaryOp', op, left, right };
+      } else break;
+    }
+    return left;
+  }
+
+  function parseMulExpr() {
+    let left = parsePostfix();
+    while (true) {
+      const t = peek();
+      if (t && t.type === 'SYMBOL' && (t.value === '&' || t.value === '#')) {
+        const op = advance().value;
+        const right = parsePostfix();
+        if (!right) {
+          throw makeError('배추 부족: 연산자 뒤에 식이 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+        }
+        left = { type: 'BinaryOp', op, left, right };
+      } else break;
+    }
+    return left;
+  }
+
+  function parsePostfix() {
+    let expr = parsePrimary();
+    while (peek().type === 'SYMBOL' && peek().value === '.') {
+      advance();
+      const propToken = peek();
+      if (propToken.type !== 'VARIABLE') {
+        throw makeError(`양념 문법 오류: '.' 뒤에는 변수 이름이 와야 합니다`, propToken.line, SOURCE_LINES[propToken.line - 1] || '');
+      }
+      const prop = advance().value;
+      if (peek().type === 'SYMBOL' && peek().value === '(') {
+        const args = parseArgList();
+        expr = { type: 'MethodCall', object: expr, method: prop, args };
+      } else {
+        expr = { type: 'PropertyAccess', object: expr, property: prop };
+      }
+    }
+    return expr;
+  }
+
+  function parsePrimary() {
+    const t = peek();
+    if (!t || t.type === 'EOF') {
+      const line = tokens[pos - 1]?.line || 1;
+      throw makeError('배추 부족: 식이 불완전합니다', line, SOURCE_LINES[line - 1] || '');
+    }
+
+    if (t.type === 'NUMBER') { advance(); return { type: 'Number', value: t.value }; }
+    if (t.type === 'STRING') { advance(); return { type: 'String', value: t.value }; }
+    if (t.type === 'BOOL') { advance(); return { type: 'Boolean', value: t.value }; }
+
+    if (t.type === 'VARIABLE') {
+      const name = advance().value;
+      const next = peek();
+
+      if (next && next.type === 'KEYWORD' && next.value === '쪽고') {
+        advance();
+        const args = parseArgList();
+        if (args.length === 0) {
+          throw makeError('양념 문법 오류: 쪽고()에는 인덱스가 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+        }
+        return { type: 'ListAccess', list: name, index: args[0] };
+      }
+
+      if (next && next.type === 'SYMBOL' && next.value === '(') {
+        const args = parseArgList();
+        return { type: 'FunctionCall', name, args };
+      }
+
+      if (name === '길이' || name === '랜덤' || name === '문자길이') {
+        const args = parseArgList();
+        if (name === '랜덤' && peek().type === 'SYMBOL' && peek().value === '(') {
+          const args2 = parseArgList();
+          if (args.length === 0 || args2.length === 0) {
+            throw makeError('양념 문법 오류: 랜덤()에는 두 개의 인자가 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+          }
+          return { type: 'StdLibCall', name, args: [args[0], args2[0]] };
+        }
+        if (args.length === 0) {
+          throw makeError(`양념 문법 오류: ${name}()에는 인자가 필요합니다`, t.line, SOURCE_LINES[t.line - 1] || '');
+        }
+        return { type: 'StdLibCall', name, args };
+      }
+
+      return { type: 'Identifier', name };
+    }
+    
+    throw makeError(`발효 오류: 예상치 못한 토큰 '${t.value || t.type}'`, t.line, SOURCE_LINES[t.line - 1] || '');
+  }
+
+  function parseCondition() {
+    const left = parseExpr();
+    const op = peek();
+    if (!op || !((op.type === 'SYMBOL' && (op.value === '!' || op.value === '@')) ||
+                 (op.type === 'OP' && op.value === '##'))) {
+      const line = op?.line || (tokens[pos - 1]?.line || 1);
+      throw makeError('양념 문법 오류: 조건 비교 연산자(!, @, ##)가 필요합니다', line, SOURCE_LINES[line - 1] || '');
+    }
+    advance();
+    return { left, op: op.value, right: parseExpr() };
+  }
+
+  function parseBlock() {
+    expect('SYMBOL', '{');
+    const stmts = [];
+    while (peek().type !== 'EOF' && !(peek().type === 'SYMBOL' && peek().value === '}')) {
+      const s = parseStatement();
+      if (s) stmts.push(s);
+    }
+    expect('SYMBOL', '}');
+    return stmts;
+  }
+
+  function parseStatement() {
+    while (peek().type === 'SPACE') advance();
+    const t = peek();
+    if (t.type === 'EOF') return null;
+
+    if (t.type === 'KEYWORD' && t.value === 'DEBUG') {
+      advance();
+      const mode = expect('KEYWORD');
+      if (mode.value !== 'ON' && mode.value !== 'OFF') {
+        throw makeError('양념 문법 오류: DEBUG 뒤에는 ON 또는 OFF가 와야 합니다', mode.line, SOURCE_LINES[mode.line - 1] || '');
+      }
+      return { type: 'DebugToggle', mode: mode.value };
+    }
+
+    if (t.type === 'KEYWORD' && t.value === '배고추') {
+      advance();
+      const args = parseArgList();
+      if (args.length === 0) {
+        throw makeError('양념 문법 오류: 배고추()에는 출력할 값이 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+      }
+      return { type: 'Output', value: args[0] };
+    }
+
+    if (t.type === 'KEYWORD' && t.value === '가루김치') {
+      advance();
+      expect('SYMBOL', '{');
+      const cond = parseCondition();
+      expect('SYMBOL', '}');
+      let trueBlock = [], falseBlock = [];
+      if (peek().type === 'BOOL' && peek().value === true) { advance(); trueBlock = parseBlock(); }
+      if (peek().type === 'BOOL' && peek().value === false) { advance(); falseBlock = parseBlock(); }
+      return { type: 'If', condition: cond, trueBlock, falseBlock };
+    }
+
+    if (t.type === 'KEYWORD' && t.value === '김치김치가루') {
+      advance();
+      let count = null;
+      if (peek().type === 'SYMBOL' && peek().value === '(') {
+        const args = parseArgList();
+        if (args.length === 0) {
+          throw makeError('양념 문법 오류: 김치김치가루()에는 반복 횟수가 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+        }
+        count = args[0];
+      }
+      return { type: 'Loop', count, block: parseBlock() };
+    }
+
+    if (t.type === 'KEYWORD' && t.value === '고치') {
+      advance();
+      const name = expect('VARIABLE').value;
+      let params = [];
+      if (peek().type === 'SYMBOL' && peek().value === '(') {
+        params = parseParamList();
+      }
+      const body = [];
+      while (peek().type !== 'EOF' && !(peek().type === 'KEYWORD' && peek().value === '치고')) {
+        const s = parseStatement();
+        if (s) body.push(s);
+      }
+      if (peek().type === 'EOF') {
+        throw makeError(`양념 문법 오류: 함수 '${name}'이(가) '치고'로 끝나야 합니다`, t.line, SOURCE_LINES[t.line - 1] || '');
+      }
+      expect('KEYWORD', '치고');
+      return { type: 'FunctionDef', name, params, body };
+    }
+
+    if (t.type === 'KEYWORD' && t.value === '김쪽파김치') {
+      advance();
+      const args = parseArgList();
+      if (args.length === 0) {
+        throw makeError('양념 문법 오류: 김쪽파김치()에는 반환값이 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+      }
+      return { type: 'Return', value: args[0] };
+    }
+
+    if (t.type === 'KEYWORD' && t.value === '그릇') {
+      advance();
+      const name = expect('VARIABLE').value;
+      const properties = [];
+      const methods = [];
+      while (peek().type !== 'EOF' && !(peek().type === 'KEYWORD' && peek().value === '치고')) {
+        while (peek().type === 'SPACE') advance();
+        const inner = peek();
+        if (inner.type === 'KEYWORD' && inner.value === '고치') {
+          advance();
+          const mName = expect('VARIABLE').value;
+          let mParams = [];
+          if (peek().type === 'SYMBOL' && peek().value === '(') mParams = parseParamList();
+          const mBody = [];
+          while (peek().type !== 'EOF' && !(peek().type === 'KEYWORD' && peek().value === '치고')) {
+            const s = parseStatement();
+            if (s) mBody.push(s);
+          }
+          if (peek().type === 'EOF') {
+            throw makeError(`양념 문법 오류: 메서드 '${mName}'이(가) '치고'로 끝나야 합니다`, inner.line, SOURCE_LINES[inner.line - 1] || '');
+          }
+          expect('KEYWORD', '치고');
+          methods.push({ name: mName, params: mParams, body: mBody });
+        } else if (inner.type === 'VARIABLE') {
+          const pName = advance().value;
+          const next = peek();
+          if (next && next.type === 'KEYWORD' && next.value === '쪽김') {
+            advance();
+            const args = parseArgList();
+            if (args.length === 0) {
+              throw makeError(`양념 문법 오류: 속성 '${pName}'에 초기값이 필요합니다`, inner.line, SOURCE_LINES[inner.line - 1] || '');
+            }
+            properties.push({ name: pName, value: args[0] });
+          } else if (next && next.type === 'KEYWORD' && next.value === '고추') {
+            advance();
+            properties.push({ name: pName, value: { type: 'ListInit' } });
+          } else {
+            throw makeError(`양념 문법 오류: 클래스 속성 선언이 필요합니다 (쪽김 또는 고추)`, inner.line, SOURCE_LINES[inner.line - 1] || '');
+          }
+        } else if (inner.type === 'EOF') {
+          throw makeError(`양념 문법 오류: 클래스 '${name}'이(가) '치고'로 끝나야 합니다`, t.line, SOURCE_LINES[t.line - 1] || '');
+        } else {
+          throw makeError(`양념 문법 오류: 클래스 내부에 예상치 못한 토큰 '${inner.value || inner.type}'`, inner.line, SOURCE_LINES[inner.line - 1] || '');
+        }
+      }
+      if (peek().type === 'EOF') {
+        throw makeError(`양념 문법 오류: 클래스 '${name}'이(가) '치고'로 끝나야 합니다`, t.line, SOURCE_LINES[t.line - 1] || '');
+      }
+      expect('KEYWORD', '치고');
+      return { type: 'ClassDef', name, properties, methods };
+    }
+
+    if (t.type === 'KEYWORD' && t.value === '김치인스턴스') {
+      advance();
+      const args = parseArgList();
+      if (args.length < 2) {
+        throw makeError('양념 문법 오류: 김치인스턴스(변수명, 클래스명) 형식이어야 합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+      }
+      if (args[0].type !== 'Identifier' || args[1].type !== 'Identifier') {
+        throw makeError('양념 문법 오류: 김치인스턴스의 인자는 변수 이름이어야 합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+      }
+      return { type: 'InstanceDecl', varName: args[0].name, className: args[1].name };
+    }
+
+    if (t.type === 'KEYWORD' && t.value === '가져오기') {
+      advance();
+      const args = parseArgList();
+      if (args.length === 0 || args[0].type !== 'String') {
+        throw makeError('양념 문법 오류: 가져오기("모듈명") 형식이어야 합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+      }
+      return { type: 'Import', moduleName: args[0].value };
+    }
+
+    if (t.type === 'VARIABLE') {
+      const name = advance().value;
+      const next = peek();
+
+      if (next && next.type === 'SYMBOL' && next.value === '.') {
+        advance();
+        const prop = expect('VARIABLE').value;
+        if (peek().type === 'KEYWORD' && peek().value === '쪽김') {
+          advance();
+          const args = parseArgList();
+          if (args.length === 0) {
+            throw makeError(`양념 문법 오류: 속성 '${prop}'에 할당할 값이 필요합니다`, t.line, SOURCE_LINES[t.line - 1] || '');
+          }
+          return { type: 'PropertySet', objectName: name, property: prop, value: args[0] };
+        }
+        throw makeError(`양념 문법 오류: 객체 속성 할당은 '쪽김(값)' 형식이어야 합니다`, t.line, SOURCE_LINES[t.line - 1] || '');
+      }
+
+      if (next && next.type === 'KEYWORD' && next.value === '쪽김') {
+        advance();
+        const args = parseArgList();
+        if (args.length === 0) {
+          throw makeError('양념 문법 오류: 쪽김()에는 할당할 값이 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+        }
+        return { type: 'Assign', name, value: args[0] };
+      }
+      if (next && next.type === 'KEYWORD' && next.value === '고추') {
+        advance();
+        return { type: 'ListDecl', name };
+      }
+      if (next && next.type === 'KEYWORD' && next.value === '김쪽고') {
+        advance();
+        const args = parseArgList();
+        if (args.length === 0) {
+          throw makeError('양념 문법 오류: 김쪽고()에는 추가할 값이 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+        }
+        return { type: 'ListPush', name, value: args[0] };
+      }
+      if (next && next.type === 'KEYWORD' && next.value === '고쪽고') {
+        advance();
+        const args = parseArgList();
+        if (args.length === 0) {
+          throw makeError('양념 문법 오류: 고쪽고()에는 삭제할 인덱스가 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+        }
+        return { type: 'ListRemove', name, idx: args[0] };
+      }
+      if (next && next.type === 'KEYWORD' && next.value === '고고쪽파') {
+        advance();
+        const args1 = parseArgList();
+        if (args1.length === 0) {
+          throw makeError('양념 문법 오류: 고고쪽파()에는 인덱스가 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+        }
+        const args2 = parseArgList();
+        if (args2.length === 0) {
+          throw makeError('양념 문법 오류: 고고쪽파()에는 수정할 값이 필요합니다', t.line, SOURCE_LINES[t.line - 1] || '');
+        }
+        return { type: 'ListSet', name, idx: args1[0], value: args2[0] };
+      }
+      if (next && next.type === 'SYMBOL' && next.value === '(') {
+        const args = parseArgList();
+        return { type: 'ExprStmt', expr: { type: 'FunctionCall', name, args } };
+      }
+      return { type: 'ExprStmt', expr: { type: 'Identifier', name } };
+    }
+
+    throw makeError(`발효 오류: 예상치 못한 토큰 '${t.value || t.type}'`, t.line, SOURCE_LINES[t.line - 1] || '');
+  }
+
+  const ast = [];
+  while (peek().type !== 'EOF') {
+    const s = parseStatement();
+    if (s) ast.push(s);
+  }
+  debugLog('PARSER', `AST ${ast.length}개 노드 생성`);
+  return { type: 'Program', body: ast };
+}
+
+// ============================================================
+// OPTIMIZER
+// ============================================================
+function optimize(ast) {
+  function fold(node) {
+    if (!node) return node;
+    switch (node.type) {
+      case 'BinaryOp': {
+        const l = fold(node.left);
+        const r = fold(node.right);
+        if (l.type === 'Number' && r.type === 'Number') {
+          let v;
+          switch (node.op) {
+            case '*': v = l.value + r.value; break;
+            case '%': v = l.value - r.value; break;
+            case '&': v = l.value * r.value; break;
+            case '#': v = r.value === 0 ? null : l.value / r.value; break;
+          }
+          if (v !== null && v !== undefined) {
+            debugLog('OPTIMIZER', `상수 폴딩: ${l.value} ${node.op} ${r.value} → ${v}`);
+            return { type: 'Number', value: v };
+          }
+        }
+        if (l.type === 'String' && r.type === 'String' && node.op === '*') {
+          return { type: 'String', value: l.value + r.value };
+        }
+        return { ...node, left: l, right: r };
+      }
+      case 'If': return { ...node, trueBlock: node.trueBlock.map(fold), falseBlock: node.falseBlock.map(fold) };
+      case 'Loop': return { ...node, block: node.block.map(fold) };
+      case 'FunctionDef': return { ...node, body: node.body.map(fold) };
+      case 'Output': return { ...node, value: fold(node.value) };
+      case 'Assign': return { ...node, value: fold(node.value) };
+      case 'Return': return { ...node, value: fold(node.value) };
+      case 'FunctionCall': return { ...node, args: node.args.map(fold) };
+      case 'MethodCall': return { ...node, object: fold(node.object), args: node.args.map(fold) };
+      case 'PropertyAccess': return { ...node, object: fold(node.object) };
+      default: return node;
+    }
+  }
+  return { type: 'Program', body: ast.body.map(fold) };
+}
+
+// ============================================================
+// VM
+// ============================================================
+function execute(ast) {
+  const globalEnv = { vars: {}, funcs: {}, lists: {}, classes: {}, parent: null };
+  let currentEnv = globalEnv;
+  const output = [];
+  const MAX_LOOP = 100000;
+  const importedModules = new Set();
+  currentRecursionDepth = 0;
+
+  function lookupVar(name) {
+    let e = currentEnv;
+    while (e) {
+      if (name in e.vars) return { env: e, value: e.vars[name] };
+      e = e.parent;
+    }
+    return null;
+  }
+
+  function setVar(name, value) {
+    let e = currentEnv;
+    while (e) {
+      if (name in e.vars) { e.vars[name] = value; return; }
+      e = e.parent;
+    }
+    currentEnv.vars[name] = value;
+  }
+
+  function lookupClass(name) {
+    let e = currentEnv;
+    while (e) {
+      if (e.classes && name in e.classes) return e.classes[name];
+      e = e.parent;
+    }
+    return null;
+  }
+
+  function getType(val) {
+    if (val === null || val === undefined) return 'Null';
+    if (typeof val === 'number') return 'Number';
+    if (typeof val === 'string') return 'String';
+    if (typeof val === 'boolean') return 'Boolean';
+    if (Array.isArray(val)) return 'List';
+    if (val.__class) return 'Instance';
+    if (val.__isClass) return 'Class';
+    return 'Unknown';
+  }
+
+  function formatValue(val) {
+    if (val === null || val === undefined) return 'null';
+    if (typeof val === 'string') return `"${val}"`;
+    if (Array.isArray(val)) return `[${val.join(', ')}]`;
+    if (typeof val === 'boolean') return val ? '^&' : '&^';
+    if (val.__isClass) return `<그릇 ${val.name}>`;
+    if (val.__class) return `<${val.__class} 인스턴스>`;
+    return String(val);
+  }
+
+  function evalExpr(node) {
+    if (!node) {
+      throw makeError('발효 오류: 빈 식을 평가할 수 없습니다', 0, '');
+    }
+    
+    switch (node.type) {
+      case 'Number': return node.value;
+      case 'String': return node.value;
+      case 'Boolean': return node.value;
+      case 'Identifier': {
+        const found = lookupVar(node.name);
+        if (found) {
+          if (found.value === undefined || found.value === null) {
+            throw makeError(`발효 오류: 변수 '${node.name}'의 값이 유효하지 않습니다`, 0, '');
+          }
+          return found.value;
+        }
+        throw makeError(`배추 부족: 변수 '${node.name}'를 찾을 수 없습니다`, 0, '');
+      }
+      case 'FunctionCall': {
+        const fn = currentEnv.funcs[node.name];
+        if (!fn) {
+          throw makeError(`함수 오류: '${node.name}'를 찾을 수 없습니다`, 0, '');
+        }
+        const args = node.args.map(a => evalExpr(a));
+        return callFunction(fn, args, node.name);
+      }
+      case 'StdLibCall': return callStdLib(node.name, node.args);
+      case 'ListAccess': {
+        const list = currentEnv.lists[node.list] || globalEnv.lists[node.list];
+        if (!list) {
+          throw makeError(`리스트 오류: '${node.list}'이(가) 없습니다`, 0, '');
+        }
+        const idx = evalExpr(node.index);
+        if (typeof idx !== 'number' || isNaN(idx)) {
+          throw makeError(`타입 오류: 리스트 인덱스는 숫자여야 합니다`, 0, '');
+        }
+        if (!Number.isInteger(idx)) {
+          throw makeError(`타입 오류: 리스트 인덱스는 정수여야 합니다`, 0, '');
+        }
+        const realIdx = idx - 1;
+        if (realIdx < 0 || realIdx >= list.length) {
+          throw makeError(`리스트 오류: 인덱스 ${idx} 범위 초과 (리스트 크기: ${list.length})`, 0, '');
+        }
+        const val = list[realIdx];
+        if (val === undefined || val === null) {
+          throw makeError(`발효 오류: 리스트의 ${idx}번째 값이 유효하지 않습니다`, 0, '');
+        }
+        return val;
+      }
+      case 'PropertyAccess': {
+        const obj = evalExpr(node.object);
+        if (!obj || !obj.__class) {
+          throw makeError(`타입 오류: 인스턴스가 아닙니다`, 0, '');
+        }
+        if (!(node.property in obj.props)) {
+          throw makeError(`속성 오류: '${node.property}'를 찾을 수 없습니다`, 0, '');
+        }
+        const val = obj.props[node.property];
+        if (val === undefined || val === null) {
+          throw makeError(`발효 오류: 속성 '${node.property}'의 값이 유효하지 않습니다`, 0, '');
+        }
+        return val;
+      }
+      case 'MethodCall': {
+        const obj = evalExpr(node.object);
+        if (!obj || !obj.__class) {
+          throw makeError(`타입 오류: 인스턴스가 아닙니다`, 0, '');
+        }
+        const cls = lookupClass(obj.__class);
+        if (!cls) {
+          throw makeError(`클래스 오류: '${obj.__class}'를 찾을 수 없습니다`, 0, '');
+        }
+        const method = cls.methods.find(m => m.name === node.method);
+        if (!method) {
+          throw makeError(`메서드 오류: '${node.method}'를 찾을 수 없습니다`, 0, '');
+        }
+        const args = node.args.map(a => evalExpr(a));
+        return callMethod(obj, method, args);
+      }
+      case 'BinaryOp': {
+        const l = evalExpr(node.left);
+        const r = evalExpr(node.right);
+        if (l === undefined || l === null || r === undefined || r === null) {
+          throw makeError(`발효 오류: 연산에 유효하지 않은 값이 사용되었습니다`, 0, '');
+        }
+        const lType = getType(l), rType = getType(r);
+        if (node.op === '&' || node.op === '#') {
+          if (lType !== 'Number' || rType !== 'Number') {
+            throw makeError(`타입 오류: ${lType}과 ${rType}을(를) ${node.op === '&' ? '곱할' : '나눌'} 수 없습니다`, 0, '');
+          }
+          if (node.op === '#') {
+            if (r === 0) {
+              throw makeError('발효 오류: 0으로 나눌 수 없습니다', 0, '');
+            }
+            return l / r;
+          }
+          return l * r;
+        }
+        if (node.op === '*' || node.op === '%') {
+          if (node.op === '*' && (lType === 'String' || rType === 'String')) {
+            return String(l) + String(r);
+          }
+          if (lType !== 'Number' || rType !== 'Number') {
+            throw makeError(`타입 오류: ${lType}과 ${rType}을(를) ${node.op === '*' ? '더할' : '뺄'} 수 없습니다`, 0, '');
+          }
+          return node.op === '*' ? l + r : l - r;
+        }
+        if (node.op === '##') return l === r;
+      }
+    }
+    throw makeError(`발효 오류: 알 수 없는 식 타입 '${node.type}'`, 0, '');
+  }
+
+  function evalCondition(cond) {
+    const l = evalExpr(cond.left), r = evalExpr(cond.right);
+    if (l === undefined || l === null || r === undefined || r === null) {
+      throw makeError(`발효 오류: 조건에 유효하지 않은 값이 사용되었습니다`, 0, '');
+    }
+    switch (cond.op) {
+      case '!': return l > r;
+      case '@': return l < r;
+      case '##': return l === r;
+    }
+    return false;
+  }
+
+  function execBlock(stmts) {
+    for (const s of stmts) {
+      const r = execStmt(s);
+      if (r && r.__return) return r;
+    }
+    return null;
+  }
+
+  function callFunction(fn, args, name) {
+    currentRecursionDepth++;
+    if (currentRecursionDepth > MAX_RECURSION) {
+      currentRecursionDepth--;
+      throw makeError(`발효 오류: 재귀 깊이가 너무 깊습니다 (최대 ${MAX_RECURSION})`, 0, '');
+    }
+    
+    const localEnv = {
+      vars: {}, funcs: currentEnv.funcs, lists: currentEnv.lists,
+      classes: currentEnv.classes, parent: currentEnv
+    };
+    
+    for (let i = 0; i < fn.params.length; i++) {
+      const argVal = i < args.length ? args[i] : 0;
+      if (argVal === undefined || argVal === null) {
+        currentRecursionDepth--;
+        throw makeError(`발효 오류: 함수 '${name}'의 ${i + 1}번째 인자가 유효하지 않습니다`, 0, '');
+      }
+      localEnv.vars[fn.params[i]] = argVal;
+    }
+    
+    const prevEnv = currentEnv;
+    currentEnv = localEnv;
+    debugLog('VM', `함수 호출: ${name}(${args.map(formatValue).join(', ')})`);
+    try {
+      const r = execBlock(fn.body);
+      if (r && r.__return) {
+        debugLog('VM', `반환: ${formatValue(r.value)}`);
+        return r.value;
+      }
+      return 0;
+    } finally {
+      currentEnv = prevEnv;
+      currentRecursionDepth--;
+    }
+  }
+
+  function callMethod(instance, method, args) {
+    currentRecursionDepth++;
+    if (currentRecursionDepth > MAX_RECURSION) {
+      currentRecursionDepth--;
+      throw makeError(`발효 오류: 재귀 깊이가 너무 깊습니다 (최대 ${MAX_RECURSION})`, 0, '');
+    }
+    
+    const localEnv = {
+      vars: {}, funcs: currentEnv.funcs, lists: currentEnv.lists,
+      classes: currentEnv.classes, parent: currentEnv
+    };
+    
+    for (const k in instance.props) {
+      const val = instance.props[k];
+      if (val === undefined || val === null) {
+        currentRecursionDepth--;
+        throw makeError(`발효 오류: 인스턴스 속성 '${k}'의 값이 유효하지 않습니다`, 0, '');
+      }
+      localEnv.vars[k] = val;
+    }
+    
+    for (let i = 0; i < method.params.length; i++) {
+      const argVal = i < args.length ? args[i] : 0;
+      if (argVal === undefined || argVal === null) {
+        currentRecursionDepth--;
+        throw makeError(`발효 오류: 메서드의 ${i + 1}번째 인자가 유효하지 않습니다`, 0, '');
+      }
+      localEnv.vars[method.params[i]] = argVal;
+    }
+    
+    const prevEnv = currentEnv;
+    currentEnv = localEnv;
+    debugLog('VM', `메서드 호출: ${instance.__class}.${method.name}`);
+    try {
+      const r = execBlock(method.body);
+      for (const k in instance.props) {
+        if (k in localEnv.vars) {
+          const val = localEnv.vars[k];
+          if (val === undefined || val === null) {
+            throw makeError(`발효 오류: 인스턴스 속성 '${k}'에 유효하지 않은 값이 할당되었습니다`, 0, '');
+          }
+          instance.props[k] = val;
+        }
+      }
+      if (r && r.__return) return r.value;
+      return 0;
+    } finally {
+      currentEnv = prevEnv;
+      currentRecursionDepth--;
+    }
+  }
+
+  function callStdLib(name, argNodes) {
+    if (name === '길이') {
+      const list = evalExpr(argNodes[0]);
+      if (!Array.isArray(list)) {
+        throw makeError(`타입 오류: 길이()는 리스트에만 사용할 수 있습니다`, 0, '');
+      }
+      return list.length;
+    }
+    if (name === '문자길이') {
+      const str = evalExpr(argNodes[0]);
+      if (typeof str !== 'string') {
+        throw makeError(`타입 오류: 문자길이()는 문자열에만 사용할 수 있습니다`, 0, '');
+      }
+      return str.length;
+    }
+    if (name === '랜덤') {
+      const min = evalExpr(argNodes[0]);
+      const max = evalExpr(argNodes[1]);
+      if (typeof min !== 'number' || typeof max !== 'number') {
+        throw makeError(`타입 오류: 랜덤()의 인자는 숫자여야 합니다`, 0, '');
+      }
+      if (min > max) {
+        throw makeError(`발효 오류: 랜덤()의 최솟값이 최댓값보다 큽니다`, 0, '');
+      }
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    throw makeError(`발효 오류: 알 수 없는 표준 라이브러리 '${name}'`, 0, '');
+  }
+
+  function loadModule(moduleName) {
+    if (importedModules.has(moduleName)) return;
+    const code = MODULE_REGISTRY[moduleName];
+    if (code === undefined) {
+      throw makeError(`모듈 오류: '${moduleName}' 모듈을 찾을 수 없습니다. 📦 모듈 추가 버튼으로 .kimel 파일을 먼저 등록하세요.`, 0, '');
+    }
+    importedModules.add(moduleName);
+    debugLog('VM', `모듈 로드: ${moduleName}`);
+    try {
+      const tokens = tokenize(code);
+      const modAst = parse(tokens);
+      const optimized = optimize(modAst);
+      for (const s of optimized.body) execStmt(s);
+    } catch (e) {
+      if (e.kimchiMsg) throw e;
+      throw makeError(`모듈 오류: '${moduleName}' 로드 실패 - ${e.message}`, 0, '');
+    }
+  }
+
+  function execStmt(node) {
+    debugLog('VM', `실행: ${node.type}`);
+    switch (node.type) {
+      case 'DebugToggle':
+        DEBUG_MODE = node.mode === 'ON';
+        return null;
+      case 'Output': {
+        const v = evalExpr(node.value);
+        output.push(typeof v === 'string' ? v : String(v));
+        debugLog('OUTPUT', output[output.length - 1]);
+        return null;
+      }
+      case 'Assign':
+        setVar(node.name, evalExpr(node.value));
+        debugLog('VM', `${node.name} = ${formatValue(currentEnv.vars[node.name] || lookupVar(node.name)?.value)}`);
+        return null;
+      case 'If':
+        return evalCondition(node.condition) ? execBlock(node.trueBlock) : execBlock(node.falseBlock);
+      case 'Loop': {
+        let n = node.count ? evalExpr(node.count) : MAX_LOOP;
+        if (typeof n !== 'number' || isNaN(n)) {
+          throw makeError('발효 오류: 반복 횟수는 숫자여야 합니다', 0, '');
+        }
+        n = Math.min(Math.floor(n), MAX_LOOP);
+        for (let i = 0; i < n; i++) {
+          const r = execBlock(node.block);
+          if (r && r.__return) return r;
+        }
+        return null;
+      }
+      case 'FunctionDef':
+        currentEnv.funcs[node.name] = { params: node.params, body: node.body };
+        debugLog('VM', `함수 정의: ${node.name}(${node.params.join(', ')})`);
+        return null;
+      case 'Return':
+        return { __return: true, value: evalExpr(node.value) };
+      case 'ClassDef': {
+        const cls = { __isClass: true, name: node.name, properties: node.properties, methods: node.methods };
+        currentEnv.classes[node.name] = cls;
+        debugLog('VM', `클래스 정의: ${node.name}`);
+        return null;
+      }
+      case 'InstanceDecl': {
+        const cls = lookupClass(node.className);
+        if (!cls) {
+          throw makeError(`클래스 오류: '${node.className}'를 찾을 수 없습니다`, 0, '');
+        }
+        const instance = { __class: node.className, props: {} };
+        for (const p of cls.properties) {
+          if (p.value.type === 'ListInit') {
+            instance.props[p.name] = [];
+          } else {
+            try {
+              instance.props[p.name] = evalExpr(p.value);
+            } catch (e) {
+              throw makeError(`발효 오류: 클래스 '${node.className}'의 속성 '${p.name}' 초기화 실패`, 0, '');
+            }
+          }
+        }
+        setVar(node.varName, instance);
+        debugLog('VM', `인스턴스 생성: ${node.varName} = ${node.className}`);
+        return null;
+      }
+      case 'PropertySet': {
+        const found = lookupVar(node.objectName);
+        if (!found || !found.value.__class) {
+          throw makeError(`속성 오류: '${node.objectName}'는 인스턴스가 아닙니다`, 0, '');
+        }
+        const val = evalExpr(node.value);
+        if (val === undefined || val === null) {
+          throw makeError(`발효 오류: 속성에 유효하지 않은 값을 할당할 수 없습니다`, 0, '');
+        }
+        found.value.props[node.property] = val;
+        return null;
+      }
+      case 'Import':
+        loadModule(node.moduleName);
+        return null;
+      case 'ListDecl':
+        currentEnv.lists[node.name] = [];
+        return null;
+      case 'ListPush':
+        if (!currentEnv.lists[node.name]) currentEnv.lists[node.name] = [];
+        currentEnv.lists[node.name].push(evalExpr(node.value));
+        return null;
+      case 'ListRemove': {
+        const list = currentEnv.lists[node.name];
+        if (!list) {
+          throw makeError(`리스트 오류: '${node.name}'이(가) 없습니다`, 0, '');
+        }
+        const idx = evalExpr(node.idx);
+        if (typeof idx !== 'number' || isNaN(idx)) {
+          throw makeError(`타입 오류: 리스트 인덱스는 숫자여야 합니다`, 0, '');
+        }
+        if (!Number.isInteger(idx)) {
+          throw makeError(`타입 오류: 리스트 인덱스는 정수여야 합니다`, 0, '');
+        }
+        const realIdx = idx - 1;
+        if (realIdx < 0 || realIdx >= list.length) {
+          throw makeError(`리스트 오류: 삭제 인덱스 ${idx} 범위 초과 (리스트 크기: ${list.length})`, 0, '');
+        }
+        list.splice(realIdx, 1);
+        return null;
+      }
+      case 'ListSet': {
+        const list = currentEnv.lists[node.name];
+        if (!list) {
+          throw makeError(`리스트 오류: '${node.name}'이(가) 없습니다`, 0, '');
+        }
+        const idx = evalExpr(node.idx);
+        if (typeof idx !== 'number' || isNaN(idx)) {
+          throw makeError(`타입 오류: 리스트 인덱스는 숫자여야 합니다`, 0, '');
+        }
+        if (!Number.isInteger(idx)) {
+          throw makeError(`타입 오류: 리스트 인덱스는 정수여야 합니다`, 0, '');
+        }
+        const realIdx = idx - 1;
+        if (realIdx < 0 || realIdx >= list.length) {
+          throw makeError(`리스트 오류: 수정 인덱스 ${idx} 범위 초과 (리스트 크기: ${list.length})`, 0, '');
+        }
+        const val = evalExpr(node.value);
+        if (val === undefined || val === null) {
+          throw makeError(`발효 오류: 리스트에 유효하지 않은 값을 할당할 수 없습니다`, 0, '');
+        }
+        list[realIdx] = val;
+        return null;
+      }
+      case 'ExprStmt': {
+        const e = node.expr;
+        if (e.type === 'Identifier') {
+          if (currentEnv.funcs[e.name]) {
+            callFunction(currentEnv.funcs[e.name], [], e.name);
+            return null;
+          }
+          if (lookupVar(e.name)) return null;
+          throw makeError(`배추 부족: '${e.name}'를 찾을 수 없습니다`, 0, '');
+        }
+        evalExpr(e);
+        return null;
+      }
+    }
+    throw makeError(`발효 오류: 알 수 없는 문장 '${node.type}'`, 0, '');
+  }
+
+  for (const s of ast.body) {
+    const r = execStmt(s);
+    if (r && r.__return) break;
+  }
+  return { output, env: globalEnv };
+}
+
+// ============================================================
+// UI
+// ============================================================
+function renderUI(result) {
+  document.getElementById('output').textContent = result.output.join('\n');
+  const env = result.env;
+  let v = '── 변수 ──\n';
+  const varKeys = Object.keys(env.vars);
+  if (varKeys.length === 0) v += '(비어 있음)\n';
+  else varKeys.forEach(k => {
+    const val = env.vars[k];
+    v += `${k} = ${formatValueSimple(val)}\n`;
+  });
+  v += '\n── 리스트 ──\n';
+  const listKeys = Object.keys(env.lists);
+  if (listKeys.length === 0) v += '(비어 있음)\n';
+  else listKeys.forEach(k => v += `${k} = [${env.lists[k].join(', ')}]\n`);
+  v += '\n── 함수 ──\n';
+  const fnKeys = Object.keys(env.funcs);
+  if (fnKeys.length === 0) v += '(비어 있음)\n';
+  else fnKeys.forEach(k => v += `${k}(${env.funcs[k].params.join(', ')})\n`);
+  v += '\n── 클래스 ──\n';
+  const clsKeys = Object.keys(env.classes);
+  if (clsKeys.length === 0) v += '(비어 있음)';
+  else clsKeys.forEach(k => v += `그릇 ${k}\n`);
+  document.getElementById('vars').textContent = v;
+  document.getElementById('debug').textContent = DEBUG_LOG.length > 0 ? DEBUG_LOG.join('\n') : '(디버그 비활성)';
+}
+
+function formatValueSimple(val) {
+  if (val === null || val === undefined) return 'null';
+  if (typeof val === 'string') return `"${val}"`;
+  if (Array.isArray(val)) return `[${val.join(', ')}]`;
+  if (typeof val === 'boolean') return val ? '^&' : '&^';
+  if (val.__isClass) return `<그릇 ${val.name}>`;
+  if (val.__class) {
+    const props = Object.keys(val.props).map(k => `${k}:${formatValueSimple(val.props[k])}`).join(', ');
+    return `<${val.__class}: ${props}>`;
+  }
+  return String(val);
+}
+
+function runCodeInternal(debugOn) {
+  const code = document.getElementById('code').value;
+  document.getElementById('output').textContent = '';
+  document.getElementById('vars').textContent = '';
+  document.getElementById('debug').textContent = '';
+  document.getElementById('errors').textContent = '';
+  DEBUG_LOG = [];
+  DEBUG_MODE = debugOn;
+  
+  try {
+    const tokens = tokenize(code);
+    const ast = parse(tokens);
+    const optimized = optimize(ast);
+    debugLog('OPTIMIZER', '최적화 완료');
+    const result = execute(optimized);
+    renderUI(result);
+  } catch (e) {
+    document.getElementById('errors').textContent = formatError(e);
+    if (DEBUG_LOG.length > 0) {
+      document.getElementById('debug').textContent = DEBUG_LOG.join('\n');
+    }
+  }
+}
+
+function runCode() { runCodeInternal(false); }
+function runDebug() { runCodeInternal(true); }
+
+function clearAll() {
+  document.getElementById('code').value = '';
+  document.getElementById('output').textContent = '';
+  document.getElementById('vars').textContent = '';
+  document.getElementById('errors').textContent = '';
+  document.getElementById('debug').textContent = '';
+}
+
+function saveFile() {
+  const code = document.getElementById('code').value;
+  let filename = (document.getElementById('filename').value.trim() || 'main').replace(/\.kimel$/i, '');
+  const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename + '.kimel';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function loadFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.kimel')) {
+    document.getElementById('errors').textContent = '🌶️ 발효 오류: .kimel 파일만 가능';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('code').value = e.target.result;
+    document.getElementById('filename').value = file.name.replace(/\.kimel$/i, '');
+    document.getElementById('errors').textContent = '';
+  };
+  reader.onerror = () => {
+    document.getElementById('errors').textContent = '🌶️ 발효 오류: 파일을 읽을 수 없습니다';
+  };
+  reader.readAsText(file, 'UTF-8');
+  event.target.value = '';
+}
+
+function loadModule(event) {
+  const files = event.target.files;
+  for (const file of files) {
+    if (!file.name.toLowerCase().endsWith('.kimel')) continue;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const moduleName = file.name.replace(/\.kimel$/i, '');
+      MODULE_REGISTRY[moduleName] = e.target.result;
+      renderModuleList();
+    };
+    reader.onerror = () => {
+      document.getElementById('errors').textContent = '🌶️ 발효 오류: 모듈 파일을 읽을 수 없습니다';
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+  event.target.value = '';
+}
+
+function renderModuleList() {
+  const el = document.getElementById('moduleList');
+  const keys = Object.keys(MODULE_REGISTRY);
+  if (keys.length === 0) {
+    el.innerHTML = '(등록된 모듈 없음)';
+    return;
+  }
+  el.innerHTML = keys.map(k =>
+    `<div class="module-item"><span>📦 ${k}.kimel</span><button onclick="removeModule('${k}')">삭제</button></div>`
+  ).join('');
+}
+
+function removeModule(name) {
+  delete MODULE_REGISTRY[name];
+  renderModuleList();
+}
+
+function loadSample() {
+  document.getElementById('code').value =
+`$ ========================================= $
+$ 김치랭 v2.0 종합 테스트 $
+$ ========================================= $
+
+$ 1. 함수 매개변수 $
+고치 더하기(김, 치)
+  김쪽파김치(김*치)
+치고
+
+고치 인사(이름)
+  배고추("안녕"*이름*"!")
+치고
+
+배고추(더하기(....., ....))
+인사("김치")
+
+$ 2. 클래스/객체 $
+그릇 김치그릇
+  배추쪽김(........)
+  무쪽김(.....)
+  
+  고치 맛보기
+    김쪽파김치(배추*무)
+  치고
+  
+  고치 소개
+    배고추("김치그릇입니다")
+  치고
+치고
+
+김치인스턴스(나의김치, 김치그릇)
+배고추(나의김치.배추)
+배고추(나의김치.맛보기())
+나의김치.소개()
+
+$ 3. 속성 수정 $
+나의김치.배추쪽김(...........)
+배고추(나의김치.배추)
+
+$ 4. 모듈 시스템 $
+가져오기("보조")
+보조함수()
+
+$ 5. 재귀 함수 (매개변수) $
+고치 팩토리얼(김)
+  가루김치{김 ! .} ^& {
+    김쪽파김치(김 & 팩토리얼(김%.))
+  } &^ {
+    김쪽파김치(.)
+  }
+치고
+
+배고추(팩토리얼(.....))`;
+  document.getElementById('filename').value = 'main';
+  
+  MODULE_REGISTRY['보조'] =
+`$ 보조 모듈 $
+고치 보조함수
+  배고추("보조 모듈에서 안녕!")
+치고
+
+고치 제곱(김)
+  김쪽파김치(김&김)
+치고`;
+  renderModuleList();
+}
+
+renderModuleList();
+</script>
+</body>
+</html>
