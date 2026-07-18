@@ -1,0 +1,334 @@
+Jopsydian(좁시디언) JOCP의 동생이지만
+더 많은 기능 때문에 더 어려울것입니다'
+호불호가 많이 걸릴거라고 예상.
+AI가 쓴 메뉴얼 (by Qwen)
+# JOCP (Jopsydian) 공식 매뉴얼
+
+**Just Online Comfortable Presentation**  
+초보자를 위한 직관적 마크업 언어
+
+---
+
+## 📋 목차
+
+1. [JOCP란?](#jcp란)
+2. [기본 문법](#기본-문법)
+3. [템플릿 시스템](#템플릿-시스템)
+4. [메타데이터](#메타데이터)
+5. [파일 시스템](#파일-시스템)
+6. [예시 모음](#예시-모음)
+
+---
+
+## JOCP란?
+
+JOCP(좁시디언)는 초보자도 쉽게 사용할 수 있는 직관적 마크업 언어입니다. 복잡한 기호 대신 자연스러운 문법으로 문서, 퀴즈, 갤러리, 동영상, 게임까지 만들 수 있습니다.
+
+### 핵심 철학
+
+- **직관성**: 기호의 개수와 형태로 의미를 직관적으로 표현
+- **단순성**: 하나의 기호는 하나의 역할만 수행
+- **확장성**: 템플릿 시스템으로 무한한 기능 확장 가능
+
+---
+
+## 기본 문법
+
+### 제목 (Headings)
+
+느낌표(`!`)의 개수로 제목 크기를 조절합니다. **기호가 많을수록 큰 제목**입니다.
+
+```jocp
+!!!!!! 대제목 (H1)
+!!!!! 중제목 (H2)
+!!!! 소제목 (H3)
+!!! 4단계 제목
+!! 5단계 제목
+! 6단계 제목 (가장 작음)
+텍스트 서식
+~기울임~                    -> 기울임꼴
+{굵게}                      -> 은 글씨
+_취소선_                    -> 취소선
+`밑줄+굵게`                 -> 밑줄과 굵게 동시 적용
+?빨간색?<255,0,0>          -> RGB 색상 지정
+^반투명^50%                -> 투명도 조절
+링크 및 이동
+[[https://naver.com]]              -> 일반 링크
+=네이버로=[https://naver.com]      -> 하이퍼링크 (텍스트 커스텀)
+[대제목][맨 위로 이동]             -> 문서 내 특정 위치로 이동
+리스트
+순서 없는 리스트 (별표 개수로 중첩)
+* 1단계 항목
+** 2단계 중첩 항목
+*** 3단계 더 깊은 항목
+순서 있는 리스트
+1 첫 번째 항목
+2 두 번째 항목
+3 세 번째 항목
+표 (Table)
+# 이름 # 가격 # 수량
+# 포션 # 50골드 # 10개
+# 엘릭서 # 120골드 # 5개
+체크리스트
++ 미완료 할 일
+@ 완료한 일
+기타
+-                                  -> 구분선 (Horizontal Rule)
+&인용구&                           -> 인용 블록
+!{이미지URL}                       -> 이미지 삽입
+%%이건 주석이라 화면에 안 보임%%   -> 주석
+~                                  -> 복사 블록 시작/끝
+코드나 텍스트
+~
+템플릿 시스템
+1. 퀴즈 템플릿 (~quiz)
+인터랙티브 퀴즈를 만들 수 있습니다.
+~quiz
+질문: JOCP에서 굵게 기호는 무엇일까요?
+- {텍스트} (정답)
+- *텍스트*
+- **텍스트**
+~
+특징:
+(정답) 표시가 있는 선택지가 정답
+클릭 시 정답/오답 시각적 피드백 제공
+2. 갤러리 템플릿 (~gallery)
+이미지 갤러리를 생성합니다.
+~gallery
+제목: 내 사진첩
+- https://example.com/photo1.jpg
+- https://example.com/photo2.jpg
+- https://example.com/photo3.jpg
+~
+특징:
+그리드 레이아웃으로 자동 배치
+클릭 시 새 탭에서 원본 이미지 열기
+3. 미디어 템플릿 (~video, ~audio)
+동영상
+~video
+소스: https://youtu.be/QQyYCAvkOXY
+제목: 뽀로로 - 재미있는 모험
+~
+음악
+~audio
+소스: https://example.com/song.mp3
+제목: 내 플레이리스트
+~
+지원 형식:
+YouTube: https://youtu.be/비디오ID, https://youtube.com/watch?v=비디오ID
+MP4: 직접 파일 URL
+MP3: 오디오 파일 URL
+4. GUI 템플릿 (~gui)
+클릭 가능한 버튼들을 생성합니다.
+~gui
+제목: 제어 패널
+- 시작하기: alert('게임 시작!')
+- 도움말: alert('JOCP 매뉴얼을 확인하세요.')
+- 설정: alert('설정 메뉴')
+~
+특징:
+- 버튼이름: 자바스크립트코드 형식
+클릭 시 해당 스크립트 실행
+5. 게임 템플릿 (~game)
+HTML + CSS + JS로 완전한 게임을 만들 수 있습니다.
+~game
+제목: 공 튕기기 게임
+html:
+<div class="game-box">
+  <div class="ball"></div>
+</div>
+css:
+.game-box { 
+  width: 400px; 
+  height: 300px; 
+  background: #000; 
+  position: relative; 
+}
+.ball { 
+  width: 30px; 
+  height: 30px; 
+  background: red; 
+  border-radius: 50%; 
+  position: absolute; 
+}
+js:
+const ball = this.querySelector('.ball');
+let x = 0, y = 0, dx = 3, dy = 3;
+
+function animate() {
+  x += dx; y += dy;
+  if (x > 370 || x < 0) dx = -dx;
+  if (y > 270 || y < 0) dy = -dy;
+  ball.style.left = x + 'px';
+  ball.style.top = y + 'px';
+  requestAnimationFrame(animate);
+}
+animate();
+~
+
+구조:
+html: - 게임의 HTML 구조 (뼈대)
+css: - 게임의 스타일 (디자인)
+js: - 게임의 로직 (움직임)
+this는 게임 컨테이너를 가리킴
+메타데이터
+문서 상단에 ~meta 블록으로 문서 정보를 포함합니다.
+~meta
+제목: JOCP 매뉴얼
+저자: 개발자
+날짜: 2026-07-18
+태그: JOCP, 마크업, 문서, 가이드
+설명: JOCP의 모든 기능을 담은 공식 매뉴얼입니다.
+버전: 1.0
+~
+지원 필드:
+제목 / title
+저자 / author
+날짜 / date
+태그 / tags
+설명 / description
+커스텀 필드 자유롭게 추가 가능
+특징:
+문서 상단에 예쁜 박스로 표시
+접기/펼치기 기능 제공
+.jpc 내보내기 시 HTML <meta> 태그로 자동 변환 (SEO 최적화)
+파일 시스템
+파일 확장자
+          확장자        이름 설명
+jop       JOCP Source   JOCP 문법으로 작성된 소스 코드
+jpc     JOCP Compiled   파싱 완료된 독립형 HTML 문서 
+저장 및 내보내기
+.jop 저장
+JOCP 에디터에서 "저장" 버튼 클릭
+원본 JOCP 문법이 그대로 저장됨
+나중에 다시 불러와서 수정 가능
+.jpc 내보내기
+"내보내기" 버튼 클릭
+JOCP 엔진이 내장된 완전한 HTML 파일 생성
+다른 사람에게 공유하면 더블클릭으로 실행 가능
+인터넷 연결 없이도 작동 (오프라인 지원)
+불러오기
+"불러오기" 버튼 클릭
+이전에 저장한 .jop 파일 선택
+에디터에 내용 자동 로드
+예시 모음
+예시 1: 블로그 포스트
+~meta
+제목: JOCP 소개
+저자: 홍길동
+날짜: 2026-07-18
+태그: JOCP, 소개
+설명: JOCP가 무엇인지 알아봅니다
+~
+
+!!!!!! JOCP란 무엇인가?
+
+JOCP는 ~초보자용~ 마크업 언어입니다.
+
+!!!!! 주요 기능
+
+* 간편한 문법
+* 강력한 템플릿
+* 게임 엔진
+
+~video
+소스: https://youtu.be/QQyYCAvkOXY
+제목: JOCP 소개 영상
+~
+예시 2: 학습 퀴즈
+!!!!!! JOCP 학습 테스트
+
+~quiz
+질문: JOCP에서 기울임 기호는?
+- ~텍스트~ (정답)
+- *텍스트*
+- _텍스트_
+~
+
+~quiz
+질문: 제목을 만들 때 사용하는 기호는?
+- ! (정답)
+- #
+- *
+~
+
+~gui
+제목: 학습 도구
+- 정답 확인: alert('모두 정답입니다!')
+- 다시하기: alert('처음부터 시작합니다.')
+~
+예시 3: 포트폴리오
+~meta
+제목: 내 포트폴리오
+저자: 김개발
+태그: 포트폴리오, 프로젝트
+~
+
+!!!!!! 김개발의 포트폴리오
+
+!!!!! 프로젝트 갤러리
+
+~gallery
+제목: 완성된 프로젝트들
+- https://example.com/proj1.png
+- https://example.com/proj2.png
+- https://example.com/proj3.png
+~
+
+!!!!! 연락처
+
+이메일: {developer@example.com}
+
+~gui
+제목: SNS
+- GitHub: window.open('https://github.com')
+- LinkedIn: window.open('https://linkedin.com')
+~
+예시 4: 미니 게임
+!!!!!! 클릭 게임
+
+~game
+제목: 버튼 클릭 게임
+html:
+<div class="game-area">
+  <button id="clickBtn">클릭!</button>
+  <p>점수: <span id="score">0</span></p>
+</div>
+css:
+.game-area { 
+  text-align: center; 
+  padding: 50px; 
+  background: #f0f0f0; 
+}
+#clickBtn { 
+  font-size: 24px; 
+  padding: 20px 40px; 
+  cursor: pointer;
+  background: #4a9eff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+#score {
+  font-size: 32px;
+  font-weight: bold;
+  color: #4a9eff;
+}
+js:
+let score = 0;
+const btn = this.querySelector('#clickBtn');
+const scoreEl = this.querySelector('#score');
+
+btn.addEventListener('click', () => {
+  score++;
+  scoreEl.textContent = score;
+});
+~
+추가 리소스
+GitHub 저장소: JOCP 공식 저장소(https://github.com/7109jun/-./new/main)
+이슈 제보: 버그나 기능 요청은 Issues 탭에서
+📄 라이선스
+JOCP는 MIT 라이선스 하에 배포됩니다.
+만든 이: JOCP 개발팀은 걔뿔 나 혼자 만듬
+버전: 5.2
+마지막 업데이트: 2026-07-18
