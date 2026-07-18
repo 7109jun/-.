@@ -3,8 +3,9 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>JOCP V5.3 - Jopsydian Engine (Final)</title>
+  <title>JOCP V5.4 - Optimized & Scoped</title>
   <style>
+    * { box-sizing: border-box; }
     body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; max-width: 1400px; margin: 0 auto; padding: 20px; background: #f8f9fa; color: #333; }
     .toolbar { display: flex; gap: 10px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef; }
     .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; color: white; }
@@ -13,12 +14,18 @@
     .btn-load { background: #9b59b6; }
     .btn:hover { opacity: 0.85; transform: translateY(-1px); }
     
-    .editor-container { display: flex; gap: 20px; height: 80vh; }
-    textarea { flex: 1; height: 100%; font-family: 'Fira Code', monospace; font-size: 14px; padding: 15px; border: 1px solid #ced4da; border-radius: 8px; resize: none; outline: none; }
-    textarea:focus { border-color: #4a9eff; }
-    #preview { flex: 1; height: 100%; overflow-y: auto; padding: 25px; border: 1px solid #ced4da; border-radius: 8px; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .editor-container { display: flex; gap: 0; height: 80vh; border: 1px solid #ced4da; border-radius: 8px; overflow: hidden; background: #ffffff; }
+    .panel { overflow: auto; position: relative; }
+    #editor-panel { flex: 1; min-width: 200px; }
+    #preview-panel { flex: 1; min-width: 200px; }
+    
+    textarea { width: 100%; height: 100%; font-family: 'Fira Code', monospace; font-size: 14px; padding: 15px; border: none; resize: none; outline: none; background: #fafafa; }
+    
+    .resizer { width: 8px; background: #e9ecef; cursor: col-resize; transition: background 0.2s; flex-shrink: 0; }
+    .resizer:hover, .resizer.active { background: #4a9eff; }
+    
+    #preview { padding: 25px; height: 100%; overflow-y: auto; }
 
-    /* 메타데이터 스일 */
     .jocp-meta-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     .jocp-meta-title { font-size: 2em; font-weight: bold; margin-bottom: 10px; }
     .jocp-meta-info { display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9em; opacity: 0.9; margin-bottom: 15px; }
@@ -61,7 +68,7 @@
     
     .jocp-game { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
     .jocp-game-title { font-weight: bold; margin-bottom: 15px; }
-    .jocp-game-container { border: 2px solid #333; border-radius: 6px; overflow: hidden; background: #000; }
+    .jocp-game-container { border: 2px solid #333; border-radius: 6px; overflow: hidden; background: #000; position: relative; }
 
     .jocp-checkbox { display: block; margin: 8px 0; cursor: pointer; }
     .jocp-checkbox.completed { color: #adb5bd; text-decoration: line-through; }
@@ -85,196 +92,66 @@
   </div>
 
   <div class="editor-container">
-    <textarea id="jocp-input" oninput="render()">~meta
-제목: JOCP V5.3 - 게임 내 문법 지원
+    <div class="panel" id="editor-panel">
+      <textarea id="jocp-input">~meta
+제목: JOCP V5.4 - 최적화 및 CSS 스코핑
 저자: 개발자
 날짜: 2026-07-18
-태그: JOCP, 좁시디언, 게임, 업그레이드
-설명: 게임 블록 내부에서도 JOCP 문법과 HTML 버튼을 완벽하게 지원합니다!
+태그: JOCP, 최적화, CSS스코핑
+설명: scriptStore 버그 수정, render 중복 행 방지, 게임 CSS 범위 제한, 화면 크기 조절 기능 추가
 ~
 
-!!!!!! JOCP V5.3 - 게임 내 문법 & 버튼 지원
-!!!!! 1. 게임 안에서 JOCP 문법 사용하기
+!!!!!! JOCP V5.4 - 최적화 완료
 
-아래 게임 블록 안에서 {굵게}, ~기울임~, ?색상?<RGB>가 모두 작동합니다!
+!!!!! 1. 게임 내부 CSS 스코핑 테스트
 
-~game
-제목: 인터랙티브 버튼 게임
-html:
-<div class="game-area">
-  <h3>{미션: 버튼을 클릭하세요!}</h3>
-  <p>현재 점수: <span id="score">?0?<255,0,0></span></p>
-  
-  <button id="btn1">~클릭 가능한 버튼~</button>
-  <button id="btn2">`두 번째 버튼`</button>
-  
-  <p>_취소선 텍스트도 작동!_</p>
-</div>
-css:
-.game-area { 
-  text-align: center; 
-  padding: 30px; 
-  background: #f0f0f0; 
-  border-radius: 8px;
-  color: #333;
-}
-button { 
-  padding: 15px 30px; 
-  margin: 10px; 
-  font-size: 16px; 
-  cursor: pointer;
-  background: #4a9eff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-}
-button:hover { background: #3a8eef; }
-js:
-let score = 0;
-const scoreEl = this.querySelector('#score');
-
-this.querySelector('#btn1').addEventListener('click', () => {
-  score += 10;
-  scoreEl.innerHTML = '?' + score + '?<0,255,0>';
-});
-
-this.querySelector('#btn2').addEventListener('click', () => {
-  score += 5;
-  scoreEl.innerHTML = '?' + score + '?<255,165,0>';
-});
-~
-
-!!!!! 2. 아스키 DOOM (이력서용)
-
-면접관 기절시킬 터미널 DOOM입니다. 방향키로 이동하세요!
+아래 게임의 CSS는 게임 컨테이너 내부에만 적용됩니다.
 
 ~game
-제목: ASCII DOOM (Terminal Mode)
+제목: CSS 스코핑 테스트 게임
 html:
-<div class="ascii-doom">
-  <pre id="screen"></pre>
-  <div class="hud">
-    <span>HP: 100</span> | <span>AMMO: 50</span> | <span>CTRL: ← → 이동, ↑ ↓ 회전</span>
-  </div>
+<div class="game-box">
+  <div class="ball"></div>
+  <p class="info">이 텍스트는 게임 내부 타일이 적용됩니다</p>
 </div>
 css:
-.ascii-doom { 
-  background: #000; 
+.game-box { 
+  width: 100%; 
+  height: 200px; 
+  background: #1a1a1a; 
+  position: relative; 
+  padding: 20px;
+}
+.ball { 
+  width: 40px; 
+  height: 40px; 
+  background: #ff6b6b; 
+  border-radius: 50%; 
+  position: absolute; 
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.info {
   color: #0f0;
-  font-family: 'Courier New', Courier, monospace; 
-  font-size: 14px; 
-  line-height: 10px;
-  padding: 20px; 
-  border: 2px solid #0f0; 
-  border-radius: 8px;
+  font-family: monospace;
   text-align: center;
-  user-select: none;
-}
-#screen { 
-  margin: 0 auto; 
-  white-space: pre; 
-  display: inline-block; 
-  text-align: left;
-}
-.hud { 
-  margin-top: 15px; 
-  color: #0a0; 
-  font-size: 12px; 
-  border-top: 1px dashed #0a0; 
-  padding-top: 10px; 
+  margin-top: 100px;
 }
 js:
-const map = [
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,1,1,0,0,0,0,0,1,1,0,0,0,1],
-  [1,0,0,1,1,0,0,0,0,0,1,1,0,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1],
-  [1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-];
-
-let px = 3.5, py = 3.5;
-let pa = 0;
-const keys = {};
-
-const asciiChars = ['@', '#', 'S', '%', '?', '*', '+', ';', ':', ',', '.'];
-
-document.addEventListener('keydown', e => keys[e.code] = true);
-document.addEventListener('keyup', e => keys[e.code] = false);
-
-function update() {
-  const moveSpeed = 0.08;
-  const rotSpeed = 0.05;
-  
-  if (keys['ArrowLeft']) pa -= rotSpeed;
-  if (keys['ArrowRight']) pa += rotSpeed;
-  
-  let nx = px, ny = py;
-  if (keys['ArrowUp']) { nx += Math.cos(pa) * moveSpeed; ny += Math.sin(pa) * moveSpeed; }
-  if (keys['ArrowDown']) { nx -= Math.cos(pa) * moveSpeed; ny -= Math.sin(pa) * moveSpeed; }
-  
-  if (map[Math.floor(ny)] && map[Math.floor(ny)][Math.floor(nx)] === 0) { px = nx; py = ny; }
-
-  const screenWidth = 60;
-  const screenHeight = 20;
-  let screen = '';
-
-  for (let y = 0; y < screenHeight; y++) {
-    for (let x = 0; x < screenWidth; x++) {
-      const rayAngle = (pa - Math.PI / 6.0) + (x / screenWidth) * (Math.PI / 3.0);
-      const eyeX = Math.cos(rayAngle);
-      const eyeY = Math.sin(rayAngle);
-
-      let dist = 0;
-      let hitWall = false;
-      let testX = px, testY = py;
-
-      while (!hitWall && dist < 20) {
-        dist += 0.1;
-        testX = px + eyeX * dist;
-        testY = py + eyeY * dist;
-        
-        if (testX < 0 || testX >= 16 || testY < 0 || testY >= 16) {
-          hitWall = true; dist = 20;
-        } else if (map[Math.floor(testY)] && map[Math.floor(testY)][Math.floor(testX)] === 1) {
-          hitWall = true;
-        }
-      }
-
-      const correctedDist = dist * Math.cos(rayAngle - pa);
-      let charIndex = Math.floor(correctedDist * 2);
-      if (charIndex >= asciiChars.length) charIndex = asciiChars.length - 1;
-      
-      if (y < screenHeight / 2 - correctedDist * 2) {
-        screen += ' ';
-      } else if (y > screenHeight / 2 + correctedDist * 2) {
-        screen += ' ';
-      } else {
-        screen += asciiChars[charIndex];
-      }
-    }
-    screen += '\n';
-  }
-
-  const screenEl = this.querySelector('#screen');
-  if (screenEl) screenEl.textContent = screen;
-  requestAnimationFrame(update);
+const ball = this.querySelector('.ball');
+let angle = 0;
+function animate() {
+  angle += 0.05;
+  const x = Math.cos(angle) * 60;
+  const y = Math.sin(angle) * 60;
+  ball.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+  requestAnimationFrame(animate);
 }
-
-update();
+animate();
 ~
 
-!!!!! 3. 기타 기본 문법
+!!!!! 2. 기본 문법 테스트
 
 * 1단계
 ** 2단계
@@ -287,12 +164,20 @@ update();
 console.log("복사 블록!");
 ~
 </textarea>
-    <div id="preview"></div>
+    </div>
+    <div class="resizer" id="resizer"></div>
+    <div class="panel" id="preview-panel">
+      <div id="preview"></div>
+    </div>
   </div>
 
   <script>
     const JOCP = (function() {
       'use strict';
+
+      // 모듈 레벨 변수 (IIFE 반환 전에 안정적으로 접근 가능)
+      let scriptStore = [];
+      let metaData = {};
 
       const REGEX = {
         heading: /^(!+)\s+(.*)$/,
@@ -326,8 +211,6 @@ console.log("복사 블록!");
         inlineDel: /_([^_]+)_/g
       };
 
-      let metaData = {};
-
       function escapeHtml(text) {
         const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
         return text.replace(/[&<>"']/g, m => map[m]);
@@ -335,6 +218,18 @@ console.log("복사 블록!");
 
       function slugify(text) {
         return text.replace(/\s+/g, '-').replace(/[^\w-가-]/g, '');
+      }
+
+      // CSS 스코핑: 택자에 게임 ID를 추가하여 외부 침범 방지
+      function scopeCSS(css, scopeId) {
+        return css.replace(/([^{}]+)\{/g, (match, selectors) => {
+          const scoped = selectors.split(',').map(s => {
+            const trimmed = s.trim();
+            if (!trimmed || trimmed.startsWith('@')) return trimmed; // @media 등 제외
+            return `#${scopeId} ${trimmed}`;
+          }).join(', ');
+          return scoped + '{';
+        });
       }
 
       function parseInline(text) {
@@ -391,7 +286,7 @@ console.log("복사 블록!");
                       <div class="jocp-meta-info">`;
         
         if (author) html += `<div class="jocp-meta-item">✍️ ${escapeHtml(author)}</div>`;
-        if (date) html += `<div class="jocp-meta-item"> ${escapeHtml(date)}</div>`;
+        if (date) html += `<div class="jocp-meta-item">📅 ${escapeHtml(date)}</div>`;
         if (tags) html += `<div class="jocp-meta-item">🏷️ ${escapeHtml(tags)}</div>`;
         
         html += `</div>`;
@@ -400,7 +295,7 @@ console.log("복사 블록!");
           html += `<div class="jocp-meta-desc">${escapeHtml(desc)}</div>`;
         }
         
-        html += `<button class="jocp-meta-toggle" onclick="this.nextElementSibling.classList.toggle('hidden'); this.textContent = this.nextElementSibling.classList.contains('hidden') ? ' 메타데이터 보기' : '📋 메타데이터 숨기기';">📋 메타데이터 숨기기</button>
+        html += `<button class="jocp-meta-toggle" onclick="this.nextElementSibling.classList.toggle('hidden'); this.textContent = this.nextElementSibling.classList.contains('hidden') ? '📋 메타데이터 보기' : '📋 메타데이터 숨기기';">📋 메타데이터 숨기기</button>
                  <div class="jocp-meta-details">`;
         
         for (const [key, value] of Object.entries(metaData)) {
@@ -426,7 +321,7 @@ console.log("복사 블록!");
           }
           i++;
         }
-        let html = `<div class="jocp-quiz"><div class="jocp-quiz-title">📝 ${parseInline(question)}</div>`;
+        let html = `<div class="jocp-quiz"><div class="jocp-quiz-title"> ${parseInline(question)}</div>`;
         options.forEach((opt, idx) => {
           html += `<div class="jocp-quiz-option" onclick="JOCP.checkQuiz(this, ${idx}, ${correctIndex})">${parseInline(opt)}</div>`;
         });
@@ -442,7 +337,7 @@ console.log("복사 블록!");
           else if (line.startsWith('- ')) images.push(line.substring(2).trim());
           i++;
         }
-        let html = `<div class="jocp-gallery"><div class="jocp-gallery-title">🖼️ ${parseInline(title)}</div><div class="jocp-gallery-grid">`;
+        let html = `<div class="jocp-gallery"><div class="jocp-gallery-title">️ ${parseInline(title)}</div><div class="jocp-gallery-grid">`;
         images.forEach(img => { html += `<img src="${img}" alt="gallery" onclick="window.open('${img}', '_blank')" />`; });
         return { html: html + '</div></div>', nextIdx: i + 1 };
       }
@@ -467,7 +362,7 @@ console.log("복사 블록!");
           mediaHTML = `<video controls src="${source}"></video>`;
         }
         
-        return { html: `<div class="jocp-media"><div class="jocp-media-title"> ${parseInline(title)}</div>${mediaHTML}</div>`, nextIdx: i + 1 };
+        return { html: `<div class="jocp-media"><div class="jocp-media-title">🎬 ${parseInline(title)}</div>${mediaHTML}</div>`, nextIdx: i + 1 };
       }
 
       function parseAudioTemplate(lines, startIdx) {
@@ -479,7 +374,7 @@ console.log("복사 블록!");
           else if (line.startsWith('제목:')) title = line.replace('제목:', '').trim();
           i++;
         }
-        return { html: `<div class="jocp-media"><div class="jocp-media-title">🎵 ${parseInline(title)}</div><audio controls src="${source}"></audio></div>`, nextIdx: i + 1 };
+        return { html: `<div class="jocp-media"><div class="jocp-media-title"> ${parseInline(title)}</div><audio controls src="${source}"></audio></div>`, nextIdx: i + 1 };
       }
 
       function parseGUITemplate(lines, startIdx) {
@@ -498,12 +393,11 @@ console.log("복사 블록!");
         let html = `<div class="jocp-gui"><div class="jocp-gui-title">🎛️ ${parseInline(title)}</div>`;
         buttons.forEach((btn, idx) => {
           html += `<button class="jocp-gui-btn" onclick="JOCP.executeScript(${idx})">${parseInline(btn.label)}</button>`;
-          JOCP.scriptStore.push(btn.code);
+          scriptStore.push(btn.code);
         });
         return { html: html + '</div>', nextIdx: i + 1 };
       }
 
-      // 🔥 게임 템플릿 업그레이드: htmlContent에 parseInline 적용
       function parseGameTemplate(lines, startIdx) {
         let i = startIdx + 1;
         let title = '게임', htmlContent = '', cssContent = '', jsContent = '', currentSection = '';
@@ -521,15 +415,16 @@ console.log("복사 블록!");
         }
         
         const gameId = 'game_' + Math.random().toString(36).substr(2, 9);
-        const scriptId = JOCP.scriptStore.length;
-        JOCP.scriptStore.push(jsContent);
+        const scriptId = scriptStore.length;
+        scriptStore.push(jsContent);
 
-        // 핵심: HTML 섹션도 JOCP 인라인 문법으로 파싱!
         const parsedHtml = parseInline(htmlContent);
+        // CSS 스코핑: 선택자에 게임 ID를 추가하여 외부 침범 방지
+        const scopedCSS = scopeCSS(cssContent, gameId);
 
         const html = `<div class="jocp-game" id="${gameId}">
                         <div class="jocp-game-title">🎮 ${parseInline(title)}</div>
-                        <style>${cssContent}</style>
+                        <style>${scopedCSS}</style>
                         <div class="jocp-game-container">${parsedHtml}</div>
                         <script>
                           setTimeout(() => {
@@ -611,9 +506,9 @@ console.log("복사 블록!");
       }
 
       return {
-        scriptStore: [],
-        metaData: metaData,
-        parse: function(text) { this.scriptStore = []; metaData = {}; return parseBlock(text.split('\n')); },
+        get scriptStore() { return scriptStore; },
+        get metaData() { return metaData; },
+        parse: function(text) { scriptStore = []; metaData = {}; return parseBlock(text.split('\n')); },
         checkQuiz: function(el, sel, cor) {
           const opts = el.parentElement.querySelectorAll('.jocp-quiz-option');
           opts.forEach((opt, idx) => {
@@ -623,7 +518,7 @@ console.log("복사 블록!");
           });
         },
         executeScript: function(id) {
-          const code = this.scriptStore[id];
+          const code = scriptStore[id];
           if (code) { try { new Function(code)(); } catch (e) { alert('스크립트 오류: ' + e.message); } }
         },
         copyText: function(btn) {
@@ -634,8 +529,15 @@ console.log("복사 블록!");
         render: function(inputId, previewId) {
           const input = document.getElementById(inputId), preview = document.getElementById(previewId);
           if (!input || !preview) return;
-          const update = () => { preview.innerHTML = this.parse(input.value); };
-          input.addEventListener('input', update); update();
+          
+          // 기존 이벤트 리스너 제거 (중복 방지)
+          const newInput = input.cloneNode(true);
+          input.parentNode.replaceChild(newInput, input);
+          
+          const update = () => { preview.innerHTML = this.parse(newInput.value); };
+          newInput.addEventListener('input', update);
+          update();
+          
           preview.addEventListener('click', (e) => {
             if (e.target.classList.contains('jocp-anchor') || e.target.parentElement?.classList.contains('jocp-anchor')) {
               e.preventDefault();
@@ -681,8 +583,48 @@ console.log("복사 블록!");
       reader.readAsText(file);
     }
 
-    function render() { JOCP.render('jocp-input', 'preview'); }
-    document.addEventListener('DOMContentLoaded', render);
+    // 화면 크기 조절 (리사이저)
+    document.addEventListener('DOMContentLoaded', () => {
+      const resizer = document.getElementById('resizer');
+      const editorPanel = document.getElementById('editor-panel');
+      const previewPanel = document.getElementById('preview-panel');
+      const container = document.querySelector('.editor-container');
+      
+      let isResizing = false;
+      
+      resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        resizer.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+      });
+      
+      document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        const containerRect = container.getBoundingClientRect();
+        const offset = e.clientX - containerRect.left;
+        const totalWidth = containerRect.width;
+        const editorPercent = (offset / totalWidth) * 100;
+        const previewPercent = 100 - editorPercent;
+        
+        if (editorPercent > 20 && previewPercent > 20) {
+          editorPanel.style.flex = `0 0 ${editorPercent}%`;
+          previewPanel.style.flex = `0 0 ${previewPercent}%`;
+        }
+      });
+      
+      document.addEventListener('mouseup', () => {
+        if (isResizing) {
+          isResizing = false;
+          resizer.classList.remove('active');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+        }
+      });
+      
+      // JOCP 초기 렌더링 (한 번만 실행)
+      JOCP.render('jocp-input', 'preview');
+    });
   </script>
 </body>
 </html>
