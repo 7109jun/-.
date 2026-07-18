@@ -1,0 +1,364 @@
+======================================================================
+[파일 1] manifest.json (확장 프로그램 메니페스트 - 규격 완벽 준수)
+======================================================================
+{
+  "manifest_version": 3,
+  "name": "JOCP Playground",
+  "version": "1.0.0",
+  "description": "비개발자를 위한 직관적인 마크업 언어 JOCP 실시간 에디터",
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
+
+
+======================================================================
+[파일 2] popup.html (웹 표준 및 CSP 보안 규정 준수 구조)
+======================================================================
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>JOCP Playground</title>
+  <style>
+    body {
+      width: 700px;
+      height: 550px;
+      margin: 0;
+      padding: 15px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-sizing: border-box;
+      background: #ffffff;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 8px;
+    }
+    .title { font-size: 16px; font-weight: bold; color: #1a1a1a; }
+    .btn-group { display: flex; gap: 8px; }
+    .save-btn {
+      background: #4a9eff; color: white; border: none; padding: 6px 12px;
+      border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;
+      transition: background 0.2s;
+    }
+    .save-btn:hover { background: #2f87ee; }
+    .save-btn.secondary { background: #34c759; }
+    .save-btn.secondary:hover { background: #28a745; }
+    .container {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+      height: calc(100% - 50px);
+    }
+    textarea {
+      flex: 1;
+      height: 100%;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 13px;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      resize: none;
+      box-sizing: border-box;
+      outline: none;
+      background: #fdfdfd;
+    }
+    textarea:focus { border-color: #4a9eff; }
+    #jocp-preview {
+      flex: 1;
+      height: 100%;
+      overflow-y: auto;
+      padding: 15px;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      background: #f9f9f9;
+      box-sizing: border-box;
+    }
+    
+    /* JOCP 렌더링 스타일 엘리먼트 정의 */
+    .jocp-copy-block { position: relative; background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px; margin: 10px 0; }
+    .jocp-copy-block pre { margin: 0; white-space: pre-wrap; font-size: 12px; }
+    .copy-btn { position: absolute; top: 8px; right: 8px; background: #555; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+    .copy-btn:hover { background: #4a9eff; }
+    blockquote { border-left: 4px solid #4a9eff; padding: 8px 12px; background: #eef7ff; margin: 10px 0; font-style: italic; border-radius: 0 6px 6px 0; }
+    table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 12px; }
+    th, td { border: 1px solid #e0e0e0; padding: 8px; text-align: left; }
+    th { background: #f0f0f0; font-weight: bold; }
+    hr { border: none; border-top: 2px dashed #e0e0e0; margin: 15px 0; }
+    a { color: #4a9eff; text-decoration: none; font-weight: 500; }
+    a:hover { text-decoration: underline; }
+    .jocp-anchor { background: #eef7ff; padding: 2px 6px; border-radius: 4px; border: 1px solid #4a9eff; font-size: 0.9em; }
+    h1, h2, h3, h4, h5, h6 { margin-top: 15px; margin-bottom: 5px; color: #111; line-height: 1.3; }
+    p { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">✍️ JOCP Playground (조크프)</div>
+    <div class="btn-group">
+      <button class="save-btn secondary" id="btn-export-txt">TXT 저장</button>
+      <button class="save-btn" id="btn-export-html">HTML 내보내기</button>
+    </div>
+  </div>
+  <div class="container">
+    <textarea id="jocp-input" placeholder="JOCP 문법을 마음껏 입력하세요...">!!!!!! 조크프(JOCP) 대제목입니다
+!!!!! 중제목입니다
+
+* 스페이스가 있어야 리스트가 됩니다.
+** 중첩 리스트도 지원합니다.
+
+이것은 {굵게} 표현하고, ~기울임~ 입니다.
+
+🎨 ?빨간색?<255,0,0> 효과와 ^반투명^50% 적용!
+
+# 과일 # 가격 # 재고
+# 사과 # 1000원 # 5개
+# 바나나 # 2000원 # 3개
+
+~
+console.log("이 코드는 원클릭 복사 블록입니다.");
+~
+</textarea>
+    <div id="jocp-preview"></div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
+
+
+======================================================================
+[파일 3] popup.js (보안 패치 및 온전한 파싱 엔진 구현)
+======================================================================
+const JOCP = (function() {
+  'use strict';
+
+  const REGEX = {
+    heading: /^(!+)\s+(.*)$/,          
+    table: /^#\s/,                     
+    listUnordered: /^(\*+)\s+(.*)$/,   
+    hr: /^-\s*$/,
+    copyBlock: /^~\s*$/,
+    
+    inlineComment: /%%[\s\S]*?%%/g,
+    inlineQuote: /&([\s\S]*?)&/g,
+    inlineImage: /!\{([\s\S]+?)\}/g,
+    inlineHyperlink: /=([\s\S]+?)=\[([\s\S]+?)\]/g,
+    inlineAnchor: /\[([\s\S]+?)\]\[([\s\S]+?)\]/g,
+    inlineLink: /\[\[([\s\S]+?)\]\]/g,
+    inlineBoldUnder: /`([\s\S]+?)`/g,
+    inlineColor: /\?([\s\S]+?)\?<(\d+,\d+,\d+)>/g,
+    inlineOpacity: /\^([\s\S]+?)\^(\d+)%/g,
+    inlineBold: /\{([\s\S]+?)\}/g,
+    inlineItalic: /~([\s\S]+?)~/g,
+    inlineDel: /_([\s\S]+?)_/g
+  };
+
+  function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return text.replace(/[&<>"']/g, m => map[m]);
+  }
+
+  function slugify(text) {
+    return text.trim().replace(/\s+/g, '-').replace(/[^\w-가-힣]/g, '');
+  }
+
+  function parseInline(text) {
+    text = escapeHtml(text);
+    const tokens = [];
+    const store = (html) => {
+      const token = `__JOCP_TOKEN_${tokens.length}__`;
+      tokens.push(html);
+      return token;
+    };
+
+    text = text.replace(REGEX.inlineComment, '');
+    text = text.replace(REGEX.inlineQuote, (m, content) => store(`<blockquote>${content}</blockquote>`));
+    text = text.replace(REGEX.inlineImage, (m, src) => store(`<img src="${src.replace(/["']/g, '')}" alt="image" style="max-width:100%;" />`));
+    
+    text = text.replace(REGEX.inlineHyperlink, (m, label, url) => {
+      const cleanUrl = url.trim().replace(/["']/g, '');
+      if (cleanUrl.startsWith('javascript:')) return store(label);
+      return store(`<a href="${cleanUrl}" target="_blank">${label}</a>`);
+    });
+    
+    text = text.replace(REGEX.inlineAnchor, (m, target, label) => store(`<a href="#${slugify(target)}" class="jocp-anchor">${label}</a>`));
+    
+    text = text.replace(REGEX.inlineLink, (m, url) => {
+      const cleanUrl = url.trim().replace(/["']/g, '');
+      if (cleanUrl.startsWith('javascript:')) return store(cleanUrl);
+      return store(`<a href="${cleanUrl}" target="_blank">${cleanUrl}</a>`);
+    });
+
+    text = text.replace(REGEX.inlineBoldUnder, (m, content) => store(`<ins><strong>${content}</strong></ins>`));
+    text = text.replace(REGEX.inlineColor, (m, content, rgb) => store(`<span style="color:rgb(${rgb})">${content}</span>`));
+    text = text.replace(REGEX.inlineOpacity, (m, content, percent) => store(`<span style="opacity:${percent/100}">${content}</span>`));
+    text = text.replace(REGEX.inlineBold, (m, content) => store(`<strong>${content}</strong>`));
+    text = text.replace(REGEX.inlineItalic, (m, content) => store(`<em>${content}</em>`));
+    text = text.replace(REGEX.inlineDel, (m, content) => store(`<del>${content}</del>`));
+
+    // 보관했던 HTML 토큰 복원 복구 루프
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      text = text.replace(`__JOCP_TOKEN_${i}__`, tokens[i]);
+    }
+
+    return text;
+  }
+
+  function parseBlock(lines) {
+    let html = '';
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+
+      if (REGEX.copyBlock.test(line)) {
+        let content = '';
+        i++;
+        while (i < lines.length && !REGEX.copyBlock.test(lines[i])) {
+          content += lines[i] + '\n';
+          i++;
+        }
+        i++;
+        html += `<div class="jocp-copy-block">
+                   <button class="copy-btn">복사</button>
+                   <pre><code>${escapeHtml(content.trim())}</code></pre>
+                 </div>`;
+        continue;
+      }
+
+      if (REGEX.table.test(line)) {
+        let rows = [];
+        while (i < lines.length && REGEX.table.test(lines[i])) {
+          const cleanLine = lines[i].replace(/^#\s*/, '');
+          rows.push(cleanLine.split(/\s*#\s*/).filter(c => c !== ''));
+          i++;
+        }
+        html += '<table>';
+        rows.forEach((row, idx) => {
+          const tag = idx === 0 ? 'th' : 'td';
+          html += '<tr>' + row.map(cell => `<${tag}>${parseInline(cell)}</${tag}>`).join('') + '</tr>';
+        });
+        html += '</table>';
+        continue;
+      }
+
+      if (REGEX.listUnordered.test(line)) {
+        let listHtml = '';
+        let prevLevel = 0;
+        
+        while (i < lines.length && REGEX.listUnordered.test(lines[i])) {
+          const match = lines[i].match(REGEX.listUnordered);
+          const level = match[1].length;
+          const content = match[2];
+          
+          if (level > prevLevel) {
+            for (let j = 0; j < level - prevLevel; j++) listHtml += '<ul>';
+          } else if (level < prevLevel) {
+            for (let j = 0; j < prevLevel - level; j++) listHtml += '</ul>';
+          }
+          
+          listHtml += `<li>${parseInline(content)}</li>`;
+          prevLevel = level;
+          i++;
+        }
+        for (let j = 0; j < prevLevel; j++) listHtml += '</ul>';
+        html += listHtml;
+        continue;
+      }
+
+      if (REGEX.heading.test(line)) {
+        const match = line.match(REGEX.heading);
+        const level = Math.max(1, 7 - match[1].length);
+        const title = match[2];
+        html += `<h${level} id="${slugify(title)}">${parseInline(title)}</h${level}>`;
+        i++;
+        continue;
+      }
+
+      if (REGEX.hr.test(line)) {
+        html += '<hr>';
+        i++;
+        continue;
+      }
+
+      if (line.trim() === '') { i++; continue; }
+      html += `<p>${parseInline(line)}</p>`;
+      i++;
+    }
+    return html;
+  }
+
+  return {
+    parse: function(text) { return parseBlock(text.split('\n')); },
+    render: function(inputId, previewId) {
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+      if (!input || !preview) return;
+
+      const update = () => { preview.innerHTML = this.parse(input.value); };
+      input.addEventListener('input', update);
+      update();
+
+      // CSP 보안 정책 우회를 위해 대리 이벤트 리스너 바인딩
+      preview.addEventListener('click', (e) => {
+        if (e.target.classList.contains('copy-btn')) {
+          const code = e.target.parentElement.querySelector('code').innerText;
+          navigator.clipboard.writeText(code).then(() => {
+            const originalText = e.target.textContent;
+            e.target.textContent = '완료! ✔';
+            setTimeout(() => { e.target.textContent = originalText; }, 1500);
+          });
+        }
+      });
+    }
+  };
+})();
+
+function downloadFile(content, fileName, contentType) {
+  const a = document.createElement("a");
+  const file = new Blob([content], { type: contentType });
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('jocp-input');
+  const preview = document.getElementById('jocp-preview');
+  
+  JOCP.render('jocp-input', 'jocp-preview');
+
+  document.getElementById('btn-export-txt').addEventListener('click', () => {
+    downloadFile(input.value, 'document.jocp', 'text/plain');
+  });
+
+  document.getElementById('btn-export-html').addEventListener('click', () => {
+    const fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>JOCP Rendered Document</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+    .jocp-copy-block { position: relative; background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px; margin: 10px 0; }
+    .jocp-copy-block pre { margin: 0; white-space: pre-wrap; font-size: 13px; }
+    blockquote { border-left: 4px solid #4a9eff; padding: 8px 12px; background: #eef7ff; margin: 10px 0; font-style: italic; }
+    table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+    th, td { border: 1px solid #e0e0e0; padding: 8px; text-align: left; }
+    th { background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  ${preview.innerHTML}
+</body>
+</html>`;
+    downloadFile(fullHtml, 'document.html', 'text/html');
+  });
+});
