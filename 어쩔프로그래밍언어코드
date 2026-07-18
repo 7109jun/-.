@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>어쩔티비 v7.0 - 고문 언어 인터프리터</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: #0a0e27;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a1f3a 0%, #2d1b4e 100%);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e94560;
+        }
+        
+        .header h1 {
+            color: #e94560;
+            font-size: 1.5em;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+        
+        .header-buttons { display: flex; gap: 10px; }
+        
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .btn-run { background: #e94560; color: white; }
+        .btn-run:hover { background: #ff6b6b; transform: translateY(-2px); }
+        .btn-clear { background: #533483; color: white; }
+        .btn-clear:hover { background: #6c44a0; }
+        .btn-example { background: transparent; color: #ffd93d; border: 1px solid #ffd93d; }
+        .btn-example:hover { background: #ffd93d; color: #0a0e27; }
+        
+        .main-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 220px;
+            gap: 10px;
+            padding: 10px;
+            overflow: hidden;
+        }
+        
+        .panel {
+            background: #1a1f3a;
+            border: 1px solid #2d3561;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: #2d1b4e;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 0.95em;
+            border-bottom: 1px solid #2d3561;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-content { flex: 1; overflow-y: auto; padding: 10px; }
+        
+        #codeEditor {
+            width: 100%;
+            height: 100%;
+            background: #0f1419;
+            color: #e94560;
+            border: none;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 11px;
+            line-height: 1.4;
+            resize: none;
+        }
+        
+        #codeEditor:focus { outline: none; }
+        
+        .output-content {
+            background: #0a0e27;
+            color: #00ff41;
+            font-size: 11px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .output-content .error { color: #ff0000; font-weight: bold; }
+        .output-content .success { color: #00ff41; }
+        .output-content .info { color: #ffd93d; }
+        .output-content .phase { color: #ff79c6; font-weight: bold; }
+        
+        .variables-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        
+        .variables-table th {
+            background: #2d1b4e;
+            padding: 5px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            border-bottom: 2px solid #e94560;
+        }
+        
+        .variables-table td { padding: 3px 5px; border-bottom: 1px solid #2d3561; }
+        .variables-table tr:hover { background: #2d3561; }
+        .var-name { color: #ffd93d; font-weight: bold; }
+        .var-value { color: #00ff41; }
+        .var-type { color: #569cd6; font-size: 9px; }
+        
+        .debug-log { font-size: 10px; line-height: 1.4; }
+        
+        .log-entry {
+            padding: 2px 8px;
+            border-left: 3px solid transparent;
+            margin-bottom: 2px;
+        }
+        
+        .log-entry.info { border-left-color: #569cd6; color: #569cd6; }
+        .log-entry.warn { border-left-color: #ffd93d; color: #ffd93d; }
+        .log-entry.error { border-left-color: #ff0000; color: #ff0000; }
+        .log-entry.success { border-left-color: #00ff41; color: #00ff41; }
+        .log-entry.phase { border-left-color: #ff79c6; color: #ff79c6; }
+        .log-time { color: #666; margin-right: 8px; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 100%; }
+        
+        .stat-box {
+            background: #0f1419;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .stat-label { color: #666; font-size: 10px; margin-bottom: 5px; }
+        .stat-value { color: #e94560; font-size: 1.3em; font-weight: bold; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0e27; }
+        ::-webkit-scrollbar-thumb { background: #2d3561; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #e94560; }
+        
+        .dropdown { position: relative; display: inline-block; }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: #1a1f3a;
+            min-width: 300px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            border: 1px solid #2d3561;
+            border-radius: 5px;
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .dropdown-content a {
+            color: #e0e0e0;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            cursor: pointer;
+        }
+        
+        .dropdown-content a:hover { background: #2d3561; color: #ffd93d; }
+        .dropdown:hover .dropdown-content { display: block; }
+        
+        .phase-indicator {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: #2d1b4e;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid #e94560;
+            color: #ff79c6;
+            font-size: 11px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📺 어쩔티비 v7.0 - 고문 언어</h1>
+        <div class="header-buttons">
+            <div class="dropdown">
+                <button class="btn btn-example">📚 예제 ▼</button>
+                <div class="dropdown-content">
+                    <a onclick="loadSingleChar()">단일 문자 'H'</a>
+                    <a onclick="loadHelloWorld()">Hello World 전체</a>
+                    <a onclick="loadSimple()">간단한 테스트</a>
+                    <a onclick="loadMemoryTest()">메모리 테스트</a>
+                </div>
+            </div>
+            <button class="btn btn-clear" onclick="clearCode()">🗑️ 초기화</button>
+            <button class="btn btn-run" onclick="runCode()">▶ 실행</button>
+        </div>
+    </div>
+    
+    <div class="main-grid">
+        <div class="panel">
+            <div class="panel-header">
+                <span>📝 코드 입력창</span>
+                <span id="lineCount" style="color: #666; font-size: 11px;">0줄</span>
+            </div>
+            <div class="panel-content" style="padding: 0;">
+                <textarea id="codeEditor" placeholder="어쩔티비 코드를 입력하세요..."></textarea>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <span>📺 출력 결과</span>
+                <span id="outputStatus" style="color: #666; font-size: 11px;">대기중</span>
+            </div>
+            <div class="panel-content output-content" id="output"></div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <span>🔍 디버그 로그 (Phase 추적)</span>
+                <button class="btn" style="padding: 4px 10px; font-size: 11px;" onclick="clearLog()">지우기</button>
+            </div>
+            <div class="panel-content debug-log" id="debugLog"></div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <span>📊 변수 상태 & 통계</span>
+            </div>
+            <div class="panel-content">
+                <div class="stats-grid">
+                    <div>
+                        <table class="variables-table">
+                            <thead>
+                                <tr>
+                                    <th>변수명</th>
+                                    <th>값</th>
+                                    <th>타입</th>
+                                </tr>
+                            </thead>
+                            <tbody id="variablesTable"></tbody>
+                        </table>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="stat-box">
+                            <div class="stat-label">코드 라인</div>
+                            <div class="stat-value" id="statLines">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">변수 개수</div>
+                            <div class="stat-value" id="statVars">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">실행 시간</div>
+                            <div class="stat-value" id="statTime">0ms</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">현재 Phase</div>
+                            <div class="stat-value" id="statPhase">0/12</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 어쩔티비 v7.0 - 고문 언어 인터프리터
+        // 규칙 준수: 어, 쩔, 티, 비 + 기호만 사용
+        // ==========================================
+
+        class ETError extends Error {
+            constructor(code, line, message) {
+                super(`📺 티비가 고장났습니다 ${line}라인: ${message}`);
+                this.code = code;
+                this.line = line;
+                this.name = 'ETError';
+            }
+        }
+
+        // 토큰 타입
+        const TT = {
+            EO: 'EO', JJEOL: 'JJEOL', TI: 'TI', BI: 'BI',
+            LT: 'LT', GT: 'GT', LPAREN: 'LPAREN', RPAREN: 'RPAREN',
+            LBRACE: 'LBRACE', RBRACE: 'RBRACE',
+            DOT: 'DOT', COMMA: 'COMMA', STAR: 'STAR',
+            BANG: 'BANG', AT: 'AT', HASH: 'HASH',
+            DOLLAR: 'DOLLAR', PERCENT: 'PERCENT', CARET: 'CARET',
+            AMP: 'AMP', TILDE: 'TILDE', BACKTICK: 'BACKTICK',
+            STRING: 'STRING', NUMBER: 'NUMBER', IDENTIFIER: 'IDENTIFIER',
+            EOF: 'EOF', NEWLINE: 'NEWLINE'
+        };
+
+        // 어휘 분석기
+        class Lexer {
+            constructor(source) {
+                this.source = source;
+                this.pos = 0;
+                this.line = 1;
+                this.column = 1;
+                this.tokens = [];
+                
+                this.keywords = {
+                    '어': TT.EO, '쩔': TT.JJEOL,
+                    '티': TT.TI, '비': TT.BI
+                };
+                
+                this.symbols = {
+                    '<': TT.LT, '>': TT.GT, '(': TT.LPAREN,
+                    ')': TT.RPAREN, '{': TT.LBRACE, '}': TT.RBRACE,
+                    '.': TT.DOT, ',': TT.COMMA, '*': TT.STAR,
+                    '!': TT.BANG, '@': TT.AT, '#': TT.HASH,
+                    '$': TT.DOLLAR, '%': TT.PERCENT, '^': TT.CARET,
+                    '&': TT.AMP, '~': TT.TILDE, '`': TT.BACKTICK
+                };
+            }
+            
+            tokenize() {
+                while (this.pos < this.source.length) {
+                    const char = this.source[this.pos];
+                    
+                    if (char === ' ' || char === '\t' || char === '\r') {
+                        this.advance();
+                        continue;
+                    }
+                    
+                    if (char === '\n') {
+                        this.tokens.push({ type: TT.NEWLINE, value: '\n', line: this.line, column: this.column });
+                        this.advance();
+                        this.line++;
+                        this.column = 1;
+                        continue;
+                    }
+                    
+                    // 주석 처리 (* ... *)
+                    if (char === '*') {
+                        // 다음 문자가 공백이거나 한글/영문이면 주석으로 처리
+                        const nextChar = this.pos + 1 < this.source.length ? this.source[this.pos + 1] : '';
+                        if (nextChar === ' ' || nextChar === '\n' || nextChar === '\t' || nextChar === '') {
+                            this.skipComment();
+                            continue;
+                        }
+                        // 그 외에는 STAR 토큰으로
+                        this.tokens.push({ type: TT.STAR, value: '*', line: this.line, column: this.column });
+                        this.advance();
+                        continue;
+                    }
+                    
+                    // 키워드 확인
+                    if (this.keywords[char]) {
+                        const nextPos = this.pos + 1;
+                        const nextChar = nextPos < this.source.length ? this.source[nextPos] : '';
+                        if (!this.isAlpha(nextChar) && !this.isDigit(nextChar)) {
+                            this.tokens.push({ type: this.keywords[char], value: char, line: this.line, column: this.column });
+                            this.advance();
+                            continue;
+                        }
+                    }
+                    
+                    // 기호 확인
+                    if (this.symbols[char]) {
+                        this.tokens.push({ type: this.symbols[char], value: char, line: this.line, column: this.column });
+                        this.advance();
+                        continue;
+                    }
+                    
+                    // 문자열 리터럴 < ... >
+                    if (char === '<') {
+                        this.readString();
+                        continue;
+                    }
+                    
+                    // 숫자
+                    if (this.isDigit(char)) {
+                        this.readNumber();
+                        continue;
+                    }
+                    
+                    // 식별자
+                    if (this.isAlpha(char) || char === '_') {
+                        this.readIdentifier();
+                        continue;
+                    }
+                    
+                    throw new ETError('E-001', this.line, '문법이 잘못되었습니다. 리모컨을 다시 눌러보세요.');
+                }
+                
+                this.tokens.push({ type: TT.EOF, value: null, line: this.line, column: this.column });
+                return this.tokens;
+            }
+            
+            advance() { this.pos++; this.column++; }
+            
+            skipComment() {
+                this.advance();
+                while (this.pos < this.source.length) {
+                    if (this.source[this.pos] === '*') {
+                        this.advance();
+                        if (this.pos < this.source.length && this.source[this.pos] === '*') {
+                            this.advance();
+                            return;
+                        }
+                    } else {
+                        if (this.source[this.pos] === '\n') {
+                            this.line++;
+                            this.column = 1;
+                        }
+                        this.advance();
+                    }
+                }
+            }
+            
+            readString() {
+                const startLine = this.line;
+                this.advance();
+                const start = this.pos;
+                while (this.pos < this.source.length && this.source[this.pos] !== '>') {
+                    if (this.source[this.pos] === '\n') {
+                        this.line++;
+                        this.column = 1;
+                    }
+                    this.advance();
+                }
+                
+                if (this.pos >= this.source.length) {
+                    throw new ETError('E-004', startLine, '문자열이 닫히지 않았습니다. HDMI 케이블을 확인해보세요.');
+                }
+                
+                const value = this.source.substring(start, this.pos);
+                this.tokens.push({ type: TT.STRING, value: value, line: this.line, column: this.column });
+                this.advance();
+            }
+            
+            readNumber() {
+                const start = this.pos;
+                while (this.pos < this.source.length && this.isDigit(this.source[this.pos])) {
+                    this.advance();
+                }
+                const value = parseInt(this.source.substring(start, this.pos));
+                this.tokens.push({ type: TT.NUMBER, value: value, line: this.line, column: this.column });
+            }
+            
+            readIdentifier() {
+                const start = this.pos;
+                while (this.pos < this.source.length && 
+                       (this.isAlphaNumeric(this.source[this.pos]) || this.source[this.pos] === '_')) {
+                    this.advance();
+                }
+                const value = this.source.substring(start, this.pos);
+                this.tokens.push({ type: TT.IDENTIFIER, value: value, line: this.line, column: this.column });
+            }
+            
+            isDigit(char) { return char >= '0' && char <= '9'; }
+            isAlpha(char) { return (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || char === '_'; }
+            isAlphaNumeric(char) { return this.isAlpha(char) || this.isDigit(char); }
+        }
+
+        // 파서
+        class Parser {
+            constructor(tokens) {
+                this.tokens = tokens;
+                this.pos = 0;
+            }
+            
+            parse() {
+                const declarations = [];
+                const statements = [];
+                
+                while (this.currentToken().type !== TT.EOF) {
+                    const stmt = this.parseStatement();
+                    if (stmt) {
+                        if (stmt.type === 'FunctionDecl') {
+                            declarations.push(stmt);
+                        } else {
+                            statements.push(stmt);
+                        }
+                    }
+                    this.skipNewlines();
+                }
+                
+                return { declarations, statements };
+            }
+            
+            currentToken() {
+                if (this.pos < this.tokens.length) return this.tokens[this.pos];
+                return { type: TT.EOF, value: null, line: 0, column: 0 };
+            }
+            
+            peek(offset = 1) {
+                const idx = this.pos + offset;
+                if (idx < this.tokens.length) return this.tokens[idx];
+                return { type: TT.EOF, value: null, line: 0, column: 0 };
+            }
+            
+            advance() { this.pos++; }
+            
+            expect(tokenType) {
+                if (this.currentToken().type !== tokenType) {
+                    throw new ETError('E-001', this.currentToken().line, 
+                        `문법이 잘못되었습니다. 기대: ${tokenType}, 실제: ${this.currentToken().type}`);
+                }
+                this.advance();
+            }
+            
+            skipNewlines() {
+                while (this.currentToken().type === TT.NEWLINE) this.advance();
+            }
+            
+            parseStatement() {
+                const token = this.currentToken();
+                
+                if (token.type === TT.EO) return this.parseVariableDecl();
+                if (token.type === TT.JJEOL) return this.parseFunctionOrCall();
+                if (token.type === TT.TI) return this.parseConditional();
+                if (token.type === TT.BI) return this.parseOutput();
+                if (token.type === TT.NEWLINE) { this.advance(); return null; }
+                
+                throw new ETError('E-001', token.line, '문법이 잘못되었습니다. 리모컨을 다시 눌러보세요.');
+            }
+            
+            parseVariableDecl() {
+                // 어 (이름) 기호 값
+                this.expect(TT.EO);
+                this.expect(TT.LPAREN);
+                const name = this.currentToken().value;
+                this.expect(TT.IDENTIFIER);
+                this.expect(TT.RPAREN);
+                
+                // 연산자 확인
+                const op = this.currentToken();
+                let operator = null;
+                let value = null;
+                
+                if ([TT.HASH, TT.DOLLAR, TT.CARET, TT.PERCENT, TT.AMP, TT.BANG, TT.AT, TT.STAR].includes(op.type)) {
+                    operator = op.value;
+                    this.advance();
+                    value = this.parseValue();
+                } else {
+                    value = this.parseValue();
+                }
+                
+                return { type: 'VariableDecl', name, operator, value, line: token.line };
+            }
+            
+            parseFunctionOrCall() {
+                // 쩔 (이름) { ... } 또는 쩔 (이름) ~ (값)
+                const startToken = this.currentToken();
+                this.expect(TT.JJEOL);
+                this.expect(TT.LPAREN);
+                const name = this.currentToken().value;
+                this.expect(TT.IDENTIFIER);
+                this.expect(TT.RPAREN);
+                
+                // 함수 정의인지 호출인지 확인
+                if (this.currentToken().type === TT.LBRACE) {
+                    this.advance();
+                    const body = [];
+                    while (this.currentToken().type !== TT.RBRACE) {
+                        const stmt = this.parseStatement();
+                        if (stmt) body.push(stmt);
+                        this.skipNewlines();
+                    }
+                    this.expect(TT.RBRACE);
+                    return { type: 'FunctionDecl', name, body };
+                }
+                
+                // 함수 호출 (선택적 인자)
+                let args = [];
+                if (this.currentToken().type === TT.TILDE) {
+                    this.advance();
+                    args.push(this.parseValue());
+                }
+                
+                return { type: 'FunctionCall', name, args, line: startToken.line };
+            }
+            
+            parseConditional() {
+                // 티 (조건) { ... }
+                this.expect(TT.TI);
+                this.expect(TT.LPAREN);
+                const condition = this.parseValue();
+                this.expect(TT.RPAREN);
+                this.expect(TT.LBRACE);
+                
+                const body = [];
+                while (this.currentToken().type !== TT.RBRACE) {
+                    const stmt = this.parseStatement();
+                    if (stmt) body.push(stmt);
+                    this.skipNewlines();
+                }
+                
+                this.expect(TT.RBRACE);
+                return { type: 'Conditional', condition, body };
+            }
+            
+            parseOutput() {
+                // 비 (값) .
+                this.expect(TT.BI);
+                this.expect(TT.LPAREN);
+                const expression = this.parseValue();
+                this.expect(TT.RPAREN);
+                
+                // 출력 방식 결정
+                let outputType = 'console';
+                if (this.currentToken().type === TT.DOT) {
+                    outputType = 'console';
+                    this.advance();
+                } else if (this.currentToken().type === TT.TILDE) {
+                    outputType = 'buffer';
+                    this.advance();
+                }
+                
+                return { type: 'Output', expression, outputType };
+            }
+            
+            parseValue() {
+                const token = this.currentToken();
+                
+                if (token.type === TT.LPAREN) {
+                    this.advance();
+                    const name = this.currentToken().value;
+                    this.expect(TT.IDENTIFIER);
+                    this.expect(TT.RPAREN);
+                    return { type: 'Variable', name };
+                }
+                
+                if (token.type === TT.LT) {
+                    this.advance();
+                    const value = this.currentToken().value;
+                    this.expect(TT.STRING);
+                    this.expect(TT.GT);
+                    return { type: 'StringLiteral', value };
+                }
+                
+                if (token.type === TT.NUMBER) {
+                    const value = token.value;
+                    this.advance();
+                    return { type: 'NumberLiteral', value };
+                }
+                
+                throw new ETError('E-001', token.line, '값을 파싱할 수 없습니다. 안테나를 조정해보세요.');
+            }
+        }
+
+        // 인터프리터
+        class Interpreter {
+            constructor() {
+                this.variables = {};
+                this.functions = {};
+                this.outputBuffer = [];
+                this.debugLog = [];
+                this.currentPhase = 0;
+                
+                // 시스템 상태
+                this.memory = { pool: null, pages: new Map(), blocks: new Map(), allocations: new Map(), nextAddr: 1000 };
+                this.pointers = new Map();
+                this.permissions = new Map();
+                this.sessions = new Map();
+                this.types = new Map();
+                this.dependencies = new Map();
+                this.buffers = { A: null, B: null, C: null, D: null, queue: [] };
+                this.checksums = new Map();
+                this.outputDevice = null;
+                this.compilerPipeline = { steps: [] };
+            }
+            
+            log(level, message) {
+                const time = new Date().toLocaleTimeString();
+                this.debugLog.push({ time, level, message });
+            }
+            
+            interpret(program) {
+                this.log('info', '컴파일 시작');
+                
+                // 선언부 처리
+                for (const decl of program.declarations) {
+                    if (decl.type === 'FunctionDecl') {
+                        this.functions[decl.name] = decl.body;
+                        this.log('info', `함수 정의: ${decl.name}()`);
+                    }
+                }
+                
+                // 실행부 처리
+                for (const stmt of program.statements) {
+                    this.execute(stmt);
+                }
+                
+                this.log('success', '실행 완료');
+                return this.outputBuffer.join('');
+            }
+            
+            execute(node) {
+                switch (node.type) {
+                    case 'VariableDecl':
+                        this.executeVariableDecl(node);
+                        break;
+                    case 'FunctionCall':
+                        this.executeFunctionCall(node);
+                        break;
+                    case 'Conditional':
+                        this.executeConditional(node);
+                        break;
+                    case 'Output':
+                        this.executeOutput(node);
+                        break;
+                }
+            }
+            
+            executeVariableDecl(node) {
+                const { name, operator, value } = node;
+                const resolvedValue = this.evaluate(value);
+                
+                // 연산자에 따라 다른 의미 부여
+                switch (operator) {
+                    case '#': // 생성 / 덧셈
+                        if (typeof resolvedValue === 'number' && resolvedValue === 1 && name.includes('서비스')) {
+                            this.dependencies.set(name, { registered: true, prepared: false, inspected: false, activated: false });
+                            this.log('phase', `[의존성] 등록: ${name}`);
+                        } else if (name.includes('_생성') || name.includes('_등록') || name.includes('_확인')) {
+                            this.types.set(name, { state: operator });
+                            this.log('phase', `[타입] ${name} = ${resolvedValue}`);
+                        } else if (name.includes('소스') || name.includes('토큰') || name.includes('트리') || 
+                                   name.includes('의미') || name.includes('최적') || name.includes('중간') || 
+                                   name.includes('조립') || name.includes('연결') || name.includes('적재')) {
+                            this.compilerPipeline.steps.push(name);
+                            this.currentPhase = Math.min(1, this.compilerPipeline.steps.length / 9);
+                            this.log('phase', `[컴파일] ${name} 단계 완료`);
+                        } else {
+                            this.variables[name] = resolvedValue;
+                            this.log('info', `변수 생성: ${name} = ${resolvedValue}`);
+                        }
+                        break;
+                    
+                    case '$': // 메모리 할당
+                        const addr = this.memory.nextAddr;
+                        this.memory.nextAddr += 8;
+                        this.memory.allocations.set(name, { address: addr, size: resolvedValue });
+                        this.variables[name] = addr;
+                        this.log('phase', `[메모리] 할당: ${name} -> 주소 ${addr}, 크기 ${resolvedValue}`);
+                        break;
+                    
+                    case '^': // 포인터 생성
+                        const ptrAddr = 2000 + this.pointers.size * 8;
+                        this.pointers.set(name, { address: ptrAddr, target: resolvedValue });
+                        this.variables[name] = ptrAddr;
+                        this.log('phase', `[포인터] 생성: ${name} -> 주소 ${ptrAddr}, 타겟 ${resolvedValue}`);
+                        break;
+                    
+                    case '%': // 체크섬
+                        const checksum = this.calculateChecksum(resolvedValue);
+                        this.checksums.set(name, checksum);
+                        this.variables[name] = checksum;
+                        this.log('phase', `[체크섬] ${name} = ${checksum}`);
+                        break;
+                    
+                    case '&': // 권한
+                        this.permissions.set(name, { level: resolvedValue });
+                        this.variables[name] = resolvedValue;
+                        this.log('phase', `[권한] ${name} = ${resolvedValue}`);
+                        break;
+                    
+                    case '!': // 활성화
+                        if (this.dependencies.has(name.replace('_준비', '').replace('_점검', '').replace('_가동', '').replace('_인증', '').replace('_열기', '').replace('_통과', '').replace('_초기화', '').replace('_활성화', ''))) {
+                            const depName = name.replace('_준비', '').replace('_점검', '').replace('_가동', '').replace('_인증', '').replace('_열기', '').replace('_통과', '').replace('_초기화', '').replace('_활성화', '');
+                            const dep = this.dependencies.get(depName);
+                            if (dep) {
+                                if (name.includes('_준비')) dep.prepared = true;
+                                if (name.includes('_점검')) dep.inspected = true;
+                                if (name.includes('_가동')) dep.activated = true;
+                            }
+                        }
+                        if (this.types.has(name.replace('_활성화', '').replace('_잠금', ''))) {
+                            const typeName = name.replace('_활성화', '').replace('_잠금', '');
+                            const t = this.types.get(typeName);
+                            if (t) {
+                                if (name.includes('_활성화')) t.enabled = true;
+                                if (name.includes('_잠금')) t.locked = true;
+                            }
+                        }
+                        if (this.sessions.has(name.replace('_인증', '').replace('_열기', ''))) {
+                            const sessName = name.replace('_인증', '').replace('_열기', '');
+                            const sess = this.sessions.get(sessName);
+                            if (sess) {
+                                if (name.includes('_인증')) sess.authenticated = true;
+                                if (name.includes('_열기')) sess.opened = true;
+                            }
+                        }
+                        if (name.includes('세션_생성')) {
+                            this.sessions.set(name, { created: true, authenticated: false, opened: false });
+                            this.log('phase', `[세션] 생성: ${name}`);
+                        } else if (name.includes('런타임')) {
+                            this.currentPhase = 1;
+                            this.log('phase', `[Phase 1] 컴파일 파이프라인 완료`);
+                            this.variables[name] = resolvedValue;
+                        } else {
+                            this.variables[name] = resolvedValue;
+                            this.log('info', `활성화: ${name} = ${resolvedValue}`);
+                        }
+                        break;
+                    
+                    case '@': // 비활성화
+                        this.variables[name] = resolvedValue;
+                        this.log('info', `비활성화: ${name} = ${resolvedValue}`);
+                        break;
+                    
+                    case '*': // 역참조
+                        if (this.pointers.has(name)) {
+                            const ptr = this.pointers.get(name);
+                            this.variables[name] = ptr.target;
+                            this.log('phase', `[역참조] *${name} = ${ptr.target}`);
+                        } else {
+                            this.variables[name] = resolvedValue;
+                        }
+                        break;
+                    
+                    default:
+                        this.variables[name] = resolvedValue;
+                        this.log('info', `변수 할당: ${name} = ${resolvedValue}`);
+                }
+            }
+            
+            executeFunctionCall(node) {
+                const { name, args } = node;
+                
+                // 버퍼 이동
+                if (args.length > 0 && name.includes('버퍼') || name.includes('출력큐') || 
+                    name.includes('콘솔드라이버') || name.includes('출력장치')) {
+                    const argValue = this.evaluate(args[0]);
+                    this.log('phase', `[버퍼 이동] ${name} <- ${argValue}`);
+                    
+                    if (name === '버퍼1') this.buffers.A = argValue;
+                    else if (name === '버퍼2') this.buffers.B = argValue;
+                    else if (name === '버퍼3') this.buffers.C = argValue;
+                    else if (name === '버퍼4') this.buffers.D = argValue;
+                    else if (name === '출력큐') this.buffers.queue.push(argValue);
+                    else if (name === '출력장치') {
+                        this.outputDevice = { ready: true };
+                    }
+                    return;
+                }
+                
+                // 일반 함수 호출
+                if (!this.functions[name]) {
+                    throw new ETError('E-003', 0, `함수 '${name}'이(가) 정의되지 않았습니다. 채널을 바꿔보세요.`);
+                }
+                
+                this.log('info', `함수 호출: ${name}()`);
+                for (const stmt of this.functions[name]) {
+                    this.execute(stmt);
+                }
+            }
+            
+            executeConditional(node) {
+                const condValue = this.evaluate(node.condition);
+                if (condValue) {
+                    this.log('info', '조건 참 - 블록 실행');
+                    for (const stmt of node.body) {
+                        this.execute(stmt);
+                    }
+                }
+            }
+            
+            executeOutput(node) {
+                const value = this.evaluate(node.expression);
+                
+                if (node.outputType === 'console') {
+                    // ASCII 코드면 문자로 변환
+                    if (typeof value === 'number' && value >= 0 && value <= 127) {
+                        const char = String.fromCharCode(value);
+                        this.outputBuffer.push(char);
+                        this.log('phase', `[출력] ${char} (ASCII ${value})`);
+                    } else {
+                        this.outputBuffer.push(String(value));
+                        this.log('phase', `[출력] ${value}`);
+                    }
+                } else if (node.outputType === 'buffer') {
+                    this.buffers.queue.push(value);
+                    this.log('phase', `[버퍼 출력] ${value}`);
+                }
+            }
+            
+            evaluate(node) {
+                if (!node) return null;
+                
+                switch (node.type) {
+                    case 'Variable':
+                        if (!(node.name in this.variables)) {
+                            // 메모리 할당이나 포인터에서 찾아보기
+                            if (this.memory.allocations.has(node.name)) {
+                                return this.memory.allocations.get(node.name).address;
+                            }
+                            if (this.pointers.has(node.name)) {
+                                return this.pointers.get(node.name).address;
+                            }
+                            if (this.checksums.has(node.name)) {
+                                return this.checksums.get(node.name);
+                            }
+                            throw new ETError('E-002', 0, `변수 '${node.name}'을(를) 찾을 수 없습니다. 안테나를 조정해보세요.`);
+                        }
+                        return this.variables[node.name];
+                    case 'StringLiteral':
+                        return node.value;
+                    case 'NumberLiteral':
+                        return node.value;
+                }
+                return null;
+            }
+            
+            calculateChecksum(value) {
+                // 결정적 CRC32 계산
+                const str = String(value);
+                let crc = 0xFFFFFFFF;
+                for (let i = 0; i < str.length; i++) {
+                    crc ^= str.charCodeAt(i);
+                    for (let j = 0; j < 8; j++) {
+                        crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
+                    }
+                }
+                return (crc ^ 0xFFFFFFFF) >>> 0;
+            }
+        }
+
+        // ==========================================
+        // UI 함수들
+        // ==========================================
+
+        function updateLineCount() {
+            const code = document.getElementById('codeEditor').value;
+            const lines = code.split('\n').length;
+            document.getElementById('lineCount').textContent = `${lines}줄`;
+            document.getElementById('statLines').textContent = lines;
+        }
+
+        function updateVariablesTable(interpreter) {
+            const tbody = document.getElementById('variablesTable');
+            tbody.innerHTML = '';
+            
+            for (const [name, value] of Object.entries(interpreter.variables)) {
+                const tr = document.createElement('tr');
+                let type = '일반';
+                if (interpreter.memory.allocations.has(name)) type = '메모리';
+                else if (interpreter.pointers.has(name)) type = '포인터';
+                else if (interpreter.checksums.has(name)) type = '체크섬';
+                else if (interpreter.permissions.has(name)) type = '권한';
+                else if (typeof value === 'number') type = '숫자';
+                else type = '문자열';
+                
+                tr.innerHTML = `
+                    <td class="var-name">${name}</td>
+                    <td class="var-value">${value}</td>
+                    <td class="var-type">${type}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+            
+            document.getElementById('statVars').textContent = Object.keys(interpreter.variables).length;
+        }
+
+        function updateDebugLog(logs) {
+            const logDiv = document.getElementById('debugLog');
+            logDiv.innerHTML = '';
+            
+            for (const log of logs) {
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${log.level}`;
+                entry.innerHTML = `<span class="log-time">[${log.time}]</span> ${log.message}`;
+                logDiv.appendChild(entry);
+            }
+            
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('debugLog').innerHTML = '';
+        }
+
+        function runCode() {
+            const code = document.getElementById('codeEditor').value;
+            const outputDiv = document.getElementById('output');
+            const outputStatus = document.getElementById('outputStatus');
+            
+            const startTime = performance.now();
+            
+            try {
+                outputDiv.innerHTML = '<span class="info">🔧 컴파일 중...</span>\n';
+                outputStatus.textContent = '실행중';
+                outputStatus.style.color = '#ffd93d';
+                
+                const lexer = new Lexer(code);
+                const tokens = lexer.tokenize();
+                
+                const parser = new Parser(tokens);
+                const program = parser.parse();
+                
+                const interpreter = new Interpreter();
+                const result = interpreter.interpret(program);
+                
+                const endTime = performance.now();
+                const executionTime = Math.round(endTime - startTime);
+                
+                outputDiv.innerHTML = `<span class="success">✓ 실행 완료</span>\n\n<span class="success">출력:</span>\n${result}`;
+                outputStatus.textContent = '완료';
+                outputStatus.style.color = '#00ff41';
+                
+                document.getElementById('statTime').textContent = `${executionTime}ms`;
+                document.getElementById('statPhase').textContent = `${Math.round(interpreter.currentPhase * 12)}/12`;
+                
+                updateVariablesTable(interpreter);
+                updateDebugLog(interpreter.debugLog);
+                
+            } catch (error) {
+                outputDiv.innerHTML = `<span class="error">${error.message}</span>`;
+                outputStatus.textContent = '오류';
+                outputStatus.style.color = '#ff0000';
+            }
+        }
+
+        function clearCode() {
+            document.getElementById('codeEditor').value = '';
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('debugLog').innerHTML = '';
+            document.getElementById('variablesTable').innerHTML = '';
+            document.getElementById('outputStatus').textContent = '대기중';
+            document.getElementById('outputStatus').style.color = '#666';
+            document.getElementById('statPhase').textContent = '0/12';
+            updateLineCount();
+        }
+
+        function loadSingleChar() {
+            document.getElementById('codeEditor').value = `* ============================================================ *
+* 단일 문자 'H' 출력 - 전체 파이프라인 체험 *
+* ============================================================ *
+
+* [Phase 1] 컴파일 파이프라인 *
+어 (소스) # 1
+어 (토큰) # 1
+어 (트리) # 1
+어 (의미) # 1
+어 (최적) # 1
+어 (중간) # 1
+어 (조립) # 1
+어 (연결) # 1
+어 (적재) # 1
+어 (런타임) ! 1
+
+* [Phase 2] 의존성 컨테이너 *
+어 (타입서비스) # 1
+어 (타입서비스_준비) ! 1
+어 (타입서비스_점검) ! 1
+어 (타입서비스_가동) ! 1
+어 (메모리서비스) # 1
+어 (메모리서비스_준비) ! 1
+어 (메모리서비스_점검) ! 1
+어 (메모리서비스_가동) ! 1
+어 (포인터서비스) # 1
+어 (포인터서비스_준비) ! 1
+어 (포인터서비스_점검) ! 1
+어 (포인터서비스_가동) ! 1
+어 (출력서비스) # 1
+어 (출력서비스_준비) ! 1
+어 (출력서비스_점검) ! 1
+어 (출력서비스_가동) ! 1
+어 (버퍼서비스) # 1
+어 (버퍼서비스_준비) ! 1
+어 (버퍼서비스_점검) ! 1
+어 (버퍼서비스_가동) ! 1
+어 (권한서비스) # 1
+어 (권한서비스_준비) ! 1
+어 (권한서비스_점검) ! 1
+어 (권한서비스_가동) ! 1
+어 (체크섬서비스) # 1
+어 (체크섬서비스_준비) ! 1
+어 (체크섬서비스_점검) ! 1
+어 (체크섬서비스_가동) ! 1
+어 (문자열서비스) # 1
+어 (문자열서비스_준비) ! 1
+어 (문자열서비스_점검) ! 1
+어 (문자열서비스_가동) ! 1
+
+* [Phase 3] 타입 시스템 *
+어 (Char_생성) # 1
+어 (Char_등록) # 1
+어 (Char_확인) # 1
+어 (Char_활성화) ! 1
+어 (Char_잠금) ! 1
+어 (Byte_생성) # 1
+어 (Byte_등록) # 1
+어 (Byte_확인) # 1
+어 (Byte_활성화) ! 1
+어 (Byte_잠금) ! 1
+어 (Pointer_생성) # 1
+어 (Pointer_등록) # 1
+어 (Pointer_확인) # 1
+어 (Pointer_활성화) ! 1
+어 (Pointer_잠금) ! 1
+
+* [Phase 4] 메모리 시스템 *
+어 (메모리풀) $ 65536
+어 (페이지0) $ 4096
+어 (페이지1) $ 4096
+어 (블록_H) $ 1
+
+* [Phase 5] 권한 시스템 *
+어 (출력권한_요청) & 1
+어 (출력권한_허가) & 1
+어 (출력세션_생성) # 1
+어 (출력세션_인증) ! 1
+어 (출력세션_열기) ! 1
+
+* [Phase 6] 출력 파이프라인 *
+어 (출력장치) # 1
+어 (콘솔드라이버) # 1
+어 (드라이버_초기화) ! 1
+어 (출력파이프라인) # 1
+어 (출력스케줄러) # 1
+어 (권한_통과) ! 1
+
+* [Phase 7] 버퍼 시스템 *
+어 (버퍼1) # 1
+어 (버퍼2) # 1
+어 (버퍼3) # 1
+어 (버퍼4) # 1
+어 (출력큐) # 1
+
+* [Phase 8] 문자 'H' 객체 생성 *
+어 (char_H) # 72
+어 (byte_H) # 72
+어 (encoded_H) # 72
+어 (mem_H) $ 72
+어 (addr_H) ^ 1000
+어 (perm_H) & 1
+어 (ref_H) # 1
+
+* [Phase 9] 체크섬 검증 *
+어 (crc_H) % 72
+어 (sha_H) % 72
+어 (hash_H) % 72
+어 (valid_H) # 1
+
+* [Phase 10] 포인터 연결 *
+어 (ptr_H) ^ 1000
+어 (tag_H) # 1
+어 (link_H) ^ 1000
+어 (deref_H) * 72
+어 (cmp_H) # 1
+
+* [Phase 11] 출력 파이프라인 통과 *
+쩔 (버퍼1) ~ (deref_H)
+쩔 (버퍼2) ~ (버퍼1)
+쩔 (버퍼3) ~ (버퍼2)
+쩔 (버퍼4) ~ (버퍼3)
+쩔 (출력큐) ~ (버퍼4)
+쩔 (콘솔드라이버) ~ (출력큐)
+쩔 (출력장치) ~ (콘솔드라이버)
+비 (char_H) .`;
+            updateLineCount();
+        }
+
+        function loadHelloWorld() {
+            document.getElementById('codeEditor').value = `* ============================================================ *
+* Hello World 전체 (12문자) *
+* ============================================================ *
+
+* [Phase 1] 컴파일 파이프라인 *
+어 (소스) # 1
+어 (토큰) # 1
+어 (트리) # 1
+어 (의미) # 1
+어 (최적) # 1
+어 (중간) # 1
+어 (조립) # 1
+어 (연결) # 1
+어 (적재) # 1
+어 (런타임) ! 1
+
+* [Phase 2] 의존성 *
+어 (타입서비스) # 1
+어 (타입서비스_준비) ! 1
+어 (타입서비스_점검) ! 1
+어 (타입서비스_가동) ! 1
+어 (메모리서비스) # 1
+어 (메모리서비스_준비) ! 1
+어 (메모리서비스_점검) ! 1
+어 (메모리서비스_가동) ! 1
+어 (출력서비스) # 1
+어 (출력서비스_준비) ! 1
+어 (출력서비스_점검) ! 1
+어 (출력서비스_가동) ! 1
+어 (버퍼서비스) # 1
+어 (버퍼서비스_준비) ! 1
+어 (버퍼서비스_점검) ! 1
+어 (버퍼서비스_가동) ! 1
+
+* [Phase 3] 타입 *
+어 (Char_생성) # 1
+어 (Char_등록) # 1
+어 (Char_확인) # 1
+어 (Char_활성화) ! 1
+어 (Char_잠금) ! 1
+
+* [Phase 4] 메모리 *
+어 (메모리풀) $ 65536
+어 (페이지0) $ 4096
+어 (블록_H) $ 1
+어 (블록_e) $ 1
+어 (블록_l1) $ 1
+어 (블록_l2) $ 1
+어 (블록_o) $ 1
+어 (블록_sp) $ 1
+어 (블록_W) $ 1
+어 (블록_o2) $ 1
+어 (블록_r) $ 1
+어 (블록_l3) $ 1
+어 (블록_d) $ 1
+어 (블록_ex) $ 1
+
+* [Phase 5] 권한 *
+어 (출력권한_요청) & 1
+어 (출력권한_허가) & 1
+어 (출력세션_생성) # 1
+어 (출력세션_인증) ! 1
+어 (출력세션_열기) ! 1
+
+* [Phase 6] 출력 파이프라인 *
+어 (출력장치) # 1
+어 (콘솔드라이버) # 1
+어 (드라이버_초기화) ! 1
+어 (출력파이프라인) # 1
+어 (권한_통과) ! 1
+
+* [Phase 7] 버퍼 *
+어 (버퍼1) # 1
+어 (버퍼2) # 1
+어 (버퍼3) # 1
+어 (버퍼4) # 1
+어 (출력큐) # 1
+
+* [Phase 8] 문자 객체 생성 (H, e, l, l, o, space, W, o, r, l, d, !) *
+어 (char_H) # 72
+어 (char_e) # 101
+어 (char_l1) # 108
+어 (char_l2) # 108
+어 (char_o) # 111
+어 (char_sp) # 32
+어 (char_W) # 87
+어 (char_o2) # 111
+어 (char_r) # 114
+어 (char_l3) # 108
+어 (char_d) # 100
+어 (char_ex) # 33
+
+* [Phase 9] 체크섬 *
+어 (crc_H) % 72
+어 (crc_e) % 101
+어 (crc_l1) % 108
+어 (crc_l2) % 108
+어 (crc_o) % 111
+어 (crc_sp) % 32
+어 (crc_W) % 87
+어 (crc_o2) % 111
+어 (crc_r) % 114
+어 (crc_l3) % 108
+어 (crc_d) % 100
+어 (crc_ex) % 33
+
+* [Phase 10] 포인터 *
+어 (ptr_H) ^ 1000
+어 (ptr_e) ^ 1008
+어 (ptr_l1) ^ 1016
+어 (ptr_l2) ^ 1024
+어 (ptr_o) ^ 1032
+어 (ptr_sp) ^ 1040
+어 (ptr_W) ^ 1048
+어 (ptr_o2) ^ 1056
+어 (ptr_r) ^ 1064
+어 (ptr_l3) ^ 1072
+어 (ptr_d) ^ 1080
+어 (ptr_ex) ^ 1088
+
+* [Phase 11] 출력 *
+비 (char_H) .
+비 (char_e) .
+비 (char_l1) .
+비 (char_l2) .
+비 (char_o) .
+비 (char_sp) .
+비 (char_W) .
+비 (char_o2) .
+비 (char_r) .
+비 (char_l3) .
+비 (char_d) .
+비 (char_ex) .`;
+            updateLineCount();
+        }
+
+        function loadSimple() {
+            document.getElementById('codeEditor').value = `* 간단한 테스트 *
+
+어 (a) # 10
+어 (b) # 20
+어 (c) # 30
+
+비 (a) .
+비 (b) .
+비 (c) .`;
+            updateLineCount();
+        }
+
+        function loadMemoryTest() {
+            document.getElementById('codeEditor').value = `* 메모리 시스템 테스트 *
+
+* 메모리 풀 생성 *
+어 (메모리풀) $ 65536
+
+* 페이지 생성 *
+어 (페이지0) $ 4096
+어 (페이지1) $ 4096
+
+* 블록 할당 *
+어 (블록1) $ 100
+어 (블록2) $ 200
+
+* 포인터 생성 *
+어 (ptr1) ^ 1000
+어 (ptr2) ^ 1008
+
+* 체크섬 계산 *
+어 (crc1) % 100
+어 (crc2) % 200
+
+* 권한 설정 *
+어 (perm1) & 1
+
+비 (ptr1) .
+비 (ptr2) .
+비 (crc1) .
+비 (crc2) .`;
+            updateLineCount();
+        }
+
+        document.getElementById('codeEditor').addEventListener('input', updateLineCount);
+        updateLineCount();
+    </script>
+</body>
+</html>
