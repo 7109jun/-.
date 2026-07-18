@@ -6,27 +6,727 @@
 코드를 드리겠습니다
 Jopsydian.html로 저장하세요. XD
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>JOCP V6.1 - Fixed</title>
+  <meta charset="UTF-8">
+  <title>JOCP - 완전체 (모든 기능 포함)</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Pretendard', sans-serif; max-width: 1400px; margin: 0 auto; padding: 20px; background: #f8f9fa; color: #333; }
-    .toolbar { display: flex; gap: 10px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef; }
-    .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; color: white; }
+    body { font-family: sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .toolbar { display: flex; gap: 10px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #eee; }
+    .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
     .btn-save { background: #4a9eff; }
     .btn-export { background: #2ecc71; }
     .btn-load { background: #9b59b6; }
     .btn:hover { opacity: 0.9; }
     
-    .editor-container { display: flex; height: 80vh; border: 1px solid #ced4da; border-radius: 8px; overflow: hidden; background: #ffffff; }
-    .panel { overflow: auto; flex: 1; }
+    .editor-container { display: flex; gap: 20px; height: 80vh; }
+    textarea { flex: 1; height: 100%; font-family: monospace; padding: 15px; border: 1px solid #ccc; border-radius: 8px; resize: none; }
+    #preview { flex: 1; height: 100%; overflow-y: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; }
     
-    textarea { width: 100%; height: 100%; font-family: 'Fira Code', monospace; font-size: 14px; padding: 15px; border: none; resize: none; outline: none; background: #fafafa; }
+    h1, h2, h3 { margin-top: 20px; }
+    p { line-height: 1.6; }
+    strong { font-weight: bold; }
+    em { font-style: italic; }
+    del { text-decoration: line-through; }
+    ins { text-decoration: underline; }
+    hr { border: none; border-top: 2px solid #e9ecef; margin: 24px 0; }
     
-    #preview { padding: 25px; min-height: 100%; }
+    /* 표 스타일 */
+    table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+    th, td { border: 1px solid #dee2e6; padding: 10px 15px; text-align: left; }
+    th { background: #f8f9fa; font-weight: bold; }
+    
+    /* 복사 블록 */
+    .jocp-copy-block { position: relative; background: #212529; color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .jocp-copy-block pre { margin: 0; white-space: pre-wrap; font-family: monospace; }
+    .copy-btn { position: absolute; top: 10px; right: 10px; background: #4a9eff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    
+    /* 링크 */
+    a { color: #4a9eff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    blockquote { border-left: 4px solid #4a9eff; padding: 10px 20px; background: #f8f9fa; margin: 15px 0; border-radius: 0 6px 6px 0; }
+    
+    .jocp-game { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
+    .jocp-game-title { font-weight: bold; margin-bottom: 15px; font-size: 1.1em; }
+    .jocp-game-container { border: 2px solid #333; border-radius: 6px; overflow: hidden; background: #000; position: relative; }
 
+    .jocp-gui { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
+    .jocp-gui-title { font-weight: bold; margin-bottom: 15px; font-size: 1.1em; }
+    .jocp-gui-btn { display: inline-block; padding: 10px 20px; margin: 5px; background: #4a9eff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .jocp-gui-btn:hover { background: #3a8eef; }
+
+    .jocp-media { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
+    .jocp-media-title { font-weight: bold; margin-bottom: 15px; font-size: 1.1em; }
+    .jocp-media video, .jocp-media audio { width: 100%; max-width: 100%; border-radius: 6px; }
+    .jocp-media iframe { width: 100%; aspect-ratio: 16/9; border-radius: 6px; border: none; }
+
+    .jocp-quiz { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
+    .jocp-quiz-title { font-weight: bold; margin-bottom: 15px; font-size: 1.1em; color: #495057; }
+    .jocp-quiz-option { display: block; padding: 10px 15px; margin: 8px 0; border: 1px solid #dee2e6; border-radius: 6px; cursor: pointer; background: white; transition: 0.2s; }
+    .jocp-quiz-option:hover { background: #e9ecef; }
+    .jocp-quiz-option.correct { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+    .jocp-quiz-option.wrong { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+
+    .jocp-gallery { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
+    .jocp-gallery-title { font-weight: bold; margin-bottom: 15px; font-size: 1.1em; }
+    .jocp-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+    .jocp-gallery-grid img { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; cursor: pointer; }
+    .jocp-gallery-grid img:hover { transform: scale(1.03); }
+
+    .jocp-meta-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .jocp-meta-title { font-size: 2em; font-weight: bold; margin-bottom: 10px; }
+    .jocp-meta-info { display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9em; opacity: 0.9; margin-bottom: 15px; }
+    .jocp-meta-item { display: flex; align-items: center; gap: 5px; }
+    .jocp-meta-desc { font-size: 1.05em; line-height: 1.6; opacity: 0.95; }
+    .jocp-meta-toggle { margin-top: 15px; padding: 8px 16px; background: rgba(255,255,255,0.2); border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 0.9em; }
+    .jocp-meta-toggle:hover { background: rgba(255,255,255,0.3); }
+    .jocp-meta-details { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 0.9em; }
+    .jocp-meta-details.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button class="btn btn-save" onclick="downloadJOP()">💾 .jop 저장</button>
+    <button class="btn btn-export" onclick="downloadJPC()">🚀 .jpc 내보내기</button>
+    <button class="btn btn-load" onclick="document.getElementById('file-input').click()">📂 .jop 불러오기</button>
+    <input type="file" id="file-input" accept=".jop" style="display:none" onchange="loadJOP(event)">
+  </div>
+
+  <div class="editor-container">
+    <textarea id="input" oninput="render()">~meta
+제목: JOCP 완전체 테스트
+저자: 개발자
+날짜: 2026-07-18
+태그: JOCP, 완전체, 테스트
+설명: 모든 기능이 포함된 JOCP 문서입니다!
+~
+
+!!!!!! JOCP 완전체 테스트
+
+!!!!! 1. 기본 문법
+
+이것은 ~기울임~이고, {게}이며, `밑줄+게` 입니다.
+_취소선_ 테스트
+?빨간색?<255,0,0> ?파란색?<0,0,255>
+^반투명^50%
+
+!!!!! 2. 표 (Table)
+
+# 이름 # 가격 # 수량
+# 포션 # 50골드 # 10개
+# 엘릭서 # 120골드 # 5개
+
+!!!!! 3. 링크 & 이미지
+
+일반 링크: [[https://naver.com]]
+하이퍼링크: =네이버로=[https://naver.com]
+앵커: [1. 기본 문법][기본으로 이동]
+이미지: !{https://via.placeholder.com/300x200}
+인용구: &이것은 인용구입니다&
+
+!!!!! 4. 복사 블록
+
+~
+console.log("이건 복사 블록입니다!");
+function hello() { return "안녕!"; }
+~
+
+!!!!! 5. 구분선
+
+---
+
+!!!!! 6. 즈
+
+~quiz
+질문: JOCP에서 굵게 기호는?
+- {텍스트} (정답)
+- *텍스트*
+~
+
+!!!!! 7. 유튜브 & 오디오
+
+~video
+소스: https://youtu.be/QQyYCAvkOXY
+제목: 뽀로로
+~
+
+~audio
+소스: https://www.w3schools.com/html/horse.mp3
+제목: 말 울음소리
+~
+
+!!!!! 8. 갤러리
+
+~gallery
+제목: 샘플 갤러리
+- https://via.placeholder.com/400x300/FF6B6B/FFFFFF?text=Photo+1
+- https://via.placeholder.com/400x300/4ECDC4/FFFFFF?text=Photo+2
+- https://via.placeholder.com/400x300/45B7D1/FFFFFF?text=Photo+3
+~
+
+!!!!! 9. GUI 버튼
+
+~gui
+제목: 제어 패널
+- 알림: alert('안녕하세요!')
+- 배경 변경: document.body.style.background = '#e9ecef';
+~
+
+!!!!! 10. 게임
+
+~game
+제목: 튕기는 공
+html:
+<div class="game-box">
+  <div class="ball"></div>
+</div>
+css:
+.game-box { width: 100%; height: 200px; background: #1a1a1a; position: relative; }
+.ball { width: 30px; height: 30px; background: #ff6b6b; border-radius: 50%; position: absolute; }
+js:
+const ball = this.querySelector('.ball');
+let x = 0, dx = 3;
+function animate() {
+  x += dx;
+  if (x > 370 || x < 0) dx = -dx;
+  ball.style.left = x + 'px';
+  ball.style.top = '85px';
+  requestAnimationFrame(animate);
+}
+animate();
+~
+
+!!!!! 11. 리스트 & 체크리스트
+
+* 1단계
+** 2단계 중첩
+*** 3단계 더 깊게
+* 리스트 2
+
++ 할 일 1
+@ 완료된 일 1
++ 할 일 2
+
+%%이건 주석이라 안 보입니다%%
+</textarea>
+    <div id="preview"></div>
+  </div>
+
+  <script>
+    let scriptStore = [];
+    let metaData = {};
+
+    const YOUTUBE_REGEX = /(?:youtube\.com\/(?:shorts\/|[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+
+    function escapeHtml(text) {
+      if (text == null) return '';
+      const str = String(text);
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return str.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function slugify(text) {
+      if (!text) return 'untitled';
+      return String(text).replace(/\s+/g, '-').replace(/[^\w\-가-ㄱ-ㅎㅏ-ㅣ]/g, '').toLowerCase() || 'untitled';
+    }
+
+    function parseInline(text) {
+      if (text == null) return '';
+      const tokens = [];
+      const store = (html) => {
+        const token = `§${tokens.length}§`;
+        tokens.push(html);
+        return token;
+      };
+
+      let result = String(text);
+      
+      // 주석 제거
+      result = result.replace(/%%[^%]*%%/g, '');
+      
+      // 인라인 요소 (순서 중요!)
+      result = result.replace(/!\{([^}]+)\}/g, (m, src) => store(`<img src="${src}" alt="image" style="max-width:100%;border-radius:4px;" />`));
+      result = result.replace(/=([^=]+)=\[([^\]]+)\]/g, (m, label, url) => store(`<a href="${url}" target="_blank">${label}</a>`));
+      result = result.replace(/\[([^\]]+)\]\[([^\]]+)\]/g, (m, target, label) => store(`<a href="#${slugify(target)}" style="background:#e7f5ff;padding:2px 6px;border-radius:4px;border:1px solid #4a9eff;">${label}</a>`));
+      result = result.replace(/\[\[([^\]]+)\]\]/g, (m, url) => store(`<a href="${url}" target="_blank">${url}</a>`));
+      result = result.replace(/&([^&]+)&/g, (m, content) => store(`<blockquote>${content}</blockquote>`));
+      result = result.replace(/`([^`]+)`/g, (m, content) => store(`<ins><strong>${content}</strong></ins>`));
+      result = result.replace(/\?([^?]+)\?<(\d+,\d+,\d+)>/g, (m, content, rgb) => store(`<span style="color:rgb(${rgb})">${content}</span>`));
+      result = result.replace(/\^([^^]+)\^(\d+)%/g, (m, content, percent) => store(`<span style="opacity:${Math.min(100, Math.max(0, parseInt(percent) || 0)) / 100}">${content}</span>`));
+      result = result.replace(/\{([^}]+)\}/g, (m, content) => store(`<strong>${content}</strong>`));
+      result = result.replace(/~([^~]+)~/g, (m, content) => store(`<em>${content}</em>`));
+      result = result.replace(/_([^_]+)_/g, (m, content) => store(`<del>${content}</del>`));
+
+      return result.replace(/§(\d+)§/g, (m, idx) => tokens[parseInt(idx)] || '');
+    }
+
+    function executeScript(id) {
+      const code = scriptStore[id];
+      if (code) {
+        try {
+          new Function(code)();
+        } catch (e) {
+          alert('스크립트 오류: ' + e.message);
+        }
+      }
+    }
+
+    function checkQuiz(element, selectedIndex, correctIndex) {
+      const parent = element.parentElement;
+      if (!parent) return;
+      const options = parent.querySelectorAll('.jocp-quiz-option');
+      options.forEach((opt, idx) => {
+        opt.classList.remove('correct', 'wrong');
+        if (idx === correctIndex) opt.classList.add('correct');
+        else if (idx === selectedIndex) opt.classList.add('wrong');
+      });
+    }
+
+    function copyText(btn) {
+      const block = btn.closest('.jocp-copy-block');
+      if (!block) return;
+      const code = block.querySelector('code');
+      if (!code) return;
+      const text = code.innerText;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          const original = btn.textContent;
+          btn.textContent = '복사 완료! ✔';
+          setTimeout(() => { btn.textContent = original; }, 1500);
+        });
+      }
+    }
+
+    function parseMetaTemplate(lines, startIdx) {
+      metaData = {};
+      let i = startIdx + 1;
+      while (i < lines.length && lines[i].trim() !== '~') {
+        const line = lines[i];
+        const colonIdx = line.indexOf(':');
+        if (colonIdx !== -1) {
+          const key = line.substring(0, colonIdx).trim();
+          const value = line.substring(colonIdx + 1).trim();
+          if (key) metaData[key] = value;
+        }
+        i++;
+      }
+      return { nextIdx: i + 1 };
+    }
+
+    function renderMetaData() {
+      if (Object.keys(metaData).length === 0) return '';
+      
+      const title = metaData['제목'] || metaData['title'] || '제목 없음';
+      const author = metaData['저자'] || metaData['author'] || '';
+      const date = metaData['날짜'] || metaData['date'] || '';
+      const tags = metaData['태그'] || metaData['tags'] || '';
+      const desc = metaData['설명'] || metaData['description'] || '';
+
+      let html = `<div class="jocp-meta-box">`;
+      html += `<div class="jocp-meta-title">${escapeHtml(title)}</div>`;
+      html += `<div class="jocp-meta-info">`;
+      if (author) html += `<div class="jocp-meta-item">✍️ ${escapeHtml(author)}</div>`;
+      if (date) html += `<div class="jocp-meta-item"> ${escapeHtml(date)}</div>`;
+      if (tags) html += `<div class="jocp-meta-item">🏷️ ${escapeHtml(tags)}</div>`;
+      html += `</div>`;
+      
+      if (desc) {
+        html += `<div class="jocp-meta-desc">${escapeHtml(desc)}</div>`;
+      }
+      
+      html += `<button class="jocp-meta-toggle" onclick="this.nextElementSibling.classList.toggle('hidden'); this.textContent = this.nextElementSibling.classList.contains('hidden') ? ' 메타데이터 보기' : '📋 메타데이터 숨기기';">📋 메타데이터 숨기기</button>`;
+      html += `<div class="jocp-meta-details">`;
+      
+      const reservedKeys = ['제목', 'title', '저자', 'author', '날짜', 'date', '태그', 'tags', '설명', 'description'];
+      for (const [key, value] of Object.entries(metaData)) {
+        if (!reservedKeys.includes(key)) {
+          html += `<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}</div>`;
+        }
+      }
+      
+      html += `</div></div>`;
+      return html;
+    }
+
+    function parseQuizTemplate(lines, startIdx) {
+      let i = startIdx + 1;
+      let question = '';
+      const options = [];
+      let correctIndex = -1;
+
+      while (i < lines.length && lines[i].trim() !== '~') {
+        const line = lines[i].trim();
+        if (line.startsWith('질문:')) question = line.substring(3).trim();
+        else if (line.startsWith('- ')) {
+          const optText = line.substring(2);
+          if (optText.includes('(정답)')) {
+            correctIndex = options.length;
+            options.push(optText.replace('(정답)', '').trim());
+          } else {
+            options.push(optText);
+          }
+        }
+        i++;
+      }
+
+      let html = `<div class="jocp-quiz"><div class="jocp-quiz-title">📝 ${parseInline(question)}</div>`;
+      options.forEach((opt, idx) => {
+        html += `<div class="jocp-quiz-option" onclick="checkQuiz(this, ${idx}, ${correctIndex})">${parseInline(opt)}</div>`;
+      });
+      html += `</div>`;
+      return { html, nextIdx: i + 1 };
+    }
+
+    function parseGalleryTemplate(lines, startIdx) {
+      let i = startIdx + 1;
+      let title = '갤러리';
+      const images = [];
+
+      while (i < lines.length && lines[i].trim() !== '~') {
+        const line = lines[i].trim();
+        if (line.startsWith('제목:')) title = line.substring(3).trim();
+        else if (line.startsWith('- ')) {
+          const url = line.substring(2).trim();
+          if (url) images.push(url);
+        }
+        i++;
+      }
+
+      let html = `<div class="jocp-gallery"><div class="jocp-gallery-title">🖼️ ${parseInline(title)}</div><div class="jocp-gallery-grid">`;
+      images.forEach(img => {
+        html += `<img src="${img}" alt="gallery" loading="lazy" />`;
+      });
+      html += `</div></div>`;
+      return { html, nextIdx: i + 1 };
+    }
+
+    function parseVideoTemplate(lines, startIdx) {
+      let i = startIdx + 1;
+      let source = '';
+      let title = '동영상';
+
+      while (i < lines.length && lines[i].trim() !== '~') {
+        const line = lines[i].trim();
+        if (line.startsWith('소스:')) source = line.substring(3).trim();
+        else if (line.startsWith('제목:')) title = line.substring(3).trim();
+        i++;
+      }
+
+      let mediaHTML = '';
+      const ytMatch = source.match(YOUTUBE_REGEX);
+      
+      if (ytMatch) {
+        const videoId = ytMatch[1];
+        mediaHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
+      } else if (source) {
+        mediaHTML = `<video controls src="${source}"></video>`;
+      }
+
+      const html = `<div class="jocp-media"><div class="jocp-media-title">🎬 ${parseInline(title)}</div>${mediaHTML}</div>`;
+      return { html, nextIdx: i + 1 };
+    }
+
+    function parseAudioTemplate(lines, startIdx) {
+      let i = startIdx + 1;
+      let source = '';
+      let title = '음악';
+
+      while (i < lines.length && lines[i].trim() !== '~') {
+        const line = lines[i].trim();
+        if (line.startsWith('소스:')) source = line.substring(3).trim();
+        else if (line.startsWith('제목:')) title = line.substring(3).trim();
+        i++;
+      }
+
+      const audioHTML = source ? `<audio controls src="${source}"></audio>` : '';
+      const html = `<div class="jocp-media"><div class="jocp-media-title">🎵 ${parseInline(title)}</div>${audioHTML}</div>`;
+      return { html, nextIdx: i + 1 };
+    }
+
+    function parseGUITemplate(lines, startIdx) {
+      let i = startIdx + 1;
+      let title = 'GUI';
+      let buttons = [];
+
+      while (i < lines.length && lines[i].trim() !== '~') {
+        const line = lines[i].trim();
+        if (line.startsWith('제목:')) title = line.substring(3).trim();
+        else if (line.startsWith('- ')) {
+          const btnText = line.substring(2);
+          const colonIdx = btnText.indexOf(':');
+          if (colonIdx !== -1) {
+            const label = btnText.substring(0, colonIdx).trim();
+            const code = btnText.substring(colonIdx + 1).trim();
+            buttons.push({ label, code });
+          }
+        }
+        i++;
+      }
+
+      let html = `<div class="jocp-gui"><div class="jocp-gui-title">️ ${parseInline(title)}</div>`;
+      buttons.forEach((btn) => {
+        const id = scriptStore.length;
+        scriptStore.push(btn.code);
+        html += `<button class="jocp-gui-btn" onclick="executeScript(${id})">${parseInline(btn.label)}</button>`;
+      });
+      html += `</div>`;
+      return { html, nextIdx: i + 1 };
+    }
+
+    function parseGameTemplate(lines, startIdx) {
+      let i = startIdx + 1;
+      let title = '게임';
+      let htmlContent = '';
+      let cssContent = '';
+      let jsContent = '';
+      let currentSection = '';
+
+      while (i < lines.length && lines[i].trim() !== '~') {
+        const line = lines[i];
+        if (line.startsWith('제목:')) {
+          title = line.substring(3).trim();
+          currentSection = '';
+        } else if (line.trim() === 'html:') currentSection = 'html';
+        else if (line.trim() === 'css:') currentSection = 'css';
+        else if (line.trim() === 'js:') currentSection = 'js';
+        else if (currentSection === 'html') htmlContent += line + '\n';
+        else if (currentSection === 'css') cssContent += line + '\n';
+        else if (currentSection === 'js') jsContent += line + '\n';
+        i++;
+      }
+
+      const gameId = 'game_' + Math.random().toString(36).substr(2, 9);
+      const parsedHtml = parseInline(htmlContent);
+
+      const html = `<div class="jocp-game" id="${gameId}">
+        <div class="jocp-game-title">🎮 ${parseInline(title)}</div>
+        <style>${cssContent}</style>
+        <div class="jocp-game-container">${parsedHtml}</div>
+      </div>`;
+
+      setTimeout(() => {
+        const el = document.getElementById(gameId);
+        if (el) {
+          const container = el.querySelector('.jocp-game-container');
+          if (container && jsContent.trim()) {
+            try {
+              new Function(jsContent).call(container);
+            } catch (e) {
+              console.error('Game error:', e);
+            }
+          }
+        }
+      }, 100);
+
+      return { html, nextIdx: i + 1 };
+    }
+
+    function parseBlock(text) {
+      const lines = text.split('\n');
+      let html = '';
+      let i = 0;
+      let metaRendered = false;
+
+      while (i < lines.length) {
+        const line = lines[i];
+
+        // 메타데이터
+        if (/^~meta\s*$/.test(line) && !metaRendered) {
+          const result = parseMetaTemplate(lines, i);
+          html += renderMetaData();
+          i = result.nextIdx;
+          metaRendered = true;
+          continue;
+        }
+
+        // 퀴즈
+        if (/^~quiz\s*$/.test(line)) {
+          const result = parseQuizTemplate(lines, i);
+          html += result.html;
+          i = result.nextIdx;
+          continue;
+        }
+
+        // 갤러리
+        if (/^~gallery\s*$/.test(line)) {
+          const result = parseGalleryTemplate(lines, i);
+          html += result.html;
+          i = result.nextIdx;
+          continue;
+        }
+
+        // 비디오
+        if (/^~video\s*$/.test(line)) {
+          const result = parseVideoTemplate(lines, i);
+          html += result.html;
+          i = result.nextIdx;
+          continue;
+        }
+
+        // 오디오
+        if (/^~audio\s*$/.test(line)) {
+          const result = parseAudioTemplate(lines, i);
+          html += result.html;
+          i = result.nextIdx;
+          continue;
+        }
+
+        // GUI
+        if (/^~gui\s*$/.test(line)) {
+          const result = parseGUITemplate(lines, i);
+          html += result.html;
+          i = result.nextIdx;
+          continue;
+        }
+
+        // 게임
+        if (/^~game\s*$/.test(line)) {
+          const result = parseGameTemplate(lines, i);
+          html += result.html;
+          i = result.nextIdx;
+          continue;
+        }
+
+        // 복사 블록
+        if (/^~\s*$/.test(line)) {
+          let content = '';
+          i++;
+          while (i < lines.length && !/^~\s*$/.test(lines[i])) {
+            content += lines[i] + '\n';
+            i++;
+          }
+          i++;
+          html += `<div class="jocp-copy-block"><button class="copy-btn" onclick="copyText(this)">복사</button><pre><code>${escapeHtml(content.trim())}</code></pre></div>`;
+          continue;
+        }
+
+        // 표
+        if (/^#\s/.test(line)) {
+          const rows = [];
+          while (i < lines.length && /^#\s/.test(lines[i])) {
+            const cells = lines[i].split('#').map(c => c.trim()).filter(c => c !== '');
+            if (cells.length > 0) rows.push(cells);
+            i++;
+          }
+          if (rows.length > 0) {
+            html += '<table>';
+            rows.forEach((row, idx) => {
+              const tag = idx === 0 ? 'th' : 'td';
+              html += '<tr>' + row.map(cell => `<${tag}>${parseInline(cell)}</${tag}>`).join('') + '</tr>';
+            });
+            html += '</table>';
+          }
+          continue;
+        }
+
+        // 제목
+        if (/^(!{1,6})\s+(.+)$/.test(line)) {
+          const match = line.match(/^(!{1,6})\s+(.+)$/);
+          const level = 7 - match[1].length;
+          html += `<h${level} id="${slugify(match[2])}">${parseInline(match[2])}</h${level}>`;
+          i++;
+          continue;
+        }
+
+        // 리스트
+        if (/^(\*{1,6})\s+(.+)$/.test(line)) {
+          let listHtml = '<ul>';
+          let prevLevel = 0;
+          while (i < lines.length && /^(\*{1,6})\s+(.+)$/.test(lines[i])) {
+            const match = lines[i].match(/^(\*{1,6})\s+(.+)$/);
+            const level = match[1].length;
+            const content = match[2];
+            if (level > prevLevel) for (let j = 0; j < level - prevLevel; j++) listHtml += '<ul>';
+            else if (level < prevLevel) for (let j = 0; j < prevLevel - level; j++) listHtml += '</ul>';
+            listHtml += `<li>${parseInline(content)}</li>`;
+            prevLevel = level;
+            i++;
+          }
+          for (let j = 0; j < prevLevel; j++) listHtml += '</ul>';
+          html += listHtml;
+          continue;
+        }
+
+        // 체크리스트
+        if (/^\+\s+(.+)$/.test(line)) {
+          const match = line.match(/^\+\s+(.+)$/);
+          html += `<label><input type="checkbox"> ${parseInline(match[1])}</label><br>`;
+          i++;
+          continue;
+        }
+
+        if (/^@\s+(.+)$/.test(line)) {
+          const match = line.match(/^@\s+(.+)$/);
+          html += `<label style="text-decoration:line-through;color:#999;"><input type="checkbox" checked disabled> ${parseInline(match[1])}</label><br>`;
+          i++;
+          continue;
+        }
+
+        // 구분선
+        if (/^-{3,}\s*$/.test(line)) {
+          html += '<hr />';
+          i++;
+          continue;
+        }
+
+        // 빈 줄
+        if (line.trim() === '') {
+          i++;
+          continue;
+        }
+
+        // 일반 문단
+        html += `<p>${parseInline(line)}</p>`;
+        i++;
+      }
+
+      return html;
+    }
+
+    function render() {
+      scriptStore = [];
+      metaData = {};
+      const input = document.getElementById('input');
+      const preview = document.getElementById('preview');
+      preview.innerHTML = parseBlock(input.value);
+    }
+
+    function downloadJOP() {
+      const content = document.getElementById('input').value;
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'document.jop';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadJPC() {
+      const source = document.getElementById('input').value;
+      const rendered = parseBlock(source);
+      const title = metaData['제목'] || metaData['title'] || 'JOCP Document';
+      
+      const metaTags = Object.entries(metaData)
+        .map(([k, v]) => `<meta name="${escapeHtml(k)}" content="${escapeHtml(v)}">`)
+        .join('\n    ');
+      
+      const html = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>${escapeHtml(title)}</title>
+  ${metaTags}
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    h1, h2, h3 { margin-top: 20px; }
+    p { line-height: 1.6; }
+    hr { border: none; border-top: 2px solid #eee; margin: 24px 0; }
+    table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+    th, td { border: 1px solid #dee2e6; padding: 10px 15px; text-align: left; }
+    th { background: #f8f9fa; }
+    a { color: #4a9eff; }
+    blockquote { border-left: 4px solid #4a9eff; padding: 10px 20px; background: #f8f9fa; margin: 15px 0; }
     .jocp-meta-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; }
     .jocp-meta-title { font-size: 2em; font-weight: bold; margin-bottom: 10px; }
     .jocp-meta-info { display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9em; opacity: 0.9; margin-bottom: 15px; }
@@ -35,617 +735,80 @@ Jopsydian.html로 저장하세요. XD
     .jocp-meta-toggle { margin-top: 15px; padding: 8px 16px; background: rgba(255,255,255,0.2); border: none; border-radius: 6px; color: white; cursor: pointer; }
     .jocp-meta-details { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 0.9em; }
     .jocp-meta-details.hidden { display: none; }
-
-    #preview h1, #preview h2, #preview h3 { margin-top: 24px; margin-bottom: 12px; }
-    #preview p { line-height: 1.6; margin-bottom: 12px; }
-    
-    .jocp-copy-block { position: relative; background: #212529; color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; }
-    .jocp-copy-block pre { margin: 0; white-space: pre-wrap; font-family: monospace; }
-    .copy-btn { position: absolute; top: 10px; right: 10px; background: #4a9eff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-    
-    .jocp-quiz { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
-    .jocp-quiz-title { font-weight: bold; margin-bottom: 15px; font-size: 1.1em; }
+    .jocp-game, .jocp-gui, .jocp-media, .jocp-quiz, .jocp-gallery { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
+    .jocp-game-title, .jocp-gui-title, .jocp-media-title, .jocp-quiz-title, .jocp-gallery-title { font-weight: bold; margin-bottom: 15px; }
+    .jocp-game-container { border: 2px solid #333; border-radius: 6px; overflow: hidden; background: #000; position: relative; }
+    .jocp-gui-btn { display: inline-block; padding: 10px 20px; margin: 5px; background: #4a9eff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .jocp-media video, .jocp-media audio { width: 100%; border-radius: 6px; }
+    .jocp-media iframe { width: 100%; aspect-ratio: 16/9; border-radius: 6px; border: none; }
     .jocp-quiz-option { display: block; padding: 10px 15px; margin: 8px 0; border: 1px solid #dee2e6; border-radius: 6px; cursor: pointer; background: white; }
     .jocp-quiz-option:hover { background: #e9ecef; }
     .jocp-quiz-option.correct { background: #d4edda; border-color: #c3e6cb; color: #155724; }
     .jocp-quiz-option.wrong { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
-    
-    .jocp-gallery { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
-    .jocp-gallery-title { font-weight: bold; margin-bottom: 15px; }
     .jocp-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
     .jocp-gallery-grid img { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; cursor: pointer; }
-    
-    .jocp-media { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
-    .jocp-media-title { font-weight: bold; margin-bottom: 15px; }
-    .jocp-media video, .jocp-media audio { width: 100%; border-radius: 6px; }
-    .jocp-media iframe { width: 100%; aspect-ratio: 16/9; border-radius: 6px; border: none; }
-    
-    .jocp-gui { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
-    .jocp-gui-title { font-weight: bold; margin-bottom: 15px; }
-    .jocp-gui-btn { display: inline-block; padding: 10px 20px; margin: 5px; background: #4a9eff; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    
-    .jocp-game { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }
-    .jocp-game-title { font-weight: bold; margin-bottom: 15px; }
-    .jocp-game-container { border: 2px solid #333; border-radius: 6px; overflow: hidden; background: #000; position: relative; }
-
-    .jocp-checkbox { display: block; margin: 8px 0; cursor: pointer; }
-    .jocp-checkbox.completed { color: #adb5bd; text-decoration: line-through; }
-    #preview hr { border: none; border-top: 2px solid #e9ecef; margin: 24px 0; }
-    #preview table { border-collapse: collapse; width: 100%; margin: 15px 0; }
-    #preview th, #preview td { border: 1px solid #dee2e6; padding: 10px 15px; text-align: left; }
-    #preview th { background: #f8f9fa; font-weight: bold; }
-    #preview a { color: #4a9eff; }
-    #preview blockquote { border-left: 4px solid #4a9eff; padding: 10px 20px; background: #f8f9fa; margin: 15px 0; }
+    .jocp-copy-block { position: relative; background: #212529; color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .jocp-copy-block pre { margin: 0; white-space: pre-wrap; }
+    .copy-btn { position: absolute; top: 10px; right: 10px; background: #4a9eff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
   </style>
+  <script>
+    const scriptStore = ${JSON.stringify(scriptStore)};
+    function executeScript(id) {
+      const code = scriptStore[id];
+      if (code) { try { new Function(code)(); } catch (e) { alert('오류: ' + e.message); } }
+    }
+    function checkQuiz(element, selectedIndex, correctIndex) {
+      const parent = element.parentElement;
+      if (!parent) return;
+      const options = parent.querySelectorAll('.jocp-quiz-option');
+      options.forEach((opt, idx) => {
+        opt.classList.remove('correct', 'wrong');
+        if (idx === correctIndex) opt.classList.add('correct');
+        else if (idx === selectedIndex) opt.classList.add('wrong');
+      });
+    }
+    function copyText(btn) {
+      const block = btn.closest('.jocp-copy-block');
+      if (!block) return;
+      const code = block.querySelector('code');
+      if (!code) return;
+      const text = code.innerText;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          const original = btn.textContent;
+          btn.textContent = '복사 완료! ✔';
+          setTimeout(() => { btn.textContent = original; }, 1500);
+        });
+      }
+    }
+  <\/script>
 </head>
 <body>
-
-  <div class="toolbar">
-    <button class="btn btn-save" onclick="downloadJOP()">💾 .jop 저장</button>
-    <button class="btn btn-export" onclick="downloadJPC()">🚀 .jpc 내보내기</button>
-    <button class="btn btn-load" onclick="document.getElementById('file-input').click()"> .jop 불러오기</button>
-    <input type="file" id="file-input" accept=".jop" style="display:none" onchange="loadJOP(event)">
-  </div>
-
-  <div class="editor-container">
-    <div class="panel">
-      <textarea id="jocp-input" oninput="render()" spellcheck="false">~meta
-제목: JOCP 테스트
-저자: 개발자
-날짜: 2026-07-18
-~
-
-!!!!!! JOCP 작동 테스트
-
-!!!!! 기본 문법
-
-이것은 ~기울임~이고, {굵게}이며, `밑줄+굵게` 입니다.
-
-* 리스트 1
-** 중첩 1
-* 리스트 2
-
-+ 할 일
-@ 완료된 일
-
-~quiz
-질문: JOCP에서 굵게 기호는?
-- {텍스트} (정답)
-- *텍스트*
-~
-
-~video
-소스: https://youtu.be/QQyYCAvkOXY
-제목: 뽀로로
-~
-
-~game
-제목: 테스트 게임
-html:
-<div class="box">
-  <div class="circle"></div>
-</div>
-css:
-.box { width: 100%; height: 200px; background: #1a1a1a; position: relative; }
-.circle { width: 30px; height: 30px; background: #ff6b6b; border-radius: 50%; position: absolute; }
-js:
-const el = this.querySelector('.circle');
-let x = 0, dx = 2;
-function loop() {
-  x += dx;
-  if (x > 370 || x < 0) dx = -dx;
-  el.style.left = x + 'px';
-  el.style.top = '85px';
-  requestAnimationFrame(loop);
-}
-loop();
-~
-</textarea>
-    </div>
-    <div class="panel">
-      <div id="preview"></div>
-    </div>
-  </div>
-
-  <script>
-    const JOCP = (function() {
-      'use strict';
+  <div id="app">${rendered}</div>
+</body>
+</html>`;
       
-      let scriptStore = [];
-      let metaData = {};
-
-      const REGEX = {
-        heading: /^(!{1,6})\s+(.+)$/,
-        table: /^#\s/,
-        listUnordered: /^(\*{1,6})\s+(.+)$/,
-        listOrdered: /^(\d{1,3})\s+(.+)$/,
-        checkboxTodo: /^\+\s+(.+)$/,
-        checkboxDone: /^@\s+(.+)$/,
-        hr: /^-{3,}\s*$/,
-        copyBlock: /^~\s*$/,
-        metaBlock: /^~meta\s*$/,
-        templateQuiz: /^~quiz\s*$/,
-        templateGallery: /^~gallery\s*$/,
-        templateVideo: /^~video\s*$/,
-        templateAudio: /^~audio\s*$/,
-        templateGUI: /^~gui\s*$/,
-        templateGame: /^~game\s*$/,
-        inlineComment: /%%[^%]*%%/g,
-        inlineImage: /!\{([^}]+)\}/g,
-        inlineHyperlink: /=([^=]+)=\[([^\]]+)\]/g,
-        inlineAnchor: /\[([^\]]+)\]\[([^\]]+)\]/g,
-        inlineLink: /\[\[([^\]]+)\]\]/g,
-        inlineQuote: /&([^&]+)&/g,
-        inlineBoldUnder: /`([^`]+)`/g,
-        inlineColor: /\?([^?]+)\?<(\d{1,3},\d{1,3},\d{1,3})>/g,
-        inlineOpacity: /\^([^^]+)\^(\d{1,3})%/g,
-        inlineBold: /\{([^}]+)\}/g,
-        inlineItalic: /~([^~]+)~/g,
-        inlineDel: /_([^_]+)_/g,
-        youtube: /(?:youtube\.com\/(?:shorts\/|[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-      };
-
-      function escapeHtml(text) {
-        if (text == null) return '';
-        const str = String(text);
-        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-        return str.replace(/[&<>"']/g, m => map[m]);
-      }
-
-      function escapeAttr(text) {
-        return escapeHtml(text).replace(/\n/g, ' ').replace(/\r/g, '');
-      }
-
-      function slugify(text) {
-        if (!text) return 'untitled';
-        return String(text).replace(/\s+/g, '-').replace(/[^\w\-가-ㄱ-ㅎㅏ-ㅣ]/g, '').toLowerCase() || 'untitled';
-      }
-
-      function parseInline(text) {
-        if (text == null) return '';
-        const tokens = [];
-        const store = (html) => {
-          const token = `§J${tokens.length}§`;
-          tokens.push(html);
-          return token;
-        };
-
-        let result = String(text);
-        result = result.replace(REGEX.inlineComment, '');
-        result = result.replace(REGEX.inlineImage, (m, src) => store(`<img src="${escapeAttr(src)}" alt="image" style="max-width:100%;border-radius:4px;" />`));
-        result = result.replace(REGEX.inlineHyperlink, (m, label, url) => store(`<a href="${escapeAttr(url)}" target="_blank">${escapeHtml(label)}</a>`));
-        result = result.replace(REGEX.inlineAnchor, (m, target, label) => store(`<a href="#${slugify(target)}" class="jocp-anchor">${escapeHtml(label)}</a>`));
-        result = result.replace(REGEX.inlineLink, (m, url) => store(`<a href="${escapeAttr(url)}" target="_blank">${escapeHtml(url)}</a>`));
-        result = result.replace(REGEX.inlineQuote, (m, content) => store(`<blockquote>${escapeHtml(content)}</blockquote>`));
-        result = result.replace(REGEX.inlineBoldUnder, (m, content) => store(`<ins><strong>${escapeHtml(content)}</strong></ins>`));
-        result = result.replace(REGEX.inlineColor, (m, content, rgb) => store(`<span style="color:rgb(${rgb})">${escapeHtml(content)}</span>`));
-        result = result.replace(REGEX.inlineOpacity, (m, content, percent) => store(`<span style="opacity:${Math.min(100, Math.max(0, parseInt(percent) || 0)) / 100}">${escapeHtml(content)}</span>`));
-        result = result.replace(REGEX.inlineBold, (m, content) => store(`<strong>${escapeHtml(content)}</strong>`));
-        result = result.replace(REGEX.inlineItalic, (m, content) => store(`<em>${escapeHtml(content)}</em>`));
-        result = result.replace(REGEX.inlineDel, (m, content) => store(`<del>${escapeHtml(content)}</del>`));
-
-        return result.replace(/§J(\d+)§/g, (m, idx) => tokens[parseInt(idx)] || '');
-      }
-
-      function parseMetaTemplate(lines, startIdx) {
-        metaData = {};
-        let i = startIdx + 1;
-        while (i < lines.length && !REGEX.copyBlock.test(lines[i])) {
-          const line = lines[i];
-          const colonIdx = line.indexOf(':');
-          if (colonIdx !== -1) {
-            const key = line.substring(0, colonIdx).trim();
-            const value = line.substring(colonIdx + 1).trim();
-            if (key) metaData[key] = value;
-          }
-          i++;
-        }
-        return { nextIdx: i };
-      }
-
-      function renderMetaData() {
-        if (Object.keys(metaData).length === 0) return '';
-        const title = metaData['제목'] || metaData['title'] || '제목 없음';
-        const author = metaData['저자'] || metaData['author'] || '';
-        const date = metaData['날짜'] || metaData['date'] || '';
-        const tags = metaData['태그'] || metaData['tags'] || '';
-        const desc = metaData['설명'] || metaData['description'] || '';
-
-        let html = `<div class="jocp-meta-box">`;
-        html += `<div class="jocp-meta-title">${escapeHtml(title)}</div>`;
-        html += `<div class="jocp-meta-info">`;
-        if (author) html += `<div class="jocp-meta-item">✍️ ${escapeHtml(author)}</div>`;
-        if (date) html += `<div class="jocp-meta-item">📅 ${escapeHtml(date)}</div>`;
-        if (tags) html += `<div class="jocp-meta-item">️ ${escapeHtml(tags)}</div>`;
-        html += `</div>`;
-        if (desc) html += `<div class="jocp-meta-desc">${escapeHtml(desc)}</div>`;
-        html += `<button class="jocp-meta-toggle" onclick="this.nextElementSibling.classList.toggle('hidden'); this.textContent = this.nextElementSibling.classList.contains('hidden') ? ' 메타데이터 보기' : '📋 메타데이터 숨기기';">📋 메타데이터 숨기기</button>`;
-        html += `<div class="jocp-meta-details">`;
-        const reservedKeys = ['제목', 'title', '저자', 'author', '날짜', 'date', '태그', 'tags', '설명', 'description'];
-        for (const [key, value] of Object.entries(metaData)) {
-          if (!reservedKeys.includes(key)) {
-            html += `<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}</div>`;
-          }
-        }
-        html += `</div></div>`;
-        return html;
-      }
-
-      function parseQuizTemplate(lines, startIdx) {
-        let i = startIdx + 1;
-        let question = '';
-        const options = [];
-        let correctIndex = -1;
-        while (i < lines.length && !REGEX.copyBlock.test(lines[i])) {
-          const line = lines[i].trim();
-          if (line.startsWith('질문:')) question = line.substring(3).trim();
-          else if (line.startsWith('- ')) {
-            const optText = line.substring(2);
-            if (optText.includes('(정답)')) {
-              correctIndex = options.length;
-              options.push(optText.replace('(정답)', '').trim());
-            } else {
-              options.push(optText);
-            }
-          }
-          i++;
-        }
-        let html = `<div class="jocp-quiz"><div class="jocp-quiz-title">📝 ${parseInline(question)}</div>`;
-        options.forEach((opt, idx) => {
-          html += `<div class="jocp-quiz-option" onclick="JOCP.checkQuiz(this, ${idx}, ${correctIndex})">${parseInline(opt)}</div>`;
-        });
-        html += `</div>`;
-        return { html, nextIdx: i };
-      }
-
-      function parseGalleryTemplate(lines, startIdx) {
-        let i = startIdx + 1;
-        let title = '갤러리';
-        const images = [];
-        while (i < lines.length && !REGEX.copyBlock.test(lines[i])) {
-          const line = lines[i].trim();
-          if (line.startsWith('제목:')) title = line.substring(3).trim();
-          else if (line.startsWith('- ')) {
-            const url = line.substring(2).trim();
-            if (url) images.push(url);
-          }
-          i++;
-        }
-        let html = `<div class="jocp-gallery"><div class="jocp-gallery-title">️ ${parseInline(title)}</div><div class="jocp-gallery-grid">`;
-        images.forEach(img => {
-          html += `<img src="${escapeAttr(img)}" alt="gallery" loading="lazy" />`;
-        });
-        html += `</div></div>`;
-        return { html, nextIdx: i };
-      }
-
-      function parseVideoTemplate(lines, startIdx) {
-        let i = startIdx + 1;
-        let source = '';
-        let title = '동영상';
-        while (i < lines.length && !REGEX.copyBlock.test(lines[i])) {
-          const line = lines[i].trim();
-          if (line.startsWith('소스:')) source = line.substring(3).trim();
-          else if (line.startsWith('제목:')) title = line.substring(3).trim();
-          i++;
-        }
-        let mediaHTML = '';
-        const ytMatch = source.match(REGEX.youtube);
-        if (ytMatch) {
-          const videoId = ytMatch[1];
-          mediaHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
-        } else if (source) {
-          mediaHTML = `<video controls src="${escapeAttr(source)}" preload="metadata"></video>`;
-        }
-        return { html: `<div class="jocp-media"><div class="jocp-media-title">🎬 ${parseInline(title)}</div>${mediaHTML}</div>`, nextIdx: i };
-      }
-
-      function parseAudioTemplate(lines, startIdx) {
-        let i = startIdx + 1;
-        let source = '';
-        let title = '음악';
-        while (i < lines.length && !REGEX.copyBlock.test(lines[i])) {
-          const line = lines[i].trim();
-          if (line.startsWith('소스:')) source = line.substring(3).trim();
-          else if (line.startsWith('제목:')) title = line.substring(3).trim();
-          i++;
-        }
-        const audioHTML = source ? `<audio controls src="${escapeAttr(source)}" preload="metadata"></audio>` : '';
-        return { html: `<div class="jocp-media"><div class="jocp-media-title">🎵 ${parseInline(title)}</div>${audioHTML}</div>`, nextIdx: i };
-      }
-
-      function parseGUITemplate(lines, startIdx) {
-        let i = startIdx + 1;
-        let title = 'GUI';
-        const buttons = [];
-        while (i < lines.length && !REGEX.copyBlock.test(lines[i])) {
-          const line = lines[i].trim();
-          if (line.startsWith('제목:')) title = line.substring(3).trim();
-          else if (line.startsWith('- ')) {
-            const btnText = line.substring(2);
-            const colonIdx = btnText.indexOf(':');
-            if (colonIdx !== -1) {
-              const label = btnText.substring(0, colonIdx).trim();
-              const code = btnText.substring(colonIdx + 1).trim();
-              if (label && code) buttons.push({ label, code });
-            }
-          }
-          i++;
-        }
-        let html = `<div class="jocp-gui"><div class="jocp-gui-title">🎛️ ${parseInline(title)}</div>`;
-        buttons.forEach((btn) => {
-          const id = scriptStore.length;
-          scriptStore.push(btn.code);
-          html += `<button class="jocp-gui-btn" onclick="JOCP.executeScript(${id})">${parseInline(btn.label)}</button>`;
-        });
-        html += `</div>`;
-        return { html, nextIdx: i };
-      }
-
-      function parseGameTemplate(lines, startIdx) {
-        let i = startIdx + 1;
-        let title = '게임';
-        let htmlContent = '';
-        let cssContent = '';
-        let jsContent = '';
-        let currentSection = '';
-        while (i < lines.length && !REGEX.copyBlock.test(lines[i])) {
-          const line = lines[i];
-          if (line.startsWith('제목:')) {
-            title = line.substring(3).trim();
-            currentSection = '';
-          } else if (/^html:\s*$/.test(line.trim())) currentSection = 'html';
-          else if (/^css:\s*$/.test(line.trim())) currentSection = 'css';
-          else if (/^js:\s*$/.test(line.trim())) currentSection = 'js';
-          else if (currentSection === 'html') htmlContent += line + '\n';
-          else if (currentSection === 'css') cssContent += line + '\n';
-          else if (currentSection === 'js') jsContent += line + '\n';
-          i++;
-        }
-        const gameId = 'game_' + Math.random().toString(36).substr(2, 9);
-        const scriptId = scriptStore.length;
-        scriptStore.push(jsContent);
-        const parsedHtml = parseInline(htmlContent);
-        const html = `<div class="jocp-game" id="${gameId}"><div class="jocp-game-title">🎮 ${parseInline(title)}</div><style>${cssContent}</style><div class="jocp-game-container">${parsedHtml}</div></div>`;
-        setTimeout(() => {
-          const el = document.getElementById(gameId);
-          if (el) {
-            const container = el.querySelector('.jocp-game-container');
-            if (container) {
-              try {
-                new Function(scriptStore[scriptId]).call(container);
-              } catch (e) {
-                console.error('Game error:', e);
-              }
-            }
-          }
-        }, 100);
-        return { html, nextIdx: i };
-      }
-
-      function parseBlock(lines) {
-        let html = '';
-        let i = 0;
-        let metaRendered = false;
-        while (i < lines.length) {
-          const line = lines[i];
-          if (REGEX.metaBlock.test(line) && !metaRendered) {
-            const r = parseMetaTemplate(lines, i);
-            html += renderMetaData();
-            i = r.nextIdx;
-            metaRendered = true;
-            continue;
-          }
-          if (REGEX.templateQuiz.test(line)) { const r = parseQuizTemplate(lines, i); html += r.html; i = r.nextIdx; continue; }
-          if (REGEX.templateGallery.test(line)) { const r = parseGalleryTemplate(lines, i); html += r.html; i = r.nextIdx; continue; }
-          if (REGEX.templateVideo.test(line)) { const r = parseVideoTemplate(lines, i); html += r.html; i = r.nextIdx; continue; }
-          if (REGEX.templateAudio.test(line)) { const r = parseAudioTemplate(lines, i); html += r.html; i = r.nextIdx; continue; }
-          if (REGEX.templateGUI.test(line)) { const r = parseGUITemplate(lines, i); html += r.html; i = r.nextIdx; continue; }
-          if (REGEX.templateGame.test(line)) { const r = parseGameTemplate(lines, i); html += r.html; i = r.nextIdx; continue; }
-          if (REGEX.copyBlock.test(line)) {
-            let content = '';
-            i++;
-            while (i < lines.length && !REGEX.copyBlock.test(lines[i])) {
-              content += lines[i] + '\n';
-              i++;
-            }
-            i++;
-            html += `<div class="jocp-copy-block"><button class="copy-btn" onclick="JOCP.copyText(this)">복사</button><pre><code>${escapeHtml(content.trim())}</code></pre></div>`;
-            continue;
-          }
-          if (REGEX.table.test(line)) {
-            const rows = [];
-            while (i < lines.length && REGEX.table.test(lines[i])) {
-              const cells = lines[i].split('#').map(c => c.trim()).filter(c => c !== '');
-              if (cells.length > 0) rows.push(cells);
-              i++;
-            }
-            if (rows.length > 0) {
-              html += '<table>';
-              rows.forEach((row, idx) => {
-                const tag = idx === 0 ? 'th' : 'td';
-                html += '<tr>' + row.map(cell => `<${tag}>${parseInline(cell)}</${tag}>`).join('') + '</tr>';
-              });
-              html += '</table>';
-            }
-            continue;
-          }
-          if (REGEX.listUnordered.test(line)) {
-            let listHtml = '<ul>';
-            let prevLevel = 0;
-            while (i < lines.length && REGEX.listUnordered.test(lines[i])) {
-              const match = lines[i].match(REGEX.listUnordered);
-              if (!match) break;
-              const level = match[1].length;
-              const content = match[2];
-              if (level > prevLevel) for (let j = 0; j < level - prevLevel; j++) listHtml += '<ul>';
-              else if (level < prevLevel) for (let j = 0; j < prevLevel - level; j++) listHtml += '</ul>';
-              listHtml += `<li>${parseInline(content)}</li>`;
-              prevLevel = level;
-              i++;
-            }
-            for (let j = 0; j < prevLevel; j++) listHtml += '</ul>';
-            html += listHtml;
-            continue;
-          }
-          if (REGEX.listOrdered.test(line)) {
-            html += '<ol>';
-            while (i < lines.length && REGEX.listOrdered.test(lines[i])) {
-              const match = lines[i].match(REGEX.listOrdered);
-              if (!match) break;
-              html += `<li>${parseInline(match[2])}</li>`;
-              i++;
-            }
-            html += '</ol>';
-            continue;
-          }
-          if (REGEX.heading.test(line)) {
-            const match = line.match(REGEX.heading);
-            if (match) {
-              const level = 7 - match[1].length;
-              const titleText = match[2];
-              html += `<h${level} id="${slugify(titleText)}">${parseInline(titleText)}</h${level}>`;
-            }
-            i++;
-            continue;
-          }
-          if (REGEX.hr.test(line)) { html += '<hr />'; i++; continue; }
-          if (REGEX.checkboxTodo.test(line)) {
-            const match = line.match(REGEX.checkboxTodo);
-            if (match) html += `<label class="jocp-checkbox"><input type="checkbox"> ${parseInline(match[1])}</label>`;
-            i++;
-            continue;
-          }
-          if (REGEX.checkboxDone.test(line)) {
-            const match = line.match(REGEX.checkboxDone);
-            if (match) html += `<label class="jocp-checkbox completed"><input type="checkbox" checked disabled> ${parseInline(match[1])}</label>`;
-            i++;
-            continue;
-          }
-          if (line.trim() === '') { i++; continue; }
-          html += `<p>${parseInline(line)}</p>`;
-          i++;
-        }
-        return html;
-      }
-
-      return {
-        get scriptStore() { return scriptStore; },
-        get metaData() { return metaData; },
-        parse: function(text) {
-          scriptStore = [];
-          metaData = {};
-          if (text == null) return '';
-          return parseBlock(String(text).split('\n'));
-        },
-        checkQuiz: function(el, idx, correct) {
-          const parent = el.parentElement;
-          if (!parent) return;
-          const opts = parent.querySelectorAll('.jocp-quiz-option');
-          opts.forEach((opt, i) => {
-            opt.classList.remove('correct', 'wrong');
-            if (i === correct) opt.classList.add('correct');
-            else if (i === idx) opt.classList.add('wrong');
-          });
-        },
-        executeScript: function(id) {
-          const code = scriptStore[id];
-          if (code) {
-            try {
-              new Function(code)();
-            } catch (e) {
-              console.error('Script error:', e);
-              alert('스크립트 오류: ' + e.message);
-            }
-          }
-        },
-        copyText: function(btn) {
-          const block = btn.closest('.jocp-copy-block');
-          if (!block) return;
-          const code = block.querySelector('code');
-          if (!code) return;
-          const text = code.innerText;
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(text).then(() => {
-              const original = btn.textContent;
-              btn.textContent = '복사 완료! ✔';
-              setTimeout(() => { btn.textContent = original; }, 1500);
-            });
-          }
-        },
-        render: function(inputId, previewId) {
-          const input = document.getElementById(inputId);
-          const preview = document.getElementById(previewId);
-          if (!input || !preview) return;
-          const update = () => {
-            preview.innerHTML = this.parse(input.value);
-          };
-          input.addEventListener('input', update);
-          update();
-        }
-      };
-    })();
-
-    function render() {
-      const input = document.getElementById('jocp-input');
-      const preview = document.getElementById('preview');
-      if (input && preview) {
-        preview.innerHTML = JOCP.parse(input.value);
-      }
-    }
-
-    function downloadJOP() {
-      const input = document.getElementById('jocp-input');
-      if (!input) return;
-      const blob = new Blob([input.value], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'document.jop';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    function downloadJPC() {
-      const input = document.getElementById('jocp-input');
-      if (!input) return;
-      const source = input.value;
-      const rendered = JOCP.parse(source);
-      const meta = JOCP.metaData;
-      const title = meta['제목'] || meta['title'] || 'JOCP Document';
-      const metaTags = Object.entries(meta).map(([k, v]) => `<meta name="${escapeHtml(k)}" content="${escapeHtml(v)}">`).join('\n      ');
-      const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title>${metaTags}<style>body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:20px;}.jocp-meta-box{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:20px;border-radius:12px;margin-bottom:25px;}.jocp-meta-title{font-size:2em;font-weight:bold;margin-bottom:10px;}.jocp-quiz,.jocp-gallery,.jocp-media,.jocp-gui,.jocp-game{background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:20px;margin:15px 0;}.jocp-quiz-option{display:block;padding:10px;margin:8px 0;border:1px solid #dee2e6;border-radius:6px;cursor:pointer;background:white;}.jocp-quiz-option.correct{background:#d4edda;border-color:#c3e6cb;}.jocp-quiz-option.wrong{background:#f8d7da;border-color:#f5c6cb;}.jocp-gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;}.jocp-gallery-grid img{width:100%;height:150px;object-fit:cover;border-radius:6px;cursor:pointer;}.jocp-media video,.jocp-media audio,.jocp-media iframe{width:100%;border-radius:6px;}.jocp-gui-btn{display:inline-block;padding:10px 20px;margin:5px;background:#4a9eff;color:white;border:none;border-radius:6px;cursor:pointer;}.jocp-game-container{border:2px solid #333;border-radius:6px;overflow:hidden;background:#000;}.jocp-copy-block{position:relative;background:#212529;color:#f8f9fa;padding:15px;border-radius:8px;margin:15px 0;}.jocp-copy-block pre{margin:0;white-space:pre-wrap;}.copy-btn{position:absolute;top:10px;right:10px;background:#4a9eff;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;}.jocp-checkbox{display:block;margin:8px 0;}.jocp-checkbox.completed{color:#999;text-decoration:line-through;}hr{border:none;border-top:2px solid #eee;margin:24px 0;}table{border-collapse:collapse;width:100%;margin:15px 0;}th,td{border:1px solid #dee2e6;padding:10px 15px;text-align:left;}th{background:#f8f9fa;}a{color:#4a9eff;}blockquote{border-left:4px solid #4a9eff;padding:10px 20px;background:#f8f9fa;margin:15px 0;}</style></head><body><div id="app">${rendered}</div></body></html>`;
-      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const blob = new Blob([html], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'document.jpc';
-      document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
 
     function loadJOP(event) {
-      const file = event.target.files && event.target.files[0];
+      const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
-        const input = document.getElementById('jocp-input');
-        if (input) {
-          input.value = e.target.result;
-          render();
-        }
+        document.getElementById('input').value = e.target.result;
+        render();
       };
-      reader.readAsText(file, 'UTF-8');
-      event.target.value = '';
+      reader.readAsText(file);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      render();
-    });
+    render();
   </script>
 </body>
 </html>
