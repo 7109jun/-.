@@ -4,7 +4,7 @@ AVE studio3가 만들어졌고 4단계로 분류됩니다'
 심화:1시간정도 투자하면 꽤 완성도 있음
 제작자: 많은것을 정의해야하며 하면 꽤 뿌듯함이 있을것임.
 코드:
-<!DOCTYPE html>
+```<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -1175,4 +1175,4 @@ renderUserExamples();
 updateAll();
 </script>
 </body>
-</html>
+</html>```
