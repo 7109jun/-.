@@ -1,10 +1,10 @@
-좁시디언의 관해
+# 좁시디언의 관해
 좁시디언은 JOCP의 동생이며
 좋은점과 안 좋은점이 있습니다.
 좋은점: 1. HTML을 생성할수 있다 2. mp3 mp4 유튜브 영상을 재생 가능하다3. 다운로드가 가능하다
 나쁜점 1.개성이 너무 넘치다2. JOCP에 비해 너무 어렵다 3.기능이 너무 많아 좁시디언의 철학이 흐려진다
 코드를 드리겠습니다
-<!DOCTYPE html>
+```<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -167,4 +167,4 @@ URL.revokeObjectURL(u);
 render();
 </script>
 </body>
-</html>
+</html>```
