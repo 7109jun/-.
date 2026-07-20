@@ -1,5 +1,5 @@
 코드2 자세한건 1에서 보기 https://github.com/7109jun/-./blob/main/Jopsydian
-<!DOCTYPE html>
+```<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -627,4 +627,4 @@ console.log("복사 블록!");
     });
   </script>
 </body>
-</html>
+</html>```
