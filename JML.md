@@ -1,6 +1,6 @@
 # 님드라. XML이 너무 싫어서
-## JML이라는것을 만들었는데 원리는 이러함요. 
-### AI가 설명하다 by Gemini
+## JML이라는것을 만들었는데 원리는 이러함요. 그리고 31븐동안 만들엇으니까 ㅋ 뭐라 하지 마셈. 
+### AI가 설명하다 by Gemini 
 # JML v3.1: A Lightweight Data Interchange Format for Ultra-High Density Data Transmission
 
 > **Author**: JML Open Specification Group  
