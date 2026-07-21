@@ -1,4 +1,5 @@
 # JWON (JWON Object Notation) v4.1
+### 님들아 이건 엄청남 ㅋ 이거 JSON 저장해야하는데 용량 없으면 좋음 ㅋ 71븐 동안 만듬 ㅋ(메모장 같은 환경에서 좋음 )
 
 > CUP(Core Ultra Parser) 및 AI 컨텍스트 최적화를 위해 설계된 초경량 ASCII 데이터 직렬화 포맷
 
