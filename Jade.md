@@ -1,4 +1,4 @@
-# 님드라 안녕하세요 ㅋ Jade만듦 귀찮으니까 GPT가 설명함
+# 님드라 안녕하세요 ㅋ Jade만듦 귀찮으니까 GPT가 설명함 Jake Jun a Korean Fried chicken Devour End
 # 💎 Jade Protocol
 
 Jade는 JSON을 더 간단하고 읽기 쉬운 형태로 표현하기 위한 데이터 포맷입니다.
